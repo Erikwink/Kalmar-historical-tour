@@ -1,62 +1,86 @@
 import { useEffect, useState } from "react";
-import "./App.css";
-import { scenes } from "./scenes";
-import StatusBar from "./components/statusBar";
 import { adapter } from "./adapter-mock";
-import SceneBtn from "./components/sceneBtn";
+import SessionPage from "./pages/SessionPage";
+import MainPage from "./pages/MainPage";
 
 const statusMap = {
   CONNECTED: "Connected",
   CONNECTING: "Connecting",
   ERROR: "Error",
-  DISCONNECTED: "Disconnected",
 };
-
+/** Generate session id.
+ * 
+ * @returns 6-digit number
+ */
+function generateSessionId() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
 
 function App() {
-  const [activeScene, setActivescene] = useState(null);
-  const [status, setStatus] = useState(null);
+  const [page, setPage] = useState("session");
+  const [activeScene, setActiveScene] = useState("waiting");
+  const [SaasStatus, setSaasStatus] = useState(null);
+  const [headsets, setHeadsets] = useState([]);
+  const [sessionId] = useState(generateSessionId);
 
   useEffect(() => {
-    // connect to headset
+    // subscribe to headsets
+    const unsubscribe = adapter.onHeadsetsChange(setHeadsets);
+
+    // connect to backend/Saas
     async function init() {
       try {
-        setStatus(statusMap.CONNECTING);
-        await adapter.connect();
-        setStatus(statusMap.CONNECTED);
+        setSaasStatus(statusMap.CONNECTING);
+        await adapter.connect(sessionId);
+        setSaasStatus(statusMap.CONNECTED);
       } catch (e) {
         console.error("failed to connect to adapter:", e);
-        setStatus(statusMap.ERROR);
+        setSaasStatus(statusMap.ERROR);
       }
     }
     init();
-  }, []);
 
+    return unsubscribe;
+  }, [sessionId]);
+
+  /** Send scene to backend and set scene active.
+   * 
+   * @param {String} sceneId - Value beeing sent to Saas
+   */
   async function handleScenePress(sceneId) {
     try {
-      // när adapter / connection till Saas är på plats
-      await adapter.publish(sceneId);
-      setActivescene(sceneId);
+      await adapter.publish(sceneId, sessionId);
+      setActiveScene(sceneId);
     } catch (e) {
       console.error("failed to publish scene:", e);
-      setStatus("error");
+      setSaasStatus(statusMap.ERROR);
     }
   }
+
+  if (page === "session") {
+    return (
+      <SessionPage
+        sessionId={sessionId}
+        headsets={headsets}
+        adapterStatus={SaasStatus}
+        onStart={() => setPage("main")}
+      />
+    );
+  }
+
   return (
     <>
-      <h1>Welcome to controller APP</h1>
-      <StatusBar
-        status={status}
-        activeScene={scenes.find((s) => s.id === activeScene)}
-      />
-      {scenes.map((scene) => (
-        <SceneBtn 
-          key={scene.id}
-          scene={scene}
-          onClick={() => handleScenePress(scene.id)}
-          />
-      ))}
-      
+    <MainPage
+      headsets={headsets}
+      adapterStatus={SaasStatus}
+      activeScene={activeScene}
+      onScenePress={handleScenePress}
+    />
+    <button 
+      className="start-btn"
+      onClick={() => {
+        setPage('session')
+    }}>Back</button>
     </>
   );
 }
