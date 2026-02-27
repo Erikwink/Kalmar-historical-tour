@@ -1,14 +1,62 @@
+export const HEADSET_STATUS = {
+  CONNECTED:    'Connected',
+  CONNECTING:   'Connecting',
+  ERROR:        'Error',
+  DISCONNECTED: 'Disconnected',
+}
 
+const INITIAL_HEADSETS = [
+  { id: 'hs-1', label: 'Headset 1', status: 'Disconnected' },
+  { id: 'hs-2', label: 'Headset 2', status: 'Disconnected' },
+  { id: 'hs-3', label: 'Headset 3', status: 'Disconnected' },
+  { id: 'hs-4', label: 'Headset 4', status: 'Disconnected' },
+]
+
+// create copy of headsets
+let headsets = INITIAL_HEADSETS.map(h => ({ ...h }))
+// initiate array of callbacks
+let listeners = []
+
+// helper changes status on headset via id
+// notifies listeners with updated headsets
+function setHeadset(id, status) {
+  headsets = headsets.map(h => h.id === id ? { ...h, status } : h)
+  listeners.forEach(cb => cb([...headsets]))
+}
+// spara active scene i adapter, för att kunna skicka till headset vid återanslutning
+//let activescene = null
 
 export const adapter = {
-  publish: async (sceneId) => {
+
+  
+
+  // real adapter stores lastScene here to re-send on headset reconnect
+  publish: async (sceneId, sessionId) => {
+    // activescene = sceneId
     console.log('Scene triggered:', sceneId)
+    console.log('Active session:', sessionId)
   },
 
-  connect: async (db) => {
-    db = "firebase"
-    console.log(`connected to ${db}`)
-  }
+  // Simulates headset connections
+  // all connecting then different behaviours
+   
+  connect: async (sessionId) => {
+    console.log('connected to firebase, session:', sessionId)
 
+    // All start connecting
+    headsets = headsets.map(h => ({ ...h, status: 'Connecting' }))
+    listeners.forEach(cb => cb([...headsets]))
 
+    // set status on headsets after timeout
+    setTimeout(() => setHeadset('hs-1', 'Connected'), 2000)
+    setTimeout(() => setHeadset('hs-3', 'Error'), 4000)
+    setTimeout(() => setHeadset('hs-4', 'Connected'), 3000)
+    setTimeout(() => setHeadset('hs-4', 'Disconnected'), 6000)
+  },
+
+  onHeadsetsChange: (cb) => {
+    listeners.push(cb)
+    cb([...headsets])
+    return () => { listeners = listeners.filter(l => l !== cb) }
+  },
 }
