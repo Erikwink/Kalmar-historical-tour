@@ -11,7 +11,7 @@ export default function SessionCard({ sessionId }) {
       <div className="session-card__info">
         <span className="session-card__label">Session</span>
         <span className="session-card__code">{formatted}</span>
-        <span className="session-card__tagline">Tourists scan to join this tour</span>
+        <span className="session-card__tagline">Scan to join this tour</span>
       </div>
     </div>
   )

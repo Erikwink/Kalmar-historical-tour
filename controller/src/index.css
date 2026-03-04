@@ -305,10 +305,10 @@ body {
   flex-shrink: 0;
 }
 
-.headset-item__avatar--Connected    { background: color-mix(in srgb, #4ade80 20%, transparent); color: #4ade80; }
-.headset-item__avatar--Connecting   { background: color-mix(in srgb, #facc15 20%, transparent); color: #facc15; }
-.headset-item__avatar--Error        { background: color-mix(in srgb, var(--md-error) 20%, transparent); color: var(--md-error); }
-.headset-item__avatar--Disconnected { background: var(--md-surface-container-highest); color: var(--md-on-surface-variant); }
+.headset-item__avatar--connected    { background: color-mix(in srgb, #4ade80 20%, transparent); color: #4ade80; }
+.headset-item__avatar--connecting   { background: color-mix(in srgb, #facc15 20%, transparent); color: #facc15; }
+.headset-item__avatar--error        { background: color-mix(in srgb, var(--md-error) 20%, transparent); color: var(--md-error); }
+.headset-item__avatar--disconnected { background: var(--md-surface-container-highest); color: var(--md-on-surface-variant); }
 
 .headset-item__label {
   flex: 1;

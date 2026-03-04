@@ -1,13 +1,7 @@
-const STATUS_DOT = {
-  Connected:    'connected',
-  Connecting:   'connecting',
-  Error:        'error',
-  Disconnected: 'disconnected',
-}
-
 export default function HeadsetList({ headsets, adapterStatus }) {
-  const connectedCount = headsets.filter(h => h.status === 'Connected').length
-  const dotClass = STATUS_DOT[adapterStatus] ?? 'disconnected'
+  const connectedCount = headsets.filter(h => h.status === 'connected').length
+  // null before first connection → default to disconnected style
+  const dotClass = adapterStatus ?? 'disconnected'
 
   return (
     <div>

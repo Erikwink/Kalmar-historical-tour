@@ -1,15 +1,15 @@
 export const HEADSET_STATUS = {
-  CONNECTED:    'Connected',
-  CONNECTING:   'Connecting',
-  ERROR:        'Error',
-  DISCONNECTED: 'Disconnected',
+  CONNECTED:    'connected',
+  CONNECTING:   'connecting',
+  ERROR:        'error',
+  DISCONNECTED: 'disconnected',
 }
 
 const INITIAL_HEADSETS = [
-  { id: 'hs-1', label: 'Headset 1', status: 'Disconnected' },
-  { id: 'hs-2', label: 'Headset 2', status: 'Disconnected' },
-  { id: 'hs-3', label: 'Headset 3', status: 'Disconnected' },
-  { id: 'hs-4', label: 'Headset 4', status: 'Disconnected' },
+  { id: 'hs-1', label: 'Headset 1', status: 'disconnected' },
+  { id: 'hs-2', label: 'Headset 2', status: 'disconnected' },
+  { id: 'hs-3', label: 'Headset 3', status: 'disconnected' },
+  { id: 'hs-4', label: 'Headset 4', status: 'disconnected' },
 ]
 
 // create copy of headsets
@@ -44,14 +44,14 @@ export const adapter = {
     console.log('connected to firebase, session:', sessionId)
 
     // All start connecting
-    headsets = headsets.map(h => ({ ...h, status: 'Connecting' }))
+    headsets = headsets.map(h => ({ ...h, status: 'connecting' }))
     listeners.forEach(cb => cb([...headsets]))
 
     // set status on headsets after timeout
-    setTimeout(() => setHeadset('hs-1', 'Connected'), 2000)
-    setTimeout(() => setHeadset('hs-3', 'Error'), 4000)
-    setTimeout(() => setHeadset('hs-4', 'Connected'), 3000)
-    setTimeout(() => setHeadset('hs-4', 'Disconnected'), 6000)
+    setTimeout(() => setHeadset('hs-1', 'connected'), 2000)
+    setTimeout(() => setHeadset('hs-3', 'error'), 4000)
+    setTimeout(() => setHeadset('hs-4', 'connected'), 3000)
+    setTimeout(() => setHeadset('hs-4', 'disconnected'), 6000)
   },
 
   onHeadsetsChange: (cb) => {

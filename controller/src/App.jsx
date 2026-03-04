@@ -4,11 +4,15 @@ import SessionPage from "./pages/SessionPage";
 import MainPage from "./pages/MainPage";
 
 const statusMap = {
-  CONNECTED: "Connected",
-  CONNECTING: "Connecting",
-  ERROR: "Error",
+  CONNECTED: "connected",
+  CONNECTING: "connecting",
+  ERROR: "error",
 };
 
+/** Generate session id.
+ * 
+ * @returns 6-digit number
+ */
 function generateSessionId() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -21,8 +25,12 @@ function App() {
   const [sessionId] = useState(generateSessionId);
 
   useEffect(() => {
+    // subscribe to headsets
     const unsubscribe = adapter.onHeadsetsChange(setHeadsets);
 
+    /** Connect to Firebase/backend
+     * 
+     */
     async function init() {
       try {
         setSaasStatus(statusMap.CONNECTING);
@@ -38,6 +46,10 @@ function App() {
     return unsubscribe;
   }, [sessionId]);
 
+   /** Send scene to backend and set active scene.
+   * 
+   * @param {String} sceneId - Value beeing sent to Saas
+   */
   async function handleScenePress(sceneId) {
     try {
       await adapter.publish(sceneId, sessionId);
