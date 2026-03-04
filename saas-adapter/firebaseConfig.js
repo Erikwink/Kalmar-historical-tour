@@ -1,7 +1,7 @@
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyA8LlVeCBjradiJkrPfa6IawrurzSMM9CM",
+  apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "historical-walk-a5d3a.firebaseapp.com",
   projectId: "historical-walk-a5d3a",
   storageBucket: "historical-walk-a5d3a.firebasestorage.app",
