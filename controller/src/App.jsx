@@ -8,10 +8,7 @@ const statusMap = {
   CONNECTING: "Connecting",
   ERROR: "Error",
 };
-/** Generate session id.
- * 
- * @returns 6-digit number
- */
+
 function generateSessionId() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
@@ -24,10 +21,8 @@ function App() {
   const [sessionId] = useState(generateSessionId);
 
   useEffect(() => {
-    // subscribe to headsets
     const unsubscribe = adapter.onHeadsetsChange(setHeadsets);
 
-    // connect to backend/Saas
     async function init() {
       try {
         setSaasStatus(statusMap.CONNECTING);
@@ -43,10 +38,6 @@ function App() {
     return unsubscribe;
   }, [sessionId]);
 
-  /** Send scene to backend and set scene active.
-   * 
-   * @param {String} sceneId - Value beeing sent to Saas
-   */
   async function handleScenePress(sceneId) {
     try {
       await adapter.publish(sceneId, sessionId);
@@ -69,19 +60,13 @@ function App() {
   }
 
   return (
-    <>
     <MainPage
       headsets={headsets}
       adapterStatus={SaasStatus}
       activeScene={activeScene}
       onScenePress={handleScenePress}
+      onBack={() => setPage("session")}
     />
-    <button 
-      className="start-btn"
-      onClick={() => {
-        setPage('session')
-    }}>Back</button>
-    </>
   );
 }
 
