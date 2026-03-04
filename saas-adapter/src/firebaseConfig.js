@@ -1,8 +1,9 @@
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
+export default {
   apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "historical-walk-a5d3a.firebaseapp.com",
+  databaseURL: "https://historical-walk-a5d3a-default-rtdb.europe-west1.firebasedatabase.app/",
   projectId: "historical-walk-a5d3a",
   storageBucket: "historical-walk-a5d3a.firebasestorage.app",
   messagingSenderId: "726112215514",
