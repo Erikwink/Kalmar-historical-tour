@@ -1,10 +1,10 @@
 # Förslag på adapter/backend-logic
 
 ## controller använder:
-- adapter.connect(sessionId)           ->  anslut som publisher
+- adapter.connect(sessionId)           ->  anslut som publisher  / skapa room
 - adapter.publish(sessionId, sceneId)  -> skicka scen till alla
 - adapter.onHeadsetsChange(sessionId, callback)  -> lyssna på presence
-- adapter.disconnect()
+- adapter.disconnect()                          -> ta bort room
 
 ## client använder:
 - adapter.join(sessionId, headsetId)        -> registrera + starta heartbeat
