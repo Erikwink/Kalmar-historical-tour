@@ -18,6 +18,16 @@ export class Firebase {
   }
 
   // -----------------------------
+  // Controller: skapa session
+  // -----------------------------
+  async connect(sessionId) {
+    // if room exists and is in use, send error back and let controller create new room id??
+    const sessionRef = ref(this.db, `rooms/${sessionId}`)
+    await update(sessionRef, { createdAt: Date.now() })
+  }
+
+
+  // -----------------------------
   // Controller: publicera scen
   // -----------------------------
   async publish(sessionId, sceneId) {
@@ -43,15 +53,17 @@ export class Firebase {
   // -----------------------------
   // Client: anslut headset
   // -----------------------------
-  async join(sessionId, clientId) {
+  async join(sessionId, clientId, label = clientId) {
     const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
 
     await set(clientRef, {
+      label,
       status: "online",
       lastSeenAt: Date.now(),
       ready: true,
       lastSceneId: null
     })
+    
 
     // Markera offline automatiskt om anslutning bryts
     onDisconnect(clientRef).update({
@@ -66,8 +78,17 @@ export class Firebase {
     const clientsRef = ref(this.db, `rooms/${sessionId}/clients`)
 
     return onValue(clientsRef, (snapshot) => {
-      callback(snapshot.val())
+      const val = snapshot.val()
+      callback(val ? Object.entries(val).map(([id, data]) => ({ id, ...data })) : [])
     })
+  }
+
+  // -----------------------------
+  // Client: heartbeat (skicka status + lastSeenAt)
+  // -----------------------------
+  async heartbeat(sessionId, clientId, status = "online") {
+    const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
+    await update(clientRef, { status, lastSeenAt: Date.now() })
   }
 
   // -----------------------------

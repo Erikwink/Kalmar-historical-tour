@@ -6,7 +6,7 @@ const adapter = new Firebase()
 // -----------------------------
 // Controller API
 // -----------------------------
-export const connect = adapter.join.bind(adapter)           // connect som publisher
+export const connect = adapter.connect.bind(adapter)        // skapa session
 export const publish = adapter.publish.bind(adapter)       // skicka scen till alla
 export const onHeadsetsChange = adapter.onHeadsetsChange.bind(adapter) // lyssna p책 presence
 export const disconnect = adapter.leave.bind(adapter)      // st채da upp vid st채ngning
@@ -15,5 +15,6 @@ export const disconnect = adapter.leave.bind(adapter)      // st채da upp vid st�
 // Client API
 // -----------------------------
 export const join = adapter.join.bind(adapter)             // registrera + starta heartbeat
-export const onSceneChange = adapter.onSceneChange.bind(adapter) // lyssna p책 scen-kommandon
+export const heartbeat = adapter.heartbeat.bind(adapter)   // skicka status + lastSeenAt
 export const leave = adapter.leave.bind(adapter)           // l채mna session
+export const onSceneChange = adapter.onSceneChange.bind(adapter) // lyssna p책 scen-kommandon
