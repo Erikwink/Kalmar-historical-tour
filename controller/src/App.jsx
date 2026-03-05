@@ -1,20 +1,20 @@
 import { useEffect, useState } from "react";
-import { adapter } from "./adapter-mock";
+import { connect, onHeadsetsChange, publish } from "../../saas-adapter/src/index"
 import SessionPage from "./pages/SessionPage";
 import MainPage from "./pages/MainPage";
+import { FIREBASE_STATUS } from "./utils/status_maps";
+import JoinMock from "./JoinMock"; // DEV: remove when real client exists
 
-const statusMap = {
-  CONNECTED: "connected",
-  CONNECTING: "connecting",
-  ERROR: "error",
-};
+
 
 /** Generate session id.
  * 
  * @returns 6-digit number
  */
 function generateSessionId() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  //return Math.floor(100000 + Math.random() * 900000).toString();
+  const num = 123456
+  return num.toString()
 }
 
 function App() {
@@ -26,19 +26,19 @@ function App() {
 
   useEffect(() => {
     // subscribe to headsets
-    const unsubscribe = adapter.onHeadsetsChange(setHeadsets);
+    const unsubscribe = onHeadsetsChange(sessionId, setHeadsets);
 
     /** Connect to Firebase/backend
-     * 
+     *
      */
     async function init() {
       try {
-        setSaasStatus(statusMap.CONNECTING);
-        await adapter.connect(sessionId);
-        setSaasStatus(statusMap.CONNECTED);
+        setSaasStatus(FIREBASE_STATUS.CONNECTING);
+        await connect(sessionId);
+        setSaasStatus(FIREBASE_STATUS.CONNECTED);
       } catch (e) {
         console.error("failed to connect to adapter:", e);
-        setSaasStatus(statusMap.ERROR);
+        setSaasStatus(FIREBASE_STATUS.ERROR);
       }
     }
     init();
@@ -52,22 +52,26 @@ function App() {
    */
   async function handleScenePress(sceneId) {
     try {
-      await adapter.publish(sceneId, sessionId);
+      await publish(sessionId, sceneId);
       setActiveScene(sceneId);
     } catch (e) {
       console.error("failed to publish scene:", e);
-      setSaasStatus(statusMap.ERROR);
+      setSaasStatus(FIREBASE_STATUS.ERROR);
     }
   }
 
   if (page === "session") {
     return (
-      <SessionPage
-        sessionId={sessionId}
-        headsets={headsets}
-        adapterStatus={SaasStatus}
-        onStart={() => setPage("main")}
-      />
+      <>
+        <SessionPage
+          sessionId={sessionId}
+          headsets={headsets}
+          adapterStatus={SaasStatus}
+          onStart={() => setPage("main")}
+        />
+        {/* REMOVE MOCK ONCE CLIENT IS IMPLEMENTED */}
+        <JoinMock sessionId={sessionId} headsets={headsets} />
+      </>
     );
   }
 

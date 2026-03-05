@@ -1,7 +1,7 @@
 export default function HeadsetList({ headsets, adapterStatus }) {
-  const connectedCount = headsets.filter(h => h.status === 'connected').length
+  const connectedCount = headsets.filter(h => h.status === 'online').length
   // null before first connection → default to disconnected style
-  const dotClass = adapterStatus ?? 'disconnected'
+  const dotClass = adapterStatus ?? 'offline'
 
   return (
     <div>

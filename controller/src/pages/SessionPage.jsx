@@ -1,12 +1,12 @@
 import SessionCard from '../components/sessionCard'
 import HeadsetList from '../components/headsetList'
-import { HEADSET_STATUS } from '../adapter-mock'
+import { HEADSET_STATUS } from "../utils/status_maps"
 
 export default function SessionPage({ sessionId, headsets, adapterStatus, onStart }) {
 
   // track number of headsets connected
   // cant start session with 0 headsets
-  const connectedCount = headsets.filter(h => h.status === HEADSET_STATUS.CONNECTED).length
+  const connectedCount = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length
 
   return (
     <div className="page">
