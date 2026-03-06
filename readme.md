@@ -30,8 +30,10 @@ cd saas-adapter
 npm install
 ```
 
-Copy `saas-adapter/example.env` to `saas-adapter/.env` and fill in your Firebase credentials.
+Copy `saas-adapter/example.env` to `controller/.env` and fill in your Firebase credentials.
 
 ## Docs
 
 - [System flow & API](./docs/flow.md)
+- [Component-diagram](./docs/component-diagram.md)
+- [Class-diagram](./docs/class-diagram.md)
