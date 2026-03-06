@@ -4,10 +4,13 @@
 - adapter.connect(sessionId)           ->  anslut som publisher  / skapa room
 - adapter.publish(sessionId, sceneId)  -> skicka scen till alla
 - adapter.onHeadsetsChange(sessionId, callback)  -> lyssna på presence
+
+## Offline / online
+När ett headset ansluter via `join` sätts dess `status` till `offline`. Guiden kan sedan trycka en knapp i kontrollappen för att skicka en `heartbeat` med status `online` när deltagaren är redo. Detta gör att headsetet visas som aktivt i listan.
 - adapter.disconnect()                          -> ta bort room
 
 ## client använder:
-- adapter.join(sessionId, headsetId)        -> registrera + starta heartbeat
+- adapter.join(sessionId, headsetId)        -> registrera + starta heartbeat (headset får status "offline" tills den skickar första heartbeat)
 - adapter.onSceneChange(sessionId, callback) -> lyssna på scen-kommandon
 - adapter.leave(sessionId, headsetId)        -> städa upp vid stängning
 
