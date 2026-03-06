@@ -5,25 +5,25 @@ import { join, leave, heartbeat } from "../../saas-adapter/src/index";
 
 export default function JoinMock({ sessionId, headsets }) {
   const counter = useRef(1);
-  const statusRef = useRef("online");
-  const [timerActive, setTimerActive] = useState(false);
+  // const statusRef = useRef("online");
+  // const [timerActive, setTimerActive] = useState(false);
 
-  useEffect(() => {
-    if (!timerActive) return;
-    const interval = setInterval(() => {
-      statusRef.current = statusRef.current === "online" ? "offline" : "online";
-      heartbeat(sessionId, "mock-headset-1", statusRef.current);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [timerActive, sessionId]);
+  // useEffect(() => {
+  //   if (!timerActive) return;
+  //   const interval = setInterval(() => {
+  //     statusRef.current = statusRef.current === "online" ? "offline" : "online";
+  //     heartbeat(sessionId, "mock-headset-1", statusRef.current);
+  //   }, 5000);
+  //   return () => clearInterval(interval);
+  // }, [timerActive, sessionId]);
 
-  async function addHeadset() {
-    const n = counter.current++;
-    await join(sessionId, `mock-headset-${n}`, `Headset ${n}`);
-  }
+  // async function addHeadset() {
+  //   const n = counter.current++;
+  //   await join(sessionId, `mock-headset-${n}`, `Headset ${n}`);
+  // }
 
   async function removeAll() {
-    const mocks = headsets.filter(h => h.id?.startsWith("mock-headset"));
+    const mocks = headsets.filter(h => h.id?.startsWith(""));
     for (const h of mocks) {
       await leave(sessionId, h.id);
     }
@@ -39,11 +39,9 @@ export default function JoinMock({ sessionId, headsets }) {
       gap: 8, 
       zIndex: 9999 
       }}>
-      <button className="efab" onClick={addHeadset}>+ Mock headset</button>
-      <button className="efab" onClick={removeAll}>Clear mocks</button>
-      <button className="efab" onClick={() => setTimerActive(v => !v)}>
-        Timer: {timerActive ? "ON" : "OFF"}
-      </button>
+      
+      <button className="efab" onClick={removeAll}>Clear headsets</button>
+      
     </div>
   );
 }
