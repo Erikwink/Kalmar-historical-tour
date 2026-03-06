@@ -1,6 +1,6 @@
 // client/src/App.jsx
 import { useState, useEffect } from "react";
-import { join, leave, heartbeat, onSceneChange } from "../../saas-adapter/src/index"
+import { join, leave, onSceneChange, ready } from "../../saas-adapter/src/index"
 
 function App() {
   const [sessionId, setSessionId] = useState("");
@@ -46,8 +46,8 @@ function App() {
     }
     try {
       // change status via heartbeat to online
-      await heartbeat(sessionId, headsetId, "online");
-      appendLog(`Headset ${headsetId} är nu online.`);
+      await ready(sessionId, headsetId, true);
+      appendLog(`Headset ${headsetId} är nu redo.`);
     } catch (e) {
       appendLog("Fel vid online‑sättning: " + e.message);
     }

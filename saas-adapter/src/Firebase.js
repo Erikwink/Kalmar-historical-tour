@@ -58,13 +58,12 @@ export class Firebase {
 
     await set(clientRef, {
       label,
-      status: "offline",
+      status: "online",
       lastSeenAt: Date.now(),
-      ready: true,
+      ready: false,
       lastSceneId: null
     })
     
-
     // Markera offline automatiskt om anslutning bryts
     onDisconnect(clientRef).update({
       status: "offline"
@@ -89,6 +88,14 @@ export class Firebase {
   async heartbeat(sessionId, clientId, status = "online") {
     const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
     await update(clientRef, { status, lastSeenAt: Date.now() })
+  }
+
+  // -----------------------------
+  // Client: ändrar ready-status
+  // -----------------------------
+   async ready(sessionId, clientId, ready = true) {
+    const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
+    await update(clientRef, { ready, lastSeenAt: Date.now() })
   }
 
   // -----------------------------
