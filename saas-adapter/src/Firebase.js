@@ -58,7 +58,7 @@ export class Firebase {
 
     await set(clientRef, {
       label,
-      status: "online",
+      status: "offline",
       lastSeenAt: Date.now(),
       ready: true,
       lastSceneId: null

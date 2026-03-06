@@ -1,6 +1,6 @@
 // client/src/App.jsx
-import { useState } from "react";
-import { connect, join } from "../../saas-adapter/src/index"
+import { useState, useEffect } from "react";
+import { join, leave, heartbeat, onSceneChange } from "../../saas-adapter/src/index"
 
 function App() {
   const [sessionId, setSessionId] = useState("");
@@ -9,18 +9,14 @@ function App() {
 
   const appendLog = (msg) => setLog((l) => [...l, msg]);
 
-  const handleCreateSession = async () => {
-    if (!/^\d{6}$/.test(sessionId)) {
-      appendLog("Ange en 6‑siffrig kod!");
-      return;
-    }
-    try {
-      await connect(sessionId);
-      appendLog(`Session ${sessionId} skapad/ansluten.`);
-    } catch (e) {
-      appendLog("Fel vid skapande: " + e.message);
-    }
-  };
+  // log scene changes when room publishes a new scene
+  useEffect(() => {
+    if (!sessionId) return;
+    const unsubscribe = onSceneChange(sessionId, (sceneId) => {
+      appendLog(`Scen ändrad: ${sceneId}`);
+    });
+    return unsubscribe;
+  }, [sessionId]);
 
   const handleAddHeadset = async () => {
     if (!sessionId) {
@@ -33,38 +29,96 @@ function App() {
     }
     try {
       await join(sessionId, headsetId, headsetId);
-      appendLog(`Headset ${headsetId} lagts till.`);
+      appendLog(`Headset ${headsetId} lagts till (offline).`);
+    } catch (e) {
+      appendLog("Fel vid headset: " + e.message);
+    }
+  };
+
+  const handleGoOnline = async () => {
+    if (!sessionId) {
+      appendLog("Skapa session först.");
+      return;
+    }
+    if (!headsetId) {
+      appendLog("Ange headset‑id.");
+      return;
+    }
+    try {
+      // change status via heartbeat to online
+      await heartbeat(sessionId, headsetId, "online");
+      appendLog(`Headset ${headsetId} är nu online.`);
+    } catch (e) {
+      appendLog("Fel vid online‑sättning: " + e.message);
+    }
+  };
+
+  const handleRemoveHeadset = async () => {
+    if (!headsetId) {
+      appendLog("Ange headset‑id.");
+      return;
+    }
+    try {
+      await leave(sessionId, headsetId);
+      appendLog(`Headset ${headsetId} har tagits bort.`);
     } catch (e) {
       appendLog("Fel vid headset: " + e.message);
     }
   };
 
   return (
-    <div style={{ padding: 20, fontFamily: "sans-serif" }}>
-      <h1>Enkel Firebase‑test</h1>
-
-      <div>
-        <label>Sessionskod (6 siffror): </label>
-        <input
-          value={sessionId}
-          onChange={(e) => setSessionId(e.target.value)}
-        />
-        <button onClick={handleCreateSession}>Skapa/anslut</button>
+    <div className="page">
+      <div className="top-app-bar top-app-bar--medium">
+        <h1 className="top-app-bar__title">Kalmar Historical Tour</h1>
       </div>
 
-      <div style={{ marginTop: 20 }}>
-        <label>Headset‑id/namn: </label>
-        <input
-          value={headsetId}
-          onChange={(e) => setHeadsetId(e.target.value)}
-        />
-        <button onClick={handleAddHeadset}>Lägg till headset</button>
-      </div>
+      <div className="page-content">
+        <div className="card">
+          <div style={{ padding: '20px' }}>
+            <div className="form-group">
+              <label>Sessionskod (6 siffror)</label>
+              <input
+                type="text"
+                value={sessionId}
+                onChange={(e) => setSessionId(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Headset‑id/namn</label>
+              <input
+                type="text"
+                value={headsetId}
+                onChange={(e) => setHeadsetId(e.target.value)}
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+              <button onClick={handleAddHeadset} disabled={!sessionId}>
+                Lägg till headset
+              </button>
+              <button onClick={handleRemoveHeadset} disabled={!headsetId}>
+                Ta bort headset
+              </button>
+            </div>
+            <button onClick={handleGoOnline} disabled={!headsetId} style={{ marginTop: '8px', width: '100%' }}>
+              Jag är redo
+            </button>
+          </div>
+        </div>
 
-      <div style={{ marginTop: 20, whiteSpace: "pre" }}>
-        {log.map((l, i) => (
-          <div key={i}>{l}</div>
-        ))}
+        <div>
+          <div className="section-header">
+            <span className="section-header__title">Aktivitet</span>
+          </div>
+          <div className="log-section">
+            {log.length === 0 ? (
+              <div className="log-line" style={{ opacity: 0.5 }}>-- ingen aktivitet --</div>
+            ) : (
+              log.map((l, i) => (
+                <div key={i} className="log-line">{l}</div>
+              ))
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
