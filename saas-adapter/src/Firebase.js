@@ -57,9 +57,10 @@ export class Firebase {
     const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
 
     await set(clientRef, {
+      clientId,
       label,
-      status: "online",
-      lastSeenAt: Date.now(),
+      status: "offline",
+      lastSeenAt: null,
       ready: false,
       lastSceneId: null
     })
@@ -87,15 +88,19 @@ export class Firebase {
   // -----------------------------
   async heartbeat(sessionId, clientId, status = "online") {
     const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
-    await update(clientRef, { status, lastSeenAt: Date.now() })
+    await update(clientRef, {
+      clientId,
+      status,
+      lastSeenAt: Date.now()
+    })
   }
 
   // -----------------------------
   // Client: ändrar ready-status
   // -----------------------------
-   async ready(sessionId, clientId, ready = true) {
+  async ready(sessionId, clientId, ready = true) {
     const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
-    await update(clientRef, { ready, lastSeenAt: Date.now() })
+    await update(clientRef, { ready }) // ready ska inte räknas som en heartbeat
   }
 
   // -----------------------------

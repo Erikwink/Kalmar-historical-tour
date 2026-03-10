@@ -1,13 +1,38 @@
 // client/src/App.jsx
-import { useState, useEffect } from "react";
-import { join, leave, onSceneChange, ready } from "../../saas-adapter/src/index"
+import { useState, useEffect, useRef } from "react";
+import { join, leave, onSceneChange, ready, heartbeat } from "../../saas-adapter/src/index"
 
 function App() {
   const [sessionId, setSessionId] = useState("");
   const [headsetId, setHeadsetId] = useState("");
   const [log, setLog] = useState([]);
 
+  const heartbeatRef = useRef(null);
+
   const appendLog = (msg) => setLog((l) => [...l, msg]);
+
+  const stopHeartbeat = () => {
+    if (heartbeatRef.current) {
+      clearInterval(heartbeatRef.current);
+      heartbeatRef.current = null;
+    }
+  };
+
+  const startHeartbeat = async (sessionId, headsetId) => {
+    stopHeartbeat();
+
+    await heartbeat(sessionId, headsetId, "online");
+    appendLog(`Heartbeat skickad för ${headsetId}.`);
+
+    heartbeatRef.current = setInterval(async () => {
+      try {
+        await heartbeat(sessionId, headsetId, "online");
+        appendLog(`Heartbeat skickad för ${headsetId}.`);
+      } catch (e) {
+        appendLog("Fel vid heartbeat: " + e.message);
+      }
+    }, 10000);
+  };
 
   // log scene changes when room publishes a new scene
   useEffect(() => {
@@ -17,6 +42,12 @@ function App() {
     });
     return unsubscribe;
   }, [sessionId]);
+
+  useEffect(() => {
+    return () => {
+      stopHeartbeat();
+    };
+  }, []);
 
   const handleAddHeadset = async () => {
     if (!sessionId) {
@@ -47,20 +78,26 @@ function App() {
     try {
       // change status via heartbeat to online
       await ready(sessionId, headsetId, true);
-      appendLog(`Headset ${headsetId} är nu redo.`);
+      await startHeartbeat(sessionId, headsetId);
+      appendLog(`Headset ${headsetId} är nu redo och skickar heartbeat var 10:e sekund.`);
     } catch (e) {
       appendLog("Fel vid online‑sättning: " + e.message);
     }
   };
 
   const handleRemoveHeadset = async () => {
+    if (!sessionId) {
+      appendLog("Skapa session först.");
+      return;
+    }
     if (!headsetId) {
-      appendLog("Ange headset‑id.");
+      appendLog("Ange headset-id.");
       return;
     }
     try {
+      stopHeartbeat();
       await leave(sessionId, headsetId);
-      appendLog(`Headset ${headsetId} har tagits bort.`);
+      appendLog(`Headset ${headsetId} har tagits bort och heartbeat har stoppats.`);
     } catch (e) {
       appendLog("Fel vid headset: " + e.message);
     }
