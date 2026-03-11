@@ -19,18 +19,52 @@ docs/            Flow diagrams and documentation
 
 ## Getting started
 
-```bash
-# Controller
-cd controller
-npm install
-npm run dev
+Install dependencies:
 
-# SaaS adapter (used by both controller and client)
-cd saas-adapter
+```bash
 npm install
+cd client && npm install && cd ..
+cd controller && npm install && cd ..
+cd saas-adapter && npm install && cd ..
 ```
 
-Copy `saas-adapter/example.env` to `controller/.env` and fill in your Firebase credentials.
+Copy `saas-adapter/example.env` to `controller/.env` and `client/.env` and fill in your Firebase credentials.
+
+Start both apps:
+
+```bash
+npm run dev
+```
+
+This starts:
+```
+[client]      ➜  Local:   http://localhost:5173/
+[client]      ➜  Network: http://xxx.xxx.x.xxx:5173/
+[controller]  ➜  Local:   http://localhost:5174/
+[controller]  ➜  Network: http://xxx.xxx.x.xxx:5174/
+```
+
+## Testing with a physical VR headset (ngrok)
+
+The headset needs to reach the client app via a public URL. Use ngrok for this.
+
+**First-time setup:**
+1. Create a free account at [ngrok.com](https://ngrok.com)
+2. Add your auth token:
+   ```bash
+   ngrok config add-authtoken <your-token>
+   ```
+
+**Start the tunnel** (in a separate terminal while `npm run dev` is running):
+```bash
+npm run ngrok
+```
+
+ngrok will print a public URL, e.g. `https://abc123.ngrok-free.app` — open it in the headset browser.
+
+> **Tip:** On the same local network you can skip ngrok and use the network IP printed in the terminal when the dev server starts, e.g. `http://xxx.xxx.x.xxx:5173`.
+
+> **Note:** The ngrok auth token is personal and stored locally — it is not checked into the repo.
 
 ## Docs
 
