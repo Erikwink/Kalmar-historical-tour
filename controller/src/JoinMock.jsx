@@ -1,7 +1,11 @@
 // DEV ONLY — remove when real client exists
 import { useEffect, useRef, useState } from "react";
-import { join, leave, heartbeat } from "../../saas-adapter/src/index";
-
+import {
+  join,
+  leave,
+  heartbeat,
+  removeAllRooms,
+} from "../../saas-adapter/src/index";
 
 export default function JoinMock({ sessionId, headsets }) {
   const counter = useRef(1);
@@ -23,25 +27,34 @@ export default function JoinMock({ sessionId, headsets }) {
   // }
 
   async function removeAll() {
-    const mocks = headsets.filter(h => h.id?.startsWith(""));
+    const mocks = headsets.filter((h) => h.id?.startsWith(""));
     for (const h of mocks) {
       await leave(sessionId, h.id);
     }
     counter.current = 1;
   }
 
+  async function handleRemoveAllRooms() {
+    await removeAllRooms();
+  }
+
   return (
-    <div style={{ 
-      position: "fixed", 
-      top: 16, 
-      right: 16, 
-      display: "flex", 
-      gap: 8, 
-      zIndex: 9999 
-      }}>
-      
-      <button className="efab" onClick={removeAll}>Clear headsets</button>
-      
+    <div
+      style={{
+        position: "fixed",
+        top: 16,
+        right: 16,
+        display: "flex",
+        gap: 8,
+        zIndex: 9999,
+      }}
+    >
+      <button className="efab" onClick={removeAll}>
+        Clear headsets
+      </button>
+      <button className="efab" onClick={handleRemoveAllRooms}>
+        remove rooms
+      </button>
     </div>
   );
 }

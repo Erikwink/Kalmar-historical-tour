@@ -10,6 +10,7 @@ export const connect = adapter.connect.bind(adapter)        // skapa session
 export const publish = adapter.publish.bind(adapter)       // skicka scen till alla
 export const onHeadsetsChange = adapter.onHeadsetsChange.bind(adapter) // lyssna på presence
 export const disconnect = adapter.leave.bind(adapter)      // städa upp vid stängning
+export const removeAllRooms = adapter.removeAllRooms.bind(adapter) // dev only
 
 // -----------------------------
 // Client API
