@@ -32,6 +32,7 @@ function App() {
   const [headsetLabel, setHeadsetLabel] = useState(() => sessionStorage.getItem(LABEL_KEY) ?? "");
   const [activeSessionId, setActiveSessionId] = useState(() => sessionStorage.getItem(ACTIVE_SESSION_KEY) ?? "");
   const [log, setLog] = useState([]);
+  const [isReady, setIsReady] = useState(false)
 
   // Stable client ID — generated once and persisted in sessionStorage.
   const [headsetId] = useState(() => getOrCreateHeadsetId());
@@ -50,7 +51,6 @@ function App() {
   // Re-join automatically on reload if we were already in a session.
   useEffect(() => {
     if (!activeSessionId) return;
-    appendLog("useEffect ran")
     join(activeSessionId, headsetId, headsetLabel || headsetId)
       .then(() => appendLog("Återansluten till session."))
       .catch((e) => appendLog("Fel vid återanslutning: " + e.message));
@@ -85,19 +85,16 @@ function App() {
   };
 
   /**
-   * Marks the headset as ready in the current session.
+   * Toggles the headset ready state and syncs it to Firebase.
    * @returns {Promise<void>}
    */
-  const handleGoOnline = async () => {
-    if (!activeSessionId) {
-      appendLog("Anslut till session först.");
-      return;
-    }
+  const handleToggleReady = async () => {
     try {
-      await ready(activeSessionId, headsetId, true);
-      appendLog("Headset är nu redo.");
+      await ready(activeSessionId, headsetId, !isReady);
+      setIsReady(!isReady);
+      appendLog(!isReady ? "Headset är nu redo." : "Headset är inte längre redo.");
     } catch (e) {
-      appendLog("Fel vid online‑sättning: " + e.message);
+      appendLog("Fel vid ready: " + e.message);
     }
   };
 
@@ -157,8 +154,8 @@ function App() {
                 Ta bort headset
               </button>
             </div>
-            <button onClick={handleGoOnline} disabled={!activeSessionId} style={{ marginTop: '8px', width: '100%' }}>
-              Jag är redo
+            <button onClick={handleToggleReady} disabled={!activeSessionId} style={{ marginTop: '8px', width: '100%' }}>
+              {isReady ? "Inte redo" : "Jag är redo"}
             </button>
           </div>
         </div>
