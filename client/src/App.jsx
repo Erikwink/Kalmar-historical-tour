@@ -2,65 +2,116 @@
 import { useState, useEffect } from "react";
 import { join, leave, onSceneChange, ready } from "../../saas-adapter/src/index"
 
-function App() {
-  const [sessionId, setSessionId] = useState("");
-  const [headsetId, setHeadsetId] = useState("");
-  const [log, setLog] = useState([]);
+/**
+ * Root application component for the VR headset client.
+ * Handles joining/leaving sessions and subscribing to scene changes.
+ *
+ * @component
+ * @returns {JSX.Element}
+ */
+const SESSION_STORAGE_KEY = "headset_client_id";
+const SESSION_ID_KEY = "headset_session_id";
+const ACTIVE_SESSION_KEY = "headset_active_session_id";
+const LABEL_KEY = "headset_label";
 
+/**
+ * Returns a stable unique client ID for this headset.
+ * Reuses the ID from sessionStorage if it exists, otherwise generates a new one.
+ * @returns {string} A unique client ID.
+ */
+function getOrCreateHeadsetId() {
+  const existing = sessionStorage.getItem(SESSION_STORAGE_KEY);
+  if (existing) return existing;
+  const newId = crypto.randomUUID();
+  sessionStorage.setItem(SESSION_STORAGE_KEY, newId);
+  return newId;
+}
+
+function App() {
+  const [sessionId, setSessionId] = useState(() => sessionStorage.getItem(SESSION_ID_KEY) ?? "");
+  const [headsetLabel, setHeadsetLabel] = useState(() => sessionStorage.getItem(LABEL_KEY) ?? "");
+  const [activeSessionId, setActiveSessionId] = useState(() => sessionStorage.getItem(ACTIVE_SESSION_KEY) ?? "");
+  const [log, setLog] = useState([]);
+  const [isReady, setIsReady] = useState(false)
+
+  // Stable client ID — generated once and persisted in sessionStorage.
+  const [headsetId] = useState(() => getOrCreateHeadsetId());
+
+  // Keep sessionStorage in sync with state.
+  useEffect(() => { sessionStorage.setItem(SESSION_ID_KEY, sessionId); }, [sessionId]);
+  useEffect(() => { sessionStorage.setItem(LABEL_KEY, headsetLabel); }, [headsetLabel]);
+  useEffect(() => { sessionStorage.setItem(ACTIVE_SESSION_KEY, activeSessionId); }, [activeSessionId]);
+
+  /**
+   * Appends a message to the activity log.
+   * @param {string} msg - The message to append.
+   */
   const appendLog = (msg) => setLog((l) => [...l, msg]);
 
-  // log scene changes when room publishes a new scene
+  // Re-join automatically on reload if we were already in a session.
   useEffect(() => {
-    if (!sessionId) return;
-    const unsubscribe = onSceneChange(sessionId, (sceneId) => {
+    if (!activeSessionId) return;
+    join(activeSessionId, headsetId, headsetLabel || headsetId)
+      .then(() => appendLog("Återansluten till session."))
+      .catch((e) => appendLog("Fel vid återanslutning: " + e.message));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally empty — only runs on mount
+
+  // Subscribe to scene changes when an active session exists.
+  useEffect(() => {
+    if (!activeSessionId) return;
+    const unsubscribe = onSceneChange(activeSessionId, (sceneId) => {
       appendLog(`Scen ändrad: ${sceneId}`);
     });
     return unsubscribe;
-  }, [sessionId]);
+  }, [activeSessionId]);
 
+  /**
+   * Joins the session using the stable headset ID and the user-provided label.
+   * @returns {Promise<void>}
+   */
   const handleAddHeadset = async () => {
     if (!sessionId) {
       appendLog("Skapa session först.");
       return;
     }
-    if (!headsetId) {
-      appendLog("Ange headset‑id.");
-      return;
-    }
     try {
-      await join(sessionId, headsetId, headsetId);
-      appendLog(`Headset ${headsetId} lagts till (offline).`);
+      await join(sessionId, headsetId, headsetLabel || headsetId);
+      setActiveSessionId(sessionId);
+      appendLog(`Headset ansluten till session ${sessionId}.`);
     } catch (e) {
       appendLog("Fel vid headset: " + e.message);
     }
   };
 
-  const handleGoOnline = async () => {
-    if (!sessionId) {
-      appendLog("Skapa session först.");
-      return;
-    }
-    if (!headsetId) {
-      appendLog("Ange headset‑id.");
-      return;
-    }
+  /**
+   * Toggles the headset ready state and syncs it to Firebase.
+   * @returns {Promise<void>}
+   */
+  const handleToggleReady = async () => {
     try {
-      // change status via heartbeat to online
-      await ready(sessionId, headsetId, true);
-      appendLog(`Headset ${headsetId} är nu redo.`);
+      await ready(activeSessionId, headsetId, !isReady);
+      setIsReady(!isReady);
+      appendLog(!isReady ? "Headset är nu redo." : "Headset är inte längre redo.");
     } catch (e) {
-      appendLog("Fel vid online‑sättning: " + e.message);
+      appendLog("Fel vid ready: " + e.message);
     }
   };
 
+  /**
+   * Removes the headset from the current session.
+   * @returns {Promise<void>}
+   */
   const handleRemoveHeadset = async () => {
-    if (!headsetId) {
-      appendLog("Ange headset‑id.");
+    if (!activeSessionId) {
+      appendLog("Anslut till session först.");
       return;
     }
     try {
-      await leave(sessionId, headsetId);
-      appendLog(`Headset ${headsetId} har tagits bort.`);
+      await leave(activeSessionId, headsetId);
+      setActiveSessionId("");
+      setSessionId("");
+      appendLog("Headset har lämnat sessionen.");
     } catch (e) {
       appendLog("Fel vid headset: " + e.message);
     }
@@ -80,27 +131,31 @@ function App() {
               <input
                 type="text"
                 value={sessionId}
-                onChange={(e) => setSessionId(e.target.value)}
+                maxLength={6}
+                inputMode="numeric"
+                pattern="\d*"
+                onChange={(e) => setSessionId(e.target.value.replace(/\D/g, "").slice(0, 6))}
               />
             </div>
             <div className="form-group">
               <label>Headset‑id/namn</label>
               <input
                 type="text"
-                value={headsetId}
-                onChange={(e) => setHeadsetId(e.target.value)}
+                value={headsetLabel}
+                maxLength={20}
+                onChange={(e) => setHeadsetLabel(e.target.value)}
               />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              <button onClick={handleAddHeadset} disabled={!sessionId}>
+              <button onClick={handleAddHeadset} disabled={!sessionId || sessionId.length < 6}>
                 Lägg till headset
               </button>
-              <button onClick={handleRemoveHeadset} disabled={!headsetId}>
+              <button onClick={handleRemoveHeadset} disabled={!activeSessionId}>
                 Ta bort headset
               </button>
             </div>
-            <button onClick={handleGoOnline} disabled={!headsetId} style={{ marginTop: '8px', width: '100%' }}>
-              Jag är redo
+            <button onClick={handleToggleReady} disabled={!activeSessionId} style={{ marginTop: '8px', width: '100%' }}>
+              {isReady ? "Inte redo" : "Jag är redo"}
             </button>
           </div>
         </div>

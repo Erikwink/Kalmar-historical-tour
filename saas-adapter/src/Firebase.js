@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app"
 import {
   getDatabase,
   ref,
+  get,
   set,
   update,
   onValue,
@@ -51,11 +52,24 @@ export class Firebase {
   }
 
   // -----------------------------
+  // Dev: ta bort alla rum
+  // -----------------------------
+  async removeAllRooms() {
+    const roomsRef = ref(this.db, "rooms")
+    await remove(roomsRef)
+  }
+
+  // -----------------------------
   // Client: anslut headset
   // -----------------------------
   async join(sessionId, clientId, label = clientId) {
-    const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
+    const sessionRef = ref(this.db, `rooms/${sessionId}`)
+    const snapshot = await get(sessionRef)
+    if (!snapshot.exists()) {
+      throw new Error(`Session ${sessionId} finns inte.`)
+    }
 
+    const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
     await set(clientRef, {
       label,
       status: "online",
