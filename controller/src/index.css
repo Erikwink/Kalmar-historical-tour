@@ -307,6 +307,7 @@ body {
 
 .headset-item__avatar--connected,
 .headset-item__avatar--online       { background: color-mix(in srgb, #4ade80 20%, transparent); color: #4ade80; }
+.headset-item__avatar--not-ready    { background: color-mix(in srgb, #fb923c 20%, transparent); color: #fb923c; }
 .headset-item__avatar--connecting   { background: color-mix(in srgb, #facc15 20%, transparent); color: #facc15; }
 .headset-item__avatar--error        { background: color-mix(in srgb, var(--md-error) 20%, transparent); color: var(--md-error); }
 .headset-item__avatar--disconnected,
