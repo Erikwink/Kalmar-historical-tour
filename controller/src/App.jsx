@@ -17,12 +17,22 @@ function generateSessionId() {
   return num.toString()
 }
 
+function getSessionId(){
+  const stored = localStorage.getItem("sessionId");
+  if(stored) {
+    return stored;
+  }
+  const newId = generateSessionId();
+  localStorage.setItem("sessionId", newId);
+  return newId;
+}
+
 function App() {
   const [page, setPage] = useState("session");
   const [activeScene, setActiveScene] = useState("waiting");
   const [SaasStatus, setSaasStatus] = useState(null);
   const [headsets, setHeadsets] = useState([]);
-  const [sessionId] = useState(generateSessionId);
+  const [sessionId] = useState(getSessionId);
 
   useEffect(() => {
     // subscribe to headsets
