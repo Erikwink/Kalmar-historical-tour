@@ -1,8 +1,8 @@
 const MOCK_PREFIX = "kalmar-scene";
 
 /**
- * Skapar en lokal adapter som emulerar `onSceneChange` med BroadcastChannel.
- * Används när riktig runtime-adapter inte finns tillgänglig.
+ * Creates a local adapter that emulates `onSceneChange` with BroadcastChannel.
+ * Used when the real runtime adapter is not available.
  */
 function createMockAdapter() {
   return {
@@ -34,8 +34,8 @@ function createMockAdapter() {
 }
 
 /**
- * Returnerar en scene-subscription för ett session-id.
- * Prioriterar `window.kalmarAdapter` och faller annars tillbaka till mock.
+ * Returns a scene subscription for a session ID.
+ * Prefers `window.kalmarAdapter` and falls back to the mock adapter.
  */
 export function subscribeToSceneChanges(sessionId, callback) {
   const adapter = globalThis.kalmarAdapter;
@@ -54,7 +54,7 @@ export function subscribeToSceneChanges(sessionId, callback) {
 }
 
 /**
- * Publicerar ett mock-scene-event till aktuell session via BroadcastChannel.
+ * Publishes a mock scene event to the current session via BroadcastChannel.
  */
 export function publishMockScene(sessionId, sceneId) {
   const channel = new BroadcastChannel(`${MOCK_PREFIX}-${sessionId}`);

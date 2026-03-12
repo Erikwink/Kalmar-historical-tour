@@ -1,5 +1,17 @@
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import {
+  ArcRotateCamera,
+  Color3,
+  Color4,
+  DirectionalLight,
+  Engine,
+  HemisphericLight,
+  MeshBuilder,
+  Scene,
+  StandardMaterial,
+  Vector3,
+  WebXRDefaultExperience,
+  WebXRState,
+} from "@babylonjs/core";
 import { publishMockScene, subscribeToSceneChanges } from "./backendClient.js";
 
 const statusEl = document.getElementById("status");
@@ -33,31 +45,33 @@ let sceneSource = "not-connected";
 let currentSessionId = "";
 let unsubscribeScene = null;
 
-let xrSession = null;
 let appMode = "idle";
 
-let renderer = null;
+let engine = null;
 let scene = null;
 let camera = null;
 let cube = null;
-let controls = null;
+let cubeMaterial = null;
+let xrExperience = null;
+let renderLoopActive = false;
+let resizeHandlerRegistered = false;
 
 /**
- * Uppdaterar statusraden för senaste klienthändelse.
+ * Updates the status line with the latest client event.
  */
 function setStatus(message) {
   statusEl.textContent = message;
 }
 
 /**
- * Visar aktuell scen som kommer från onSceneChange.
+ * Shows the active scene that arrived through onSceneChange.
  */
 function setSceneIndicator(sceneId) {
-  sceneIndicatorEl.textContent = `Aktiv scen: ${sceneId}`;
+  sceneIndicatorEl.textContent = `Active scene: ${sceneId}`;
 }
 
 /**
- * Sätter vilka primära UI-knappar som ska vara aktiva.
+ * Sets which primary UI buttons should be enabled.
  */
 function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {
   startVrButton.disabled = !canStartVr;
@@ -67,7 +81,7 @@ function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {
 }
 
 /**
- * Återställer knappläge när ingen XR/simulering körs.
+ * Restores the button state when no XR session or simulation is running.
  */
 function enableIdleButtons() {
   setButtons({
@@ -79,141 +93,194 @@ function enableIdleButtons() {
 }
 
 /**
- * Hämtar visuell theme-konfiguration för en scen.
+ * Returns the visual theme configuration for a scene.
  */
 function getTheme(sceneId) {
   return SCENE_THEMES[sceneId] || SCENE_THEMES.default;
 }
 
 /**
- * Synkar canvas-storlek och kamera-aspect mot aktuell layout.
+ * Converts a numeric hex color into a Babylon Color3 instance.
  */
-function syncRendererSize() {
-  if (!renderer || !camera) {
-    return;
-  }
-
-  const width = canvas.clientWidth || 640;
-  const height = canvas.clientHeight || 360;
-  renderer.setSize(width, height, false);
-  camera.aspect = width / height;
-  camera.updateProjectionMatrix();
+function toColor3(hexColor) {
+  return Color3.FromHexString(`#${hexColor.toString(16).padStart(6, "0")}`);
 }
 
 /**
- * Konfigurerar OrbitControls för musdrag (rotate/pan) och mushjulszoom.
+ * Converts a numeric hex color into a Babylon Color4 instance.
  */
-function setupOrbitControls() {
-  if (!renderer || !camera || controls) {
-    return;
-  }
-
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.06;
-  controls.enableZoom = true;
-  controls.minDistance = 0.8;
-  controls.maxDistance = 6.0;
-  controls.target.set(0, 1.45, -1.4);
-  controls.update();
+function toColor4(hexColor, alpha = 1) {
+  const color = toColor3(hexColor);
+  return new Color4(color.r, color.g, color.b, alpha);
 }
 
 /**
- * Slår av/på OrbitControls beroende på om XR-session körs eller inte.
+ * Synchronizes the engine size with the current canvas layout.
  */
-function setControlsEnabled(enabled) {
-  if (!controls) {
+function syncEngineSize() {
+  if (!engine) {
     return;
   }
-  controls.enabled = enabled;
+
+  engine.resize();
 }
 
 /**
- * Initierar minimal Three.js-kontext: renderer, scen, kamera, ljus och kub.
+ * Enables or disables desktop camera controls based on app state.
  */
-function ensureThreeContext() {
-  if (renderer) {
+function setCameraControlsEnabled(enabled) {
+  if (!camera) {
     return;
   }
 
-  renderer = new THREE.WebGLRenderer({
-    canvas,
-    antialias: true,
-    alpha: true,
+  if (enabled) {
+    camera.attachControl(canvas, true);
+    return;
+  }
+
+  camera.detachControl();
+}
+
+/**
+ * Starts the Babylon render loop if it is not already running.
+ */
+function startRenderLoop() {
+  if (!engine || renderLoopActive) {
+    return;
+  }
+
+  engine.runRenderLoop(renderFrame);
+  renderLoopActive = true;
+}
+
+/**
+ * Stops the Babylon render loop when the app returns to idle.
+ */
+function stopRenderLoop() {
+  if (!engine || !renderLoopActive) {
+    return;
+  }
+
+  engine.stopRenderLoop(renderFrame);
+  renderLoopActive = false;
+}
+
+/**
+ * Initializes the Babylon scene, camera, lights, and preview mesh.
+ */
+function ensureBabylonContext() {
+  if (engine) {
+    return;
+  }
+
+  engine = new Engine(canvas, true, {
+    preserveDrawingBuffer: true,
+    stencil: true,
+    xrCompatible: true,
   });
-  renderer.xr.enabled = true;
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
 
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(70, 16 / 9, 0.01, 50);
-  camera.position.set(0, 1.6, 2.2);
+  scene = new Scene(engine);
+  scene.clearColor = toColor4(SCENE_THEMES.default.background);
 
-  const hemiLight = new THREE.HemisphereLight(0xffffff, 0x2b3f54, 1.05);
-  scene.add(hemiLight);
+  camera = new ArcRotateCamera(
+    "preview-camera",
+    -Math.PI / 2,
+    Math.PI / 2.35,
+    3.1,
+    new Vector3(0, 1.45, -1.4),
+    scene,
+  );
+  camera.lowerRadiusLimit = 0.8;
+  camera.upperRadiusLimit = 6;
+  camera.wheelPrecision = 35;
+  camera.panningSensibility = 0;
+  camera.attachControl(canvas, true);
 
-  const keyLight = new THREE.DirectionalLight(0xffffff, 0.9);
-  keyLight.position.set(1.5, 2.2, 1.8);
-  scene.add(keyLight);
+  const hemiLight = new HemisphericLight("hemi-light", new Vector3(0, 1, 0), scene);
+  hemiLight.intensity = 1.05;
 
-  const geometry = new THREE.BoxGeometry(0.6, 0.6, 0.6);
-  const material = new THREE.MeshStandardMaterial({
-    color: 0x4f83ff,
-    roughness: 0.35,
-    metalness: 0.15,
-  });
-  cube = new THREE.Mesh(geometry, material);
-  cube.position.set(0, 1.45, -1.4);
-  scene.add(cube);
+  const keyLight = new DirectionalLight("key-light", new Vector3(-0.6, -1, -0.7), scene);
+  keyLight.position = new Vector3(1.5, 2.2, 1.8);
+  keyLight.intensity = 0.9;
 
-  syncRendererSize();
-  setupOrbitControls();
-  window.addEventListener("resize", syncRendererSize);
+  cube = MeshBuilder.CreateBox("scene-cube", { size: 0.6 }, scene);
+  cube.position = new Vector3(0, 1.45, -1.4);
+
+  cubeMaterial = new StandardMaterial("scene-cube-material", scene);
+  cubeMaterial.diffuseColor = toColor3(SCENE_THEMES.waiting.cube);
+  cubeMaterial.specularColor = new Color3(0.12, 0.12, 0.12);
+  cube.material = cubeMaterial;
+
+  syncEngineSize();
+  if (!resizeHandlerRegistered) {
+    window.addEventListener("resize", syncEngineSize);
+    resizeHandlerRegistered = true;
+  }
   applySceneTheme();
 }
 
 /**
- * Tillämpa färgtema på scenbakgrund och kub baserat på aktiv scen och mode.
+ * Creates the Babylon WebXR helper the first time XR mode is requested.
+ */
+async function ensureXRExperience() {
+  if (xrExperience) {
+    return xrExperience;
+  }
+
+  xrExperience = await WebXRDefaultExperience.CreateAsync(scene, {
+    disableDefaultUI: true,
+    disableNearInteraction: true,
+    disablePointerSelection: true,
+    disableTeleportation: true,
+  });
+  xrExperience.baseExperience.onStateChangedObservable.add((state) => {
+    if (state === WebXRState.NOT_IN_XR && (appMode === "xr-vr" || appMode === "xr-ar")) {
+      onSessionEnded();
+    }
+  });
+
+  return xrExperience;
+}
+
+/**
+ * Applies the active scene theme to the Babylon background and preview mesh.
  */
 function applySceneTheme() {
-  if (!renderer || !scene || !cube) {
+  if (!scene || !cubeMaterial) {
     return;
   }
 
   const theme = getTheme(activeSceneId);
-  cube.material.color.setHex(theme.cube);
+  cubeMaterial.diffuseColor = toColor3(theme.cube);
+  cubeMaterial.alpha = appMode === "xr-ar" ? 0.85 : 1;
 
   if (appMode === "xr-ar") {
-    scene.background = null;
-    renderer.setClearColor(0x000000, 0);
+    scene.clearColor = new Color4(0, 0, 0, 0);
     return;
   }
 
-  scene.background = new THREE.Color(theme.background);
-  renderer.setClearColor(theme.background, 1);
+  scene.clearColor = toColor4(theme.background);
 }
 
 /**
- * Render-loop som används för både XR-session och desktop-simulering.
+ * Renders and animates the preview scene for both XR and desktop simulation.
  */
-function renderFrame(time) {
-  if (!renderer || !scene || !camera || !cube) {
+function renderFrame() {
+  if (!scene || !cube) {
     return;
   }
 
-  const seconds = time * 0.001;
+  const seconds = performance.now() * 0.001;
   cube.rotation.x = 0.2 + seconds * 0.5;
   cube.rotation.y = seconds * 0.9;
   cube.position.y = 1.45 + Math.sin(seconds * 1.5) * 0.05;
 
-  if (controls && controls.enabled) {
-    controls.update();
-  }
-
-  renderer.render(scene, camera);
+  scene.render();
 }
 
 /**
- * Hanterar inkommande scene-id från onSceneChange och uppdaterar rendering.
+ * Handles incoming scene IDs from onSceneChange and refreshes the preview.
  */
 function applySceneChange(sceneId) {
   if (!sceneId || typeof sceneId !== "string") {
@@ -223,16 +290,16 @@ function applySceneChange(sceneId) {
   activeSceneId = sceneId;
   setSceneIndicator(activeSceneId);
   applySceneTheme();
-  setStatus(`Scen uppdaterad via onSceneChange (${sceneSource}): ${activeSceneId}`);
+  setStatus(`Scene updated via onSceneChange (${sceneSource}): ${activeSceneId}`);
 }
 
 /**
- * Ansluter klienten till scene-streamen för ett session-id.
+ * Connects the client to the scene stream for a session ID.
  */
 function connectSceneStream() {
   const sessionId = sessionInput.value.trim();
   if (!sessionId) {
-    setStatus("Session ID saknas.");
+    setStatus("Session ID is required.");
     return;
   }
 
@@ -247,53 +314,54 @@ function connectSceneStream() {
   unsubscribeScene = typeof unsubscribe === "function" ? unsubscribe : null;
   sendMockSceneButton.disabled = sceneSource !== "mock-broadcast-channel";
   connectSessionButton.textContent = "Reconnect Scene Stream";
-  setStatus(`Ansluten till onSceneChange för session ${sessionId} (${sceneSource}).`);
+  setStatus(`Connected to onSceneChange for session ${sessionId} (${sceneSource}).`);
 }
 
 /**
- * Skickar mock-scen till BroadcastChannel för snabb lokal test.
+ * Sends a mock scene through BroadcastChannel for quick local testing.
  */
 function sendMockScene() {
   if (!currentSessionId) {
-    setStatus("Anslut först en session innan mock-scen skickas.");
+    setStatus("Connect a session before sending a mock scene.");
     return;
   }
+
   if (sceneSource !== "mock-broadcast-channel") {
-    setStatus("Mock-scener kan bara skickas när mock-broadcast-channel används.");
+    setStatus("Mock scenes can only be sent when the mock BroadcastChannel is active.");
     return;
   }
 
   const sceneId = mockSceneSelect.value;
   publishMockScene(currentSessionId, sceneId);
-  setStatus(`Mock-scen skickad: ${sceneId}`);
+  setStatus(`Mock scene sent: ${sceneId}`);
 }
 
 /**
- * Kör när browsern avslutar en XR-session och återställer klientläge.
+ * Runs when the browser exits an XR session and restores idle client state.
  */
 function onSessionEnded() {
-  xrSession = null;
   if (appMode === "xr-vr" || appMode === "xr-ar") {
     appMode = "idle";
   }
 
-  if (renderer) {
-    renderer.setAnimationLoop(null);
-  }
-  setControlsEnabled(true);
+  stopRenderLoop();
+  setCameraControlsEnabled(true);
   enableIdleButtons();
   applySceneTheme();
-  setStatus(`XR-session avslutad. Senaste scen: ${activeSceneId}`);
+  setStatus(`XR session ended. Latest scene: ${activeSceneId}`);
 }
 
 /**
- * Startar en immersive-vr eller immersive-ar session och börjar render-loop.
+ * Starts an immersive VR or AR session and enters Babylon WebXR mode.
  */
 async function startXR(mode) {
   try {
-    ensureThreeContext();
-    setStatus(`Startar ${mode}...`);
+    ensureBabylonContext();
+    startRenderLoop();
+    setStatus(`Starting ${mode}...`);
 
+    const xr = await ensureXRExperience();
+    const referenceSpaceType = mode === "immersive-ar" ? "local" : "local-floor";
     const sessionInit = {
       optionalFeatures: ["local-floor", "bounded-floor", "hand-tracking"],
     };
@@ -301,14 +369,9 @@ async function startXR(mode) {
       sessionInit.requiredFeatures = ["local"];
     }
 
-    xrSession = await navigator.xr.requestSession(mode, sessionInit);
     appMode = mode === "immersive-ar" ? "xr-ar" : "xr-vr";
-    xrSession.addEventListener("end", onSessionEnded, { once: true });
-
-    setControlsEnabled(false);
-    await renderer.xr.setSession(xrSession);
+    setCameraControlsEnabled(false);
     applySceneTheme();
-
     setButtons({
       canStartVr: false,
       canStartAr: false,
@@ -316,31 +379,32 @@ async function startXR(mode) {
       canEnd: true,
     });
 
-    setStatus(`${mode} aktiv. Renderar Three.js-scen '${activeSceneId}'.`);
-    renderer.setAnimationLoop(renderFrame);
+    await xr.baseExperience.enterXRAsync(
+      mode,
+      referenceSpaceType,
+      xr.renderTarget,
+      sessionInit,
+    );
+    setStatus(`${mode} active. Rendering Babylon.js scene '${activeSceneId}'.`);
   } catch (error) {
-    xrSession = null;
     appMode = "idle";
-    if (renderer) {
-      renderer.setAnimationLoop(null);
-    }
-    setControlsEnabled(true);
+    stopRenderLoop();
+    setCameraControlsEnabled(true);
     enableIdleButtons();
     applySceneTheme();
-    setStatus(`Kunde inte starta ${mode}: ${error.message}`);
+    setStatus(`Could not start ${mode}: ${error.message}`);
   }
 }
 
 /**
- * Startar desktop-simulering av samma Three.js-scen utan headset.
+ * Starts desktop simulation of the same Babylon scene without a headset.
  */
 function startSimulation() {
   try {
-    ensureThreeContext();
+    ensureBabylonContext();
     appMode = "simulation";
-    setControlsEnabled(true);
+    setCameraControlsEnabled(true);
     applySceneTheme();
-
     setButtons({
       canStartVr: false,
       canStartAr: false,
@@ -348,48 +412,46 @@ function startSimulation() {
       canEnd: true,
     });
 
-    setStatus(`Simuleringsläge aktivt. Renderar scen '${activeSceneId}'.`);
-    renderer.setAnimationLoop(renderFrame);
+    startRenderLoop();
+    setStatus(`Simulation active. Rendering scene '${activeSceneId}'.`);
   } catch (error) {
     appMode = "idle";
     enableIdleButtons();
-    setStatus(`Kunde inte starta simulering: ${error.message}`);
+    setStatus(`Could not start simulation: ${error.message}`);
   }
 }
 
 /**
- * Avslutar aktiv XR-session eller desktop-simulering.
+ * Ends the active XR session or the desktop simulation.
  */
 async function endCurrentSession() {
-  if (xrSession) {
-    await xrSession.end();
+  if (xrExperience && xrExperience.baseExperience.state !== WebXRState.NOT_IN_XR) {
+    await xrExperience.baseExperience.sessionManager.exitXRAsync();
     return;
   }
 
   if (appMode === "simulation") {
     appMode = "idle";
-    if (renderer) {
-      renderer.setAnimationLoop(null);
-    }
-    setControlsEnabled(true);
+    stopRenderLoop();
+    setCameraControlsEnabled(true);
     enableIdleButtons();
     applySceneTheme();
-    setStatus("Simulering avslutad.");
+    setStatus("Simulation ended.");
   }
 }
 
 /**
- * Kontrollerar om browsern stöder immersive-vr/ar och uppdaterar UI.
+ * Checks whether the browser supports immersive VR/AR and updates the UI.
  */
 async function initSupport() {
   if (!window.isSecureContext) {
-    setStatus("WebXR kräver secure context (HTTPS eller localhost). Simulering är tillgänglig.");
+    setStatus("WebXR requires a secure context (HTTPS or localhost). Simulation is available.");
     enableIdleButtons();
     return;
   }
 
   if (!("xr" in navigator)) {
-    setStatus("WebXR API saknas här. Använd headset/browser med WebXR för VR/AR, eller simulering.");
+    setStatus("WebXR API is not available here. Use a WebXR headset/browser for VR or AR, or use simulation.");
     enableIdleButtons();
     return;
   }
@@ -405,22 +467,22 @@ async function initSupport() {
     enableIdleButtons();
 
     if (vrSupported && arSupported) {
-      setStatus("WebXR redo: både immersive-vr och immersive-ar stöds.");
+      setStatus("WebXR ready: both immersive-vr and immersive-ar are supported.");
       return;
     }
     if (vrSupported) {
-      setStatus("WebXR redo: immersive-vr stöds (immersive-ar saknas).");
+      setStatus("WebXR ready: immersive-vr is supported (immersive-ar is unavailable).");
       return;
     }
     if (arSupported) {
-      setStatus("WebXR redo: immersive-ar stöds (immersive-vr saknas).");
+      setStatus("WebXR ready: immersive-ar is supported (immersive-vr is unavailable).");
       return;
     }
 
-    setStatus("WebXR API finns men immersive-vr/ar stöds inte här. Simulering fungerar ändå.");
+    setStatus("WebXR API is present, but immersive-vr/ar is not supported here. Simulation still works.");
   } catch (error) {
     enableIdleButtons();
-    setStatus(`Kunde inte verifiera WebXR-stöd: ${error.message}`);
+    setStatus(`Could not verify WebXR support: ${error.message}`);
   }
 }
 
