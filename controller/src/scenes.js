@@ -1,7 +1,7 @@
 export const scenes = [
-  { id: 'waiting',        label: 'Vänta på start',       color: '#4A90D9' },
-  { id: 'remove-headset', label: 'Ta av headset',         color: '#E67E22' },
-  { id: 'castle',         label: 'Kalmar slott',       color: '#30148b' },
-  { id: 'church',         label: 'Kalmar kyrka',       color: '#30148b' },
-  { id: 'boats',         label: 'Slagskepp',       color: '#30148b' },
+  { id: 'waiting',        label: 'Vänta på start', icon: 'schedule',    color: '#FFB95A' },
+  { id: 'remove-headset', label: 'Ta av headset',  icon: 'headset_off', color: '#FFB4AB' },
+  { id: 'castle',         label: 'Kalmar slott',   icon: 'castle',      color: '#CFBCFF' },
+  { id: 'church',         label: 'Kalmar kyrka',   icon: 'church',      color: '#A8C7FA' },
+  { id: 'boats',          label: 'Slagskepp',      icon: 'sailing',     color: '#9DD6C8' },
 ]

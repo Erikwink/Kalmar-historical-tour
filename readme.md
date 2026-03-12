@@ -1,125 +1,73 @@
+# Kalmar Historical Tour
 
-# kalmar-xr-tour
+A guided VR tour system where a controller (guide) leads headset clients through historical scenes in real time.
 
-An XR-powered historical walking tour of Kalmar, Sweden. Visitors wear VR headsets while a guide triggers historical scenes remotely — medieval churches materialize, Danish raids unfold, all layered on top of the real world.
+## How it works
 
----
+1. The **controller** starts a session and gets a 6-digit code
+2. **Clients** (VR headsets) enter the code to join the session
+3. The controller navigates between scenes — all connected headsets update instantly via Firebase
 
-## Architecture Overview
+## Structure
 
 ```
-kalmar-xr-tour/
-├── client/          # WebXR app running in the headsets
-├── controller/      # Guide's mobile interface for triggering scenes
-├── backend-adapter/ # Decoupled SaaS adapter (Firebase / Supabase / PocketBase)
-└── docs/            # Tech decisions, scene ideas, AI prompts
+controller/      React app for the tour guide
+client/          VR client app for headsets (WebXR + Babylon.js)
+saas-adapter/    Firebase integration shared by both
+docs/            Flow diagrams and documentation
 ```
 
-The three packages are **independently deployable**. The `client` and `controller` communicate only through the `backend-adapter` interface — neither knows which SaaS provider is used under the hood.
+## Getting started
 
----
+Install dependencies:
 
-## Packages
-
-### `client/` — WebXR App
-
-Runs inside the VR headsets (Meta Quest 3, or any WebXR-compatible device). Connects to the backend adapter and renders scenes on command.
-
-**Responsibilities:**
-- Connect to backend and listen for scene commands (SSE or WebSocket)
-- Render scenes: image/video overlays on passthrough (AR) or 360° background (full VR)
-- Play spatial audio per scene
-- Smoothly transition between scenes
-- Handle two baseline scenes: `waiting` and `remove-headset`
-
-**Tech:** Three.js / Babylon.js / A-Frame (document choice in `docs/tech-decisions.md`)
-
-**Key structure:**
-```
-client/
-├── src/
-│   ├── main.js               # Entry point, WebXR init
-│   ├── core/
-│   │   ├── sceneManager.js   # Listens for commands, switches scenes
-│   │   ├── backendClient.js  # Thin wrapper around backend-adapter
-│   │   └── audioManager.js   # Spatial audio
-│   └── scenes/
-│       ├── waitingScene.js
-│       ├── removeHeadsetScene.js
-│       ├── churchScene.js
-│       └── danishRaidsScene.js
-└── assets/
-    ├── images/
-    ├── videos/
-    └── audio/
+```bash
+npm install
+cd client && npm install && cd ..
+cd controller && npm install && cd ..
+cd saas-adapter && npm install && cd ..
 ```
 
-Each scene exports `load()` and `unload()`. `sceneManager.js` calls these on transition.
+Copy `saas-adapter/example.env` to `controller/.env` and `client/.env` and fill in your Firebase credentials.
 
----
+Start both apps:
 
-### `controller/` — Guide's Mobile Interface
-
-A minimal web app the guide uses on their phone to trigger scenes for all connected headsets.
-
-**Responsibilities:**
-- Display all available scenes as tappable buttons
-- Send scene commands to the backend adapter
-- Work reliably on a mobile browser over a shared WiFi hotspot
-
-**Not a priority:** visual polish. Functional > pretty.
-
-**Key structure:**
-```
-controller/
-├── src/
-│   ├── main.js        # Sends scene commands on button press
-│   └── scenes.js      # List of scene IDs and display names
-└── index.html
+```bash
+npm run dev
 ```
 
----
-
-### `backend-adapter/` — SaaS Abstraction Layer
-
-A thin adapter that decouples the client and controller from any specific SaaS backend. Swap providers by changing the adapter, not the apps.
-
-**Responsibilities:**
-- Expose a consistent interface: `publish(sceneId)` and `subscribe(onScene)`
-- Handle connection setup and reconnect logic
-- Abstract over SSE, WebSocket, or realtime subscriptions depending on provider
-
-**Interface contract:**
-```js
-// publish (used by controller)
-adapter.publish(sceneId: string): Promise<void>
-
-// subscribe (used by client)
-adapter.subscribe(callback: (sceneId: string) => void): () => void
+This starts:
+```
+[client]      ➜  Local:   http://localhost:5173/
+[client]      ➜  Network: http://xxx.xxx.x.xxx:5173/
+[controller]  ➜  Local:   http://localhost:5174/
+[controller]  ➜  Network: http://xxx.xxx.x.xxx:5174/
 ```
 
-**Supported providers (one active at a time):**
+## Testing with a physical VR headset (ngrok)
+
+The headset needs to reach the client app via a public URL. Use ngrok for this.
+
+**First-time setup:**
+1. Create a free account at [ngrok.com](https://ngrok.com)
+2. Add your auth token:
+   ```bash
+   ngrok config add-authtoken <your-token>
+   ```
+
+**Start the tunnel** (in a separate terminal while `npm run dev` is running):
+```bash
+npm run ngrok
 ```
-backend-adapter/
-├── index.js             # Re-exports the active provider
-├── firebase.js          # Firebase Realtime Database / Firestore
-├── supabase.js          # Supabase Realtime
-└── pocketbase.js        # PocketBase (self-hosted option)
-```
 
-Switch provider by changing the import in `index.js`. No auth required — a shared secret session ID is sufficient to connect clients.
+ngrok will print a public URL, e.g. `https://abc123.ngrok-free.app` — open it in the headset browser.
 
----
+> **Tip:** On the same local network you can skip ngrok and use the network IP printed in the terminal when the dev server starts, e.g. `http://xxx.xxx.x.xxx:5173`.
 
-## Scenes
+> **Note:** The ngrok auth token is personal and stored locally — it is not checked into the repo.
 
-| Scene ID           | Description                                      |
-|--------------------|--------------------------------------------------|
-| `waiting`          | Default on headset startup — "Please wait"       |
-| `remove-headset`   | Transition between locations                     |
-| `church`           | Medieval church at Söderport cemetery            |
-| `danish-raids`     | Danish attack on Gullbrandssonska lyckan         |
+## Docs
 
-Add new scenes by creating a file in `client/src/scenes/` and registering the ID in `controller/src/scenes.js`.
-
----
+- [System flow & API](./docs/flow.md)
+- [Component-diagram](./docs/component-diagram.md)
+- [Class-diagram](./docs/class-diagram.md)

@@ -1,36 +1,35 @@
 import SessionCard from '../components/sessionCard'
 import HeadsetList from '../components/headsetList'
-import { HEADSET_STATUS } from '../adapter-mock'
+import { HEADSET_STATUS } from "../utils/status_maps"
 
-export default function SessionPage({ 
-  sessionId, 
-  headsets, 
-  adapterStatus, 
-  onStart }) {
+export default function SessionPage({ sessionId, headsets, adapterStatus, onStart }) {
 
   // track number of headsets connected
   // cant start session with 0 headsets
-  const connectedCount = headsets.filter(h => h.status === HEADSET_STATUS.CONNECTED).length
+  const connectedCount = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length
 
   return (
-    <div className="page session-page">
-      <h1>Kalmar Historical Tour</h1>
+    <div className="page">
+      <div className="top-app-bar top-app-bar--medium">
+        <h1 className="top-app-bar__title">Kalmar Historical Tour</h1>
+        <span className="top-app-bar__sub">Guide Controller</span>
+      </div>
 
-      <SessionCard 
-        sessionId={sessionId} 
-      />
+      <div className="page-content">
+        <SessionCard sessionId={sessionId} />
+        <HeadsetList headsets={headsets} adapterStatus={adapterStatus} />
+      </div>
 
-      <HeadsetList 
-        headsets={headsets} 
-        adapterStatus={adapterStatus} 
-      />
-
-      <button
-        className="start-btn"
-        onClick={onStart}
-        disabled={connectedCount === 0}
-      >Start tour
-      </button>
+      <div className="fab-wrap">
+        <button
+          className="efab"
+          onClick={onStart}
+          disabled={connectedCount === 0}
+        >
+          <span className="ms" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>play_circle</span>
+          Start tour
+        </button>
+      </div>
     </div>
   )
 }
