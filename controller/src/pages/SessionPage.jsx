@@ -1,35 +1,80 @@
-import SessionCard from '../components/sessionCard'
+import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import HeadsetList from '../components/headsetList'
-import { HEADSET_STATUS } from "../utils/status_maps"
+import QRModal from '../components/QRmodal'
+import { HEADSET_STATUS } from '../utils/status_maps'
 
-export default function SessionPage({ sessionId, headsets, adapterStatus, onStart }) {
+/**
+ * Session overview page — shows the session ID, QR code button and headset list.
+ * The guide starts the tour from here once at least one headset is connected.
+ * @param {{ sessionId: string, headsets: Array, adapterStatus: string|null }} props
+ */
+export default function SessionPage({ sessionId, headsets, adapterStatus }) {
+  const navigate = useNavigate()
+  const { state } = useLocation()
+  const tour = state?.tour  // passed from ToursPage via router state
 
-  // track number of headsets connected
-  // cant start session with 0 headsets
+  const [showQR, setShowQR] = useState(false)
+
+  // Start tour button is disabled until at least one headset is online
   const connectedCount = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length
 
   return (
     <div className="page">
-      <div className="top-app-bar top-app-bar--medium">
-        <h1 className="top-app-bar__title">Kalmar Historical Tour</h1>
-        <span className="top-app-bar__sub">Guide Controller</span>
+      <div className="top-app-bar">
+        <button className="icon-btn" onClick={() => navigate('/')} aria-label="Tillbaka">
+          <span className="ms">arrow_back</span>
+        </button>
+        <span className="top-app-bar__title">{tour?.title ?? 'Touröversikt'}</span>
+        <button
+          className="icon-btn"
+          onClick={() => navigate('/settings')}
+          aria-label="Inställningar"
+        >
+          <span className="ms">settings</span>
+        </button>
       </div>
 
       <div className="page-content">
-        <SessionCard sessionId={sessionId} />
+        <div className="session-info-card card">
+          <div className="session-info-card__code-row">
+            <div>
+              <div className="session-card__label">Session-ID</div>
+              <div className="session-card__code">{sessionId}</div>
+            </div>
+            <button
+              className="icon-btn"
+              onClick={() => setShowQR(true)}
+              aria-label="Visa QR-kod"
+            >
+              <span className="ms" style={{ fontVariationSettings: "'FILL' 1" }}>qr_code_2</span>
+            </button>
+          </div>
+        </div>
+
         <HeadsetList headsets={headsets} adapterStatus={adapterStatus} />
       </div>
 
-      <div className="fab-wrap">
+      <div className="fab-wrap fab-wrap--row">
+        <button className="efab efab--outline" onClick={() => navigate('/')}>
+          Avbryt
+        </button>
         <button
           className="efab"
-          onClick={onStart}
+          onClick={() => navigate('/tour', { state: { tour } })}
           disabled={connectedCount === 0}
         >
-          <span className="ms" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>play_circle</span>
-          Start tour
+          <span
+            className="ms"
+            style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}
+          >
+            play_circle
+          </span>
+          Starta tour
         </button>
       </div>
+
+      {showQR && <QRModal sessionId={sessionId} onClose={() => setShowQR(false)} />}
     </div>
   )
 }

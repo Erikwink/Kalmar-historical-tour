@@ -1,8 +1,18 @@
+/**
+ * Maps a headset's raw status to a display status.
+ * A headset that is online but not yet ready gets a distinct 'not-ready' style.
+ * @param {{ status: string, ready: boolean }} h
+ * @returns {string} display status key
+ */
 function displayStatus(h) {
   if (h.status === 'online' && !h.ready) return 'not-ready'
   return h.status
 }
 
+/**
+ * Renders the list of connected headsets and the Firebase connection status row.
+ * @param {{ headsets: Array, adapterStatus: string|null }} props
+ */
 export default function HeadsetList({ headsets, adapterStatus }) {
   const connectedCount = headsets.filter(h => h.status === 'online').length
   // null before first connection → default to disconnected style
@@ -11,7 +21,7 @@ export default function HeadsetList({ headsets, adapterStatus }) {
   return (
     <div>
       <div className="section-header">
-        <span className="section-header__title">Headsets</span>
+        <span className="section-header__title">Headset</span>
         <span className="section-header__badge">{connectedCount} / {headsets.length}</span>
       </div>
 

@@ -1,3 +1,7 @@
+/**
+ * A single selectable scene button with an active indicator bar and checkmark.
+ * @param {{ scene: { id: string, label: string, icon: string, color: string }, isActive: boolean, onClick: Function }} props
+ */
 export default function SceneBtn({ scene, isActive, onClick }) {
   return (
     <button
