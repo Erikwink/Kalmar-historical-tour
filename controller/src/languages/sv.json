@@ -1,0 +1,70 @@
+{
+  "nav": {
+    "back": "Tillbaka",
+    "settings": "Inställningar"
+  },
+  "toursPage": {
+    "guidesIn": "Guider i",
+    "city": "Kalmar",
+    "selectTour": "Välj tour"
+  },
+  "sessionPage": {
+    "fallbackTitle": "Touröversikt",
+    "sessionId": "Session-ID",
+    "showQR": "Visa QR-kod",
+    "cancel": "Avbryt",
+    "startTour": "Starta tour"
+  },
+  "mainPage": {
+    "activeScene": "Aktiv scen",
+    "scenes": "Scener",
+    "endTour": "Avsluta tour"
+  },
+  "settingsPage": {
+    "title": "Inställningar",
+    "tourSection": "Tour",
+    "editTour": "Redigera tour",
+    "manageDevices": "Hantera enheter",
+    "generalSection": "Allmänt",
+    "language": "Språk",
+    "fontSize": "Textstorlek",
+    "appearance": "Utseende",
+    "toggleDarkMode": "Växla mörkt läge",
+    "dark": "Mörkt",
+    "light": "Ljust"
+  },
+  "fontSizes": {
+    "small": "Liten",
+    "medium": "Medel",
+    "large": "Stor"
+  },
+  "qrModal": {
+    "title": "QR-kod",
+    "close": "Stäng",
+    "hint": "Skanna för att ansluta till session"
+  },
+  "headsetList": {
+    "title": "Headset"
+  },
+  "sessionCard": {
+    "label": "Session",
+    "tagline": "Skanna för att gå med i touren"
+  },
+  "tours": {
+    "kalmar-medeltid": { "title": "Kalmar Medeltid" },
+    "kalmarsund":      { "title": "Kalmarsund" },
+    "kalmar-union":    { "title": "Kalmarunionen" },
+    "kalmar-slott":    { "title": "Kalmar Slott" }
+  },
+  "scenes": {
+    "waiting": "Vänta på start",
+    "remove-headset": "Ta av headset",
+    "castle": "Kalmar slott",
+    "church": "Kalmar domkyrka",
+    "audio": "Präst talar",
+    "harbor": "Hamnen",
+    "boats": "Slagskeppet",
+    "throne-room": "Tronsalen",
+    "city-center": "Centrum"
+  }
+}

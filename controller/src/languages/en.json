@@ -1,0 +1,70 @@
+{
+  "nav": {
+    "back": "Back",
+    "settings": "Settings"
+  },
+  "toursPage": {
+    "guidesIn": "Guides in",
+    "city": "Kalmar",
+    "selectTour": "Select tour"
+  },
+  "sessionPage": {
+    "fallbackTitle": "Tour overview",
+    "sessionId": "Session ID",
+    "showQR": "Show QR code",
+    "cancel": "Cancel",
+    "startTour": "Start tour"
+  },
+  "mainPage": {
+    "activeScene": "Active scene",
+    "scenes": "Scenes",
+    "endTour": "End tour"
+  },
+  "settingsPage": {
+    "title": "Settings",
+    "tourSection": "Tour",
+    "editTour": "Edit tour",
+    "manageDevices": "Manage devices",
+    "generalSection": "General",
+    "language": "Language",
+    "fontSize": "Font size",
+    "appearance": "Appearance",
+    "toggleDarkMode": "Toggle dark mode",
+    "dark": "Dark",
+    "light": "Light"
+  },
+  "fontSizes": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "qrModal": {
+    "title": "QR code",
+    "close": "Close",
+    "hint": "Scan to join session"
+  },
+  "headsetList": {
+    "title": "Headsets"
+  },
+  "sessionCard": {
+    "label": "Session",
+    "tagline": "Scan to join the tour"
+  },
+  "tours": {
+    "kalmar-medeltid": { "title": "Medieval Kalmar" },
+    "kalmarsund":      { "title": "Kalmarsund" },
+    "kalmar-union":    { "title": "The Kalmar Union" },
+    "kalmar-slott":    { "title": "Kalmar Castle" }
+  },
+  "scenes": {
+    "waiting": "Waiting to start",
+    "remove-headset": "Remove headset",
+    "castle": "Kalmar Castle",
+    "church": "Kalmar Cathedral",
+    "audio": "Priest speaking",
+    "harbor": "The Harbor",
+    "boats": "The Warship",
+    "throne-room": "The Throne Room",
+    "city-center": "City Center"
+  }
+}

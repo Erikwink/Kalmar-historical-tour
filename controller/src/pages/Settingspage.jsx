@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useSettings } from '../context/SettingsContext'
 
 const LANGUAGES = [
@@ -6,46 +7,43 @@ const LANGUAGES = [
   { value: 'en', label: 'English' },
 ]
 
-const FONT_SIZES = [
-  { value: 'small',  label: 'Liten' },
-  { value: 'medium', label: 'Medel' },
-  { value: 'large',  label: 'Stor' },
-]
+const FONT_SIZE_VALUES = ['small', 'medium', 'large']
 
 export default function SettingsPage() {
   const navigate = useNavigate()
+  const { t } = useTranslation()
   const { theme, setTheme, language, setLanguage, fontSize, setFontSize } = useSettings()
 
   return (
     <div className="page">
       <div className="top-app-bar">
-        <button className="icon-btn" onClick={() => navigate(-1)} aria-label="Tillbaka">
+        <button className="icon-btn" onClick={() => navigate(-1)} aria-label={t('nav.back')}>
           <span className="ms">arrow_back</span>
         </button>
-        <span className="top-app-bar__title">Inställningar</span>
+        <span className="top-app-bar__title">{t('settingsPage.title')}</span>
       </div>
 
       <div className="page-content">
         <div className="section-header">
-          <span className="section-header__title">Tour</span>
+          <span className="section-header__title">{t('settingsPage.tourSection')}</span>
         </div>
         <div className="card settings-list">
           <button className="settings-item" onClick={() => {}}>
-            <span className="settings-item__label">Redigera tour</span>
+            <span className="settings-item__label">{t('settingsPage.editTour')}</span>
             <span className="ms settings-item__arrow">chevron_right</span>
           </button>
           <button className="settings-item" onClick={() => {}}>
-            <span className="settings-item__label">Hantera enheter</span>
+            <span className="settings-item__label">{t('settingsPage.manageDevices')}</span>
             <span className="ms settings-item__arrow">chevron_right</span>
           </button>
         </div>
 
         <div className="section-header">
-          <span className="section-header__title">Allmänt</span>
+          <span className="section-header__title">{t('settingsPage.generalSection')}</span>
         </div>
         <div className="card settings-list">
           <div className="settings-item settings-item--select">
-            <span className="settings-item__label">Språk</span>
+            <span className="settings-item__label">{t('settingsPage.language')}</span>
             <select
               className="settings-select"
               value={language}
@@ -58,29 +56,29 @@ export default function SettingsPage() {
           </div>
 
           <div className="settings-item settings-item--select">
-            <span className="settings-item__label">Textstorlek</span>
+            <span className="settings-item__label">{t('settingsPage.fontSize')}</span>
             <select
               className="settings-select"
               value={fontSize}
               onChange={e => setFontSize(e.target.value)}
             >
-              {FONT_SIZES.map(f => (
-                <option key={f.value} value={f.value}>{f.label}</option>
+              {FONT_SIZE_VALUES.map(v => (
+                <option key={v} value={v}>{t(`fontSizes.${v}`)}</option>
               ))}
             </select>
           </div>
 
           <div className="settings-item">
-            <span className="settings-item__label">Utseende</span>
+            <span className="settings-item__label">{t('settingsPage.appearance')}</span>
             <button
               className={`settings-toggle ${theme === 'dark' ? 'settings-toggle--active' : ''}`}
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              aria-label="Växla mörkt läge"
+              aria-label={t('settingsPage.toggleDarkMode')}
             >
               <span className="ms" style={{ fontSize: 18 }}>
                 {theme === 'dark' ? 'dark_mode' : 'light_mode'}
               </span>
-              {theme === 'dark' ? 'Mörkt' : 'Ljust'}
+              {theme === 'dark' ? t('settingsPage.dark') : t('settingsPage.light')}
             </button>
           </div>
         </div>

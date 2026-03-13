@@ -1,11 +1,12 @@
 import kalmarKyrka from './img/kalmar-kyrka.png'
 import kalmarSund from './img/kalmar-sund.png'
+import kalmarUnion from './img/kalmar-union.png'
+import kalmarSlott from './img/kalmar-slott.png'
 
 export const tours = [
   {
     id: 'kalmar-medeltid',
     title: 'Kalmar Medeltid',
-    description: 'Utforska det medeltida Kalmar – från det mäktiga slottet till stadens tidiga historia.',
     image: kalmarKyrka,
     icon: 'castle',
     scenes: [
@@ -19,7 +20,6 @@ export const tours = [
   {
     id: 'kalmarsund',
     title: 'Kalmarsund',
-    description: 'Upplev sjöstriderna i Kalmarsund och stadens maritima arv från 1600-talet.',
     image: kalmarSund,
     icon: 'sailing',
     scenes: [
@@ -32,7 +32,7 @@ export const tours = [
   {
     id: 'kalmar-union',
     title: 'Kalmarunionen',
-    description: 'Resan tillbaka till 1397 när Sverige, Danmark och Norge enades under ett tak.',
+    image: kalmarUnion,
     icon: 'account_balance',
     scenes: [
       { id: 'waiting',        label: 'Vänta på start', icon: 'schedule',        color: '#FFB95A' },
@@ -41,14 +41,14 @@ export const tours = [
     ],
   },
   {
-    id: 'modern-kalmar',
-    title: 'Moderna Kalmar',
-    description: 'Upptäck hur staden har förändrats från tidigt 1900-tal till idag.',
-    icon: 'location_city',
+    id: 'kalmar-slott',
+    title: 'Kalmar Slott',
+    image: kalmarSlott,
+    icon: 'castle',
     scenes: [
-      { id: 'waiting',        label: 'Vänta på start', icon: 'schedule',      color: '#FFB95A' },
-      { id: 'remove-headset', label: 'Ta av headset',  icon: 'headset_off',   color: '#FFB4AB' },
-      { id: 'city-center',    label: 'Centrum',        icon: 'location_city', color: '#A8C7FA' },
+      { id: 'waiting',        label: 'Vänta på start', icon: 'schedule',    color: '#FFB95A' },
+      { id: 'remove-headset', label: 'Ta av headset',  icon: 'headset_off', color: '#FFB4AB' },
+      { id: 'city-center',    label: 'Centrum',        icon: 'castle',      color: '#A8C7FA' },
     ],
   },
 ]

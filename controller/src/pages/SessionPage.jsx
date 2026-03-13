@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import HeadsetList from '../components/headsetList'
 import QRModal from '../components/QRmodal'
 import { HEADSET_STATUS } from '../utils/status_maps'
@@ -12,6 +13,7 @@ import { HEADSET_STATUS } from '../utils/status_maps'
 export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   const navigate = useNavigate()
   const { state } = useLocation()
+  const { t } = useTranslation()
   const tour = state?.tour  // passed from ToursPage via router state
 
   const [showQR, setShowQR] = useState(false)
@@ -22,14 +24,16 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   return (
     <div className="page">
       <div className="top-app-bar">
-        <button className="icon-btn" onClick={() => navigate('/')} aria-label="Tillbaka">
+        <button className="icon-btn" onClick={() => navigate('/')} aria-label={t('nav.back')}>
           <span className="ms">arrow_back</span>
         </button>
-        <span className="top-app-bar__title">{tour?.title ?? 'Touröversikt'}</span>
+        <span className="top-app-bar__title">
+          {tour ? t(`tours.${tour.id}.title`) : t('sessionPage.fallbackTitle')}
+        </span>
         <button
           className="icon-btn"
           onClick={() => navigate('/settings')}
-          aria-label="Inställningar"
+          aria-label={t('nav.settings')}
         >
           <span className="ms">settings</span>
         </button>
@@ -39,13 +43,13 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
         <div className="session-info-card card">
           <div className="session-info-card__code-row">
             <div>
-              <div className="session-card__label">Session-ID</div>
+              <div className="session-card__label">{t('sessionPage.sessionId')}</div>
               <div className="session-card__code">{sessionId}</div>
             </div>
             <button
               className="icon-btn"
               onClick={() => setShowQR(true)}
-              aria-label="Visa QR-kod"
+              aria-label={t('sessionPage.showQR')}
             >
               <span className="ms" style={{ fontVariationSettings: "'FILL' 1" }}>qr_code_2</span>
             </button>
@@ -57,7 +61,7 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
 
       <div className="fab-wrap fab-wrap--row">
         <button className="efab efab--outline" onClick={() => navigate('/')}>
-          Avbryt
+          {t('sessionPage.cancel')}
         </button>
         <button
           className="efab"
@@ -70,7 +74,7 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
           >
             play_circle
           </span>
-          Starta tour
+          {t('sessionPage.startTour')}
         </button>
       </div>
 
