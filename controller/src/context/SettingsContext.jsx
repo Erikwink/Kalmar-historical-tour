@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react"
+import i18n from '../languages/i18n'
 
 const SettingsContext = createContext(null)
 
@@ -20,6 +21,7 @@ export function SettingsProvider({ children }) {
   /** @param {'sv'|'en'} value */
   function setLanguage(value) {
     localStorage.setItem('language', value)
+    i18n.changeLanguage(value)
     setLanguageState(value)
   }
 

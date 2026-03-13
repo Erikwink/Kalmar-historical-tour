@@ -10,7 +10,6 @@
   },
   "sessionPage": {
     "fallbackTitle": "Touröversikt",
-    "fallbackDescription": "Upplev denna fantastiska tour",
     "sessionId": "Session-ID",
     "showQR": "Visa QR-kod",
     "cancel": "Avbryt",
@@ -39,12 +38,6 @@
     "medium": "Medel",
     "large": "Stor"
   },
-  "endSessionModal": {
-    "title": "Avsluta session?",
-    "message": " Alla headset kommer att tappa anslutningen.",
-    "cancel": "Avbryt",
-    "confirm": "Avsluta session"
-  },
   "qrModal": {
     "title": "QR-kod",
     "close": "Stäng",
@@ -58,22 +51,10 @@
     "tagline": "Skanna för att gå med i touren"
   },
   "tours": {
-    "kalmar-medeltid": { 
-      "title": "Kalmar Medeltid",
-      "description": "Utforska Kalmar under medeltiden, från det gamla slottet till domkyrkan"
-    },
-    "kalmarsund": { 
-      "title": "Kalmarsund",
-      "description": "Upptäck det historiska maritima arvet och det berömda Kalmarsund"
-    },
-    "kalmar-union": { 
-      "title": "Kalmarunionen",
-      "description": "Lär dig om unionen mellan Sverige, Norge och Danmark"
-    },
-    "kalmar-slott": { 
-      "title": "Kalmar Slott",
-      "description": "Vandra genom det magnifika Kalmar slott och upplev dess rika historia"
-    }
+    "kalmar-medeltid": { "title": "Kalmar Medeltid" },
+    "kalmarsund":      { "title": "Kalmarsund" },
+    "kalmar-union":    { "title": "Kalmarunionen" },
+    "kalmar-slott":    { "title": "Kalmar Slott" }
   },
   "scenes": {
     "waiting": "Vänta på start",

@@ -10,7 +10,6 @@
   },
   "sessionPage": {
     "fallbackTitle": "Tour overview",
-    "fallbackDescription": "Experience this immersive tour",
     "sessionId": "Session ID",
     "showQR": "Show QR code",
     "cancel": "Cancel",
@@ -39,12 +38,6 @@
     "medium": "Medium",
     "large": "Large"
   },
-  "endSessionModal": {
-    "title": "End session?",
-    "message": "All headsets will lose their connection.",
-    "cancel": "Cancel",
-    "confirm": "End session"
-  },
   "qrModal": {
     "title": "QR code",
     "close": "Close",
@@ -58,22 +51,10 @@
     "tagline": "Scan to join the tour"
   },
   "tours": {
-    "kalmar-medeltid": { 
-      "title": "Medieval Kalmar",
-      "description": "Explore Kalmar during the Middle Ages, from the ancient castle to the cathedral"
-    },
-    "kalmarsund": { 
-      "title": "Kalmarsund",
-      "description": "Discover the historical maritime heritage and the famous Kalmarsund strait"
-    },
-    "kalmar-union": { 
-      "title": "The Kalmar Union",
-      "description": "Learn about the historic union between Sweden, Norway, and Denmark"
-    },
-    "kalmar-slott": { 
-      "title": "Kalmar Castle",
-      "description": "Tour the magnificent Kalmar Castle and experience its rich history"
-    }
+    "kalmar-medeltid": { "title": "Medieval Kalmar" },
+    "kalmarsund":      { "title": "Kalmarsund" },
+    "kalmar-union":    { "title": "The Kalmar Union" },
+    "kalmar-slott":    { "title": "Kalmar Castle" }
   },
   "scenes": {
     "waiting": "Waiting to start",

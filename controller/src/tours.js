@@ -1,10 +1,7 @@
 import kalmarKyrka from './img/kalmar-kyrka.png'
 import kalmarSund from './img/kalmar-sund.png'
-<<<<<<< HEAD
 import kalmarUnion from './img/kalmar-union.png'
 import kalmarSlott from './img/kalmar-slott.png'
-=======
->>>>>>> bbd279c (ADD: react router, settingsPage, ToursPage, refactor main/sessionPage, add components)
 
 export const tours = [
   {
@@ -12,7 +9,6 @@ export const tours = [
     title: 'Kalmar Medeltid',
 <<<<<<< HEAD
 =======
-    description: 'Utforska det medeltida Kalmar – från det mäktiga slottet till stadens tidiga historia.',
 >>>>>>> bbd279c (ADD: react router, settingsPage, ToursPage, refactor main/sessionPage, add components)
     image: kalmarKyrka,
     icon: 'castle',
@@ -27,10 +23,6 @@ export const tours = [
   {
     id: 'kalmarsund',
     title: 'Kalmarsund',
-<<<<<<< HEAD
-=======
-    description: 'Upplev sjöstriderna i Kalmarsund och stadens maritima arv från 1600-talet.',
->>>>>>> bbd279c (ADD: react router, settingsPage, ToursPage, refactor main/sessionPage, add components)
     image: kalmarSund,
     icon: 'sailing',
     scenes: [
@@ -43,11 +35,7 @@ export const tours = [
   {
     id: 'kalmar-union',
     title: 'Kalmarunionen',
-<<<<<<< HEAD
     image: kalmarUnion,
-=======
-    description: 'Resan tillbaka till 1397 när Sverige, Danmark och Norge enades under ett tak.',
->>>>>>> bbd279c (ADD: react router, settingsPage, ToursPage, refactor main/sessionPage, add components)
     icon: 'account_balance',
     scenes: [
       { id: 'waiting',        label: 'Vänta på start', icon: 'schedule',        color: '#FFB95A' },
@@ -56,7 +44,6 @@ export const tours = [
     ],
   },
   {
-<<<<<<< HEAD
     id: 'kalmar-slott',
     title: 'Kalmar Slott',
     image: kalmarSlott,
@@ -65,16 +52,6 @@ export const tours = [
       { id: 'waiting',        label: 'Vänta på start', icon: 'schedule',    color: '#FFB95A' },
       { id: 'remove-headset', label: 'Ta av headset',  icon: 'headset_off', color: '#FFB4AB' },
       { id: 'city-center',    label: 'Centrum',        icon: 'castle',      color: '#A8C7FA' },
-=======
-    id: 'modern-kalmar',
-    title: 'Moderna Kalmar',
-    description: 'Upptäck hur staden har förändrats från tidigt 1900-tal till idag.',
-    icon: 'location_city',
-    scenes: [
-      { id: 'waiting',        label: 'Vänta på start', icon: 'schedule',      color: '#FFB95A' },
-      { id: 'remove-headset', label: 'Ta av headset',  icon: 'headset_off',   color: '#FFB4AB' },
-      { id: 'city-center',    label: 'Centrum',        icon: 'location_city', color: '#A8C7FA' },
->>>>>>> bbd279c (ADD: react router, settingsPage, ToursPage, refactor main/sessionPage, add components)
     ],
   },
 ]
