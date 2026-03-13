@@ -1,60 +1,35 @@
-<<<<<<< HEAD
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import SceneBtn from '../components/sceneBtn'
-import { tours } from '../tours'
-=======
-import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import SceneBtn from '../components/sceneBtn'
-import EndSessionModal from '../components/endSessionModal'
->>>>>>> 10d7ca2 (ADD: modal for ending session, css)
 
 /**
  * Active tour control page — lets the guide select which scene headsets should display.
- * @param {{ activeScene: string, onScenePress: Function, onEndSession: Function }} props
+ * @param {{ activeScene: string, onScenePress: Function }} props
  */
-export default function MainPage({ activeScene, onScenePress, onEndSession }) {
+export default function MainPage({ activeScene, onScenePress }) {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const { t } = useTranslation()
-<<<<<<< HEAD
-  
-  const tourId = searchParams.get('tourId')
-  const tour = tours.find(t => t.id === tourId)
-=======
-  const [showEndModal, setShowEndModal] = useState(false)
+  const { state } = useLocation()
   const tour = state?.tour  // passed from SessionPage via router state
->>>>>>> 10d7ca2 (ADD: modal for ending session, css)
 
-  // Fall back to empty array if tour is missing (e.g. direct URL navigation)
+  // Fall back to empty array if tour state is missing (e.g. direct URL navigation)
   const scenes = tour?.scenes ?? []
   const active = scenes.find(s => s.id === activeScene)
 
   return (
-    <>
-      <div className="page">
-        <div className="top-app-bar">
-          <button
-            className="icon-btn"
-            onClick={() => navigate(`/session?tourId=${tourId}`)}
-            aria-label={t("nav.back")}
-          >
-            <span className="ms">arrow_back</span>
-          </button>
-          <span className="top-app-bar__title">
-            {tour ? t(`tours.${tour.id}.title`) : "Tour"}
-          </span>
-
-          <button
-            className="icon-btn"
-            onClick={() => navigate("/settings")}
-            aria-label={t("nav.settings")}
-          >
-            <span className="ms">settings</span>
-          </button>
-        </div>
+    <div className="page">
+      <div className="top-app-bar">
+        <button className="icon-btn" onClick={() => navigate('/session')} aria-label="Tillbaka">
+          <span className="ms">arrow_back</span>
+        </button>
+        <span className="top-app-bar__title">{tour?.title ?? 'Tour'}</span>
+        
+        <button
+          className="icon-btn"
+          onClick={() => navigate('/settings')}
+          aria-label="Inställningar"
+        >
+          <span className="ms">settings</span>
+        </button>
+      </div>
 
         <div className="page-content">
           {active && (
@@ -83,52 +58,32 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
             </>
           )}
 
-          <div className="section-header">
-            <span className="section-header__title">
-              {t("mainPage.scenes")}
-            </span>
-          </div>
-          <div className="card scene-list">
-            {scenes.map((scene) => (
-              <SceneBtn
-                key={scene.id}
-                scene={scene}
-                label={t(`scenes.${scene.id}`, scene.label)}
-                isActive={scene.id === activeScene}
-                onClick={() => onScenePress(scene.id)}
-              />
-            ))}
-          </div>
+        <div className="section-header">
+          <span className="section-header__title">Scener</span>
         </div>
-
-        <div className="fab-wrap">
-          <button
-            className="efab efab--danger"
-            onClick={() => setShowEndModal(true)}
-          >
-            <span
-              className="ms"
-              style={{
-                fontVariationSettings:
-                  "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-              }}
-            >
-              stop_circle
-            </span>
-            {t("mainPage.endTour")}
-          </button>
+        <div className="card scene-list">
+          {scenes.map(scene => (
+            <SceneBtn
+              key={scene.id}
+              scene={scene}
+              isActive={scene.id === activeScene}
+              onClick={() => onScenePress(scene.id)}
+            />
+          ))}
         </div>
       </div>
 
-      {showEndModal && (
-        <EndSessionModal
-          onConfirm={() => {
-            setShowEndModal(false);
-            onEndSession();
-          }}
-          onCancel={() => setShowEndModal(false)}
-        />
-      )}
-    </>
-  );
+      <div className="fab-wrap">
+        <button
+          className="efab efab--danger"
+          onClick={() => navigate('/')}
+        >
+          <span className="ms" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
+            stop_circle
+          </span>
+          Avsluta tour
+        </button>
+      </div>
+    </div>
+  )
 }

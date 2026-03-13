@@ -1,11 +1,9 @@
 import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import TourCard from '../components/Tourcard'
 import { tours } from '../tours'
 
 export default function ToursPage() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
 
   return (
     <div className="page">
@@ -14,7 +12,7 @@ export default function ToursPage() {
         <button
           className="icon-btn"
           onClick={() => navigate('/settings')}
-          aria-label={t('nav.settings')}
+          aria-label="Inställningar"
         >
           <span className="ms">settings</span>
         </button>
@@ -22,18 +20,18 @@ export default function ToursPage() {
 
       <div className="page-content">
         <div className="tours-header">
-          <span className="tours-header__sub">{t('toursPage.guidesIn')}</span>
-          <h2 className="tours-header__city">{t('toursPage.city')}</h2>
+          <span className="tours-header__sub">Guider i</span>
+          <h2 className="tours-header__city">Kalmar</h2>
         </div>
 
-        <p className="section-label">{t('toursPage.selectTour')}</p>
+        <p className="section-label">Välj tour</p>
 
         <div className="tour-grid">
           {tours.map(tour => (
             <TourCard
               key={tour.id}
               tour={tour}
-              onClick={() => navigate(`/session?tourId=${tour.id}`)}
+              onClick={() => navigate('/session', { state: { tour } })}
             />
           ))}
         </div>

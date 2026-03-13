@@ -1,3 +1,9 @@
+/**
+ * Maps a headset's raw status to a display status.
+ * A headset that is online but not yet ready gets a distinct 'not-ready' style.
+ * @param {{ status: string, ready: boolean }} h
+ * @returns {string} display status key
+ */
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import { HEADSET_STATUS } from '../utils/status_maps'

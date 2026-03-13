@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 export default function SessionCard({ sessionId }) {
   const { t } = useTranslation()
   // Format "123456" as "123 456" for readability
+  // Format "123456" as "123 456" for readability
   const formatted = `${sessionId.slice(0, 3)} ${sessionId.slice(3)}`
 
   return (
