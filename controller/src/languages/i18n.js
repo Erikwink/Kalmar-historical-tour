@@ -8,7 +8,8 @@ i18n.use(initReactI18next).init({
     sv: { translation: sv },
     en: { translation: en },
   },
-  lng: localStorage.getItem('language') || 'sv',
+  lng: localStorage.getItem('language') ??
+    (['sv', 'en'].includes(navigator.language.split('-')[0]) ? navigator.language.split('-')[0] : 'sv'),
   fallbackLng: 'sv',
   interpolation: { escapeValue: false },
 })
