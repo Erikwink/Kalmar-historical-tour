@@ -4,9 +4,9 @@ import SceneBtn from '../components/sceneBtn'
 
 /**
  * Active tour control page — lets the guide select which scene headsets should display.
- * @param {{ activeScene: string, onScenePress: Function }} props
+ * @param {{ activeScene: string, onScenePress: Function, onEndSession: Function }} props
  */
-export default function MainPage({ activeScene, onScenePress }) {
+export default function MainPage({ activeScene, onScenePress, onEndSession }) {
   const navigate = useNavigate()
   const { state } = useLocation()
   const { t } = useTranslation()
@@ -75,7 +75,7 @@ export default function MainPage({ activeScene, onScenePress }) {
       <div className="fab-wrap">
         <button
           className="efab efab--danger"
-          onClick={() => navigate('/')}
+          onClick={onEndSession}
         >
           <span className="ms" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
             stop_circle

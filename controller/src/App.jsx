@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { connect, onHeadsetsChange, publish } from "../../saas-adapter/src/index"
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
+import { connect, onHeadsetsChange, publish, disconnect } from "../../saas-adapter/src/index"
 import { FIREBASE_STATUS } from "./utils/status_maps"
 import ToursPage from "./pages/Tourspage"
 import SessionPage from "./pages/SessionPage"
@@ -18,7 +18,8 @@ function generateSessionId() {
   return "123456"
 }
 
-function App() {
+function AppContent() {
+  const navigate = useNavigate()
   const [activeScene, setActiveScene] = useState("waiting")
   const [saasStatus, setSaasStatus] = useState(null)
   const [headsets, setHeadsets] = useState([])
@@ -62,8 +63,24 @@ function App() {
     }
   }
 
+  /**
+   * Ends the tour session by disconnecting from Firebase and clearing the active session.
+   */
+  async function handleEndSession() {
+    try {
+      await disconnect(sessionId)
+      localStorage.removeItem("sessionId")
+      setActiveScene("waiting") // resets scene
+      setSaasStatus(null)     // resets connection state
+      navigate('/')           // returns to start page
+    } catch (e) {
+      console.error("failed to disconnect from adapter:", e)
+      setSaasStatus(FIREBASE_STATUS.ERROR)
+    }
+  }
+
   return (
-    <BrowserRouter>
+    <>
       <Routes>
         <Route path="/" element={<ToursPage />} />
         <Route
@@ -82,15 +99,24 @@ function App() {
             <MainPage
               activeScene={activeScene}
               onScenePress={handleScenePress}
+              onEndSession={handleEndSession}
             />
           }
         />
         <Route path="/settings" element={<SettingsPage />} />
       </Routes>
+
       {/* REMOVE MOCK ONCE CLIENT IS IMPLEMENTED */}
       <JoinMock sessionId={sessionId} headsets={headsets} />
-    </BrowserRouter>
+    </>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter >
+  )
+}
+

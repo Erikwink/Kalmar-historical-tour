@@ -146,4 +146,12 @@ export class Firebase {
     const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
     await remove(clientRef)
   }
+
+  // -----------------------------
+  // Controller: lämna session (städa upp)
+  // -----------------------------
+  async disconnect(sessionId) {
+    const sessionRef = ref(this.db, `rooms/${sessionId}`)
+    await remove(sessionRef)
+  }
 }
