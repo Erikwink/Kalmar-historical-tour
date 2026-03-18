@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
-import { connect, onHeadsetsChange, publish, disconnect } from "../../saas-adapter/src/index"
+import { loginController, connect, onHeadsetsChange, publish, disconnect } from "../../saas-adapter/src/index"
 import { FIREBASE_STATUS } from "./utils/status_maps"
 import ToursPage from "./pages/Tourspage"
 import SessionPage from "./pages/SessionPage"
