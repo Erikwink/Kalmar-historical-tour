@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { connect, onHeadsetsChange, publish } from "../../saas-adapter/src/index"
+import { connect, onHeadsetsChange, publish, disconnect } from "../../saas-adapter/src/index"
 import SessionPage from "./pages/SessionPage";
 import MainPage from "./pages/MainPage";
 import { FIREBASE_STATUS } from "./utils/status_maps";
@@ -70,6 +70,19 @@ function App() {
     }
   }
 
+    async function handleEndSession() {
+    try {
+      await disconnect(sessionId);
+      localStorage.removeItem("sessionId");
+      setPage("session");
+      setActiveScene("waiting");
+      setSaasStatus(null);
+    } catch (e) {
+      console.error("failed to end session:", e);
+      setSaasStatus(FIREBASE_STATUS.ERROR);
+    }
+  }
+  
   if (page === "session") {
     return (
       <>
@@ -92,6 +105,7 @@ function App() {
       activeScene={activeScene}
       onScenePress={handleScenePress}
       onBack={() => setPage("session")}
+      onEndSession={handleEndSession}
     />
   );
 }

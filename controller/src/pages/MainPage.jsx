@@ -2,7 +2,7 @@ import HeadsetList from '../components/headsetList'
 import SceneBtn from '../components/sceneBtn'
 import { scenes } from '../scenes'
 
-export default function MainPage({ headsets, adapterStatus, activeScene, onScenePress, onBack }) {
+export default function MainPage({ headsets, adapterStatus, activeScene, onScenePress, onBack, onEndSession }) {
   const active = scenes.find(s => s.id === activeScene)
 
   return (
@@ -12,6 +12,9 @@ export default function MainPage({ headsets, adapterStatus, activeScene, onScene
           <span className="ms">arrow_back</span>
         </button>
         <span className="top-app-bar__title">Tour Control</span>
+        <button className="icon-btn" onClick={onEndSession} aria-label="End session">
+          <span className="ms">logout</span>
+        </button>
       </div>
 
       <div className="page-content">
@@ -49,6 +52,6 @@ export default function MainPage({ headsets, adapterStatus, activeScene, onScene
           ))}
         </div>
       </div>
-    </div>
+    </div >
   )
 }
