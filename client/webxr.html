@@ -187,6 +187,7 @@
     <main>
       <h1>Kalmar WebXR Sandbox</h1>
       <p>Use this page to test the isolated Babylon WebXR client without touching the main React headset app.</p>
+      <p>Open with <code>/webxr.html?session=123456</code> to auto-connect a session.</p>
 
       <div class="stack">
         <div class="controls">
@@ -198,7 +199,7 @@
 
         <div class="field-grid">
           <label for="session-id">Session ID</label>
-          <input id="session-id" name="session-id" type="text" value="123456" maxlength="32" />
+          <input id="session-id" name="session-id" type="text" value="" maxlength="32" placeholder="Skriv sessionskod" />
           <button id="connect-session">Connect Scene Stream</button>
         </div>
 

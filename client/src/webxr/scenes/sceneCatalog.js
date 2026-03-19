@@ -8,6 +8,9 @@ import {
 } from "@babylonjs/core";
 
 const DEFAULT_SCENE_ID = "waiting";
+const SCENE_ALIAS = {
+  boat: "boats",
+};
 
 export const SCENE_SEQUENCE = ["waiting", "castle", "church", "boats", "remove-headset"];
 
@@ -62,6 +65,9 @@ function normalizeSceneId(raw) {
   }
 
   const normalized = raw.trim();
+  if (SCENE_ALIAS[normalized]) {
+    return SCENE_ALIAS[normalized];
+  }
   return SCENE_LIBRARY[normalized] ? normalized : DEFAULT_SCENE_ID;
 }
 
