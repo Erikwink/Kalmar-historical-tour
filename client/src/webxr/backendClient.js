@@ -47,29 +47,51 @@ function createMockAdapter() {
 
 /**
  * Returns a scene subscription for a session ID.
- * Prefers `window.kalmarAdapter` and falls back to the mock adapter.
+ * Uses shared saas-adapter (Firebase) when available and falls back
+ * to BroadcastChannel for mock/simulation mode.
  */
 export function subscribeToSceneChanges(sessionId, callback) {
-  const adapter = globalThis.kalmarAdapter;
-  if (adapter && typeof adapter.onSceneChange === "function") {
+  const normalizedSessionId = normalizeSessionId(sessionId)
+  if (!normalizedSessionId) {
     return {
-      source: "runtime-adapter",
-      unsubscribe: adapter.onSceneChange(sessionId, callback),
-    };
+      source: "invalid-session",
+      unsubscribe() {},
+    }
   }
 
+  // Always use the shared Firebase adapter when available.
+  if (typeof onSceneChange === "function") {
+    try {
+      return {
+        source: "firebase-adapter",
+        unsubscribe: onSceneChange(normalizedSessionId, (sceneId) => {
+          callback(sceneId)
+        }),
+      }
+    } catch (error) {
+      console.error("[backendClient] Failed to subscribe via Firebase adapter, falling back:", error);
+    }
+  }
+
+  // Backward-compatible mock channel for local dev/simulated mode.
   const mockAdapter = createMockAdapter();
   return {
     source: "mock-broadcast-channel",
-    unsubscribe: mockAdapter.onSceneChange(sessionId, callback),
-  };
+    unsubscribe: mockAdapter.onSceneChange(normalizedSessionId, (sceneId) => {
+      callback(sceneId)
+    }),
+  }
 }
 
 /**
  * Publishes a mock scene event to the current session via BroadcastChannel.
  */
 export function publishMockScene(sessionId, sceneId) {
-  const channel = new BroadcastChannel(`${MOCK_PREFIX}-${sessionId}`);
+  const normalizedSessionId = normalizeSessionId(sessionId)
+  if (!normalizedSessionId) {
+    return;
+  }
+  const channel = new BroadcastChannel(`${MOCK_PREFIX}-${normalizedSessionId}`);
   channel.postMessage({ sceneId });
   channel.close();
 }
