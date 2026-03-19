@@ -13,6 +13,11 @@ const SESSION_STORAGE_KEY = "headset_client_id";
 const SESSION_ID_KEY = "headset_session_id";
 const ACTIVE_SESSION_KEY = "headset_active_session_id";
 const LABEL_KEY = "headset_label";
+const DEFAULT_SCENE_ID = "waiting";
+
+function normalizeSessionId(raw) {
+  return (raw || "").replace(/\D/g, "").slice(0, 6);
+}
 
 /**
  * Returns a stable unique client ID for this headset.
@@ -33,6 +38,9 @@ function App() {
   const [activeSessionId, setActiveSessionId] = useState(() => sessionStorage.getItem(ACTIVE_SESSION_KEY) ?? "");
   const [log, setLog] = useState([]);
   const [isReady, setIsReady] = useState(false)
+  const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
+
+  const xrSceneUrl = activeSessionId ? `${window.location.origin}/webxr.html?session=${activeSessionId}` : "";
 
   // Stable client ID — generated once and persisted in sessionStorage.
   const [headsetId] = useState(() => getOrCreateHeadsetId());
@@ -61,7 +69,9 @@ function App() {
   useEffect(() => {
     if (!activeSessionId) return;
     const unsubscribe = onSceneChange(activeSessionId, (sceneId) => {
-      appendLog(`Scen ändrad: ${sceneId}`);
+      const effectiveSceneId = typeof sceneId === "string" && sceneId.trim() ? sceneId.trim() : DEFAULT_SCENE_ID;
+      setActiveSceneId(effectiveSceneId);
+      appendLog(`Scen ändrad: ${effectiveSceneId}`);
     });
     return unsubscribe;
   }, [activeSessionId]);
@@ -71,14 +81,16 @@ function App() {
    * @returns {Promise<void>}
    */
   const handleAddHeadset = async () => {
-    if (!sessionId) {
+    const normalizedSessionId = normalizeSessionId(sessionId);
+    if (!normalizedSessionId) {
       appendLog("Skapa session först.");
       return;
     }
     try {
-      await join(sessionId, headsetId, headsetLabel || headsetId);
-      setActiveSessionId(sessionId);
-      appendLog(`Headset ansluten till session ${sessionId}.`);
+      setSessionId(normalizedSessionId);
+      await join(normalizedSessionId, headsetId, headsetLabel || headsetId);
+      setActiveSessionId(normalizedSessionId);
+      appendLog(`Headset ansluten till session ${normalizedSessionId}.`);
     } catch (e) {
       appendLog("Fel vid headset: " + e.message);
     }
@@ -138,6 +150,14 @@ function App() {
               />
             </div>
             <div className="form-group">
+              <label>Aktiv scen</label>
+              <input
+                type="text"
+                value={activeSceneId}
+                readOnly
+              />
+            </div>
+            <div className="form-group">
               <label>Headset‑id/namn</label>
               <input
                 type="text"
@@ -157,6 +177,16 @@ function App() {
             <button onClick={handleToggleReady} disabled={!activeSessionId} style={{ marginTop: '8px', width: '100%' }}>
               {isReady ? "Inte redo" : "Jag är redo"}
             </button>
+            {activeSessionId ? (
+              <a
+                href={xrSceneUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "block", marginTop: "10px" }}
+              >
+                Öppna WebXR-scenen för sessionen
+              </a>
+            ) : null}
           </div>
         </div>
 
