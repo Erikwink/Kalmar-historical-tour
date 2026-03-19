@@ -1,4 +1,17 @@
-const MOCK_PREFIX = "kalmar-scene";
+import { onSceneChange } from "../../../saas-adapter/src/index.js"
+
+const MOCK_PREFIX = "kalmar-scene"
+
+function normalizeSessionId(rawSessionId) {
+  return typeof rawSessionId === "string" ? rawSessionId.trim() : ""
+}
+
+function toSceneMessage(sceneId, callback) {
+  const normalized = typeof sceneId === "string" ? sceneId.trim() : ""
+  if (normalized) {
+    callback(normalized)
+  }
+}
 
 /**
  * Creates a local adapter that emulates `onSceneChange` with BroadcastChannel.
@@ -7,7 +20,8 @@ const MOCK_PREFIX = "kalmar-scene";
 function createMockAdapter() {
   return {
     onSceneChange(sessionId, callback) {
-      const channel = new BroadcastChannel(`${MOCK_PREFIX}-${sessionId}`);
+      const normalizedSessionId = normalizeSessionId(sessionId)
+      const channel = new BroadcastChannel(`${MOCK_PREFIX}-${normalizedSessionId}`);
       const onMessage = (event) => {
         const payload = event.data;
         const sceneId =
@@ -17,9 +31,7 @@ function createMockAdapter() {
               ? payload.sceneId
               : null;
 
-        if (sceneId) {
-          callback(sceneId);
-        }
+        toSceneMessage(sceneId, callback);
       };
 
       channel.addEventListener("message", onMessage);
