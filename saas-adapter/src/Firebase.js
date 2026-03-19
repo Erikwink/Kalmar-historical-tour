@@ -12,6 +12,8 @@ import {
 
 import firebaseConfig from "./firebaseConfig.js"
 
+const DEFAULT_SCENE_ID = "waiting"
+
 export class Firebase {
   constructor() {
     const app = initializeApp(firebaseConfig)
@@ -25,6 +27,7 @@ export class Firebase {
     // if room exists and is in use, send error back and let controller create new room id??
     const sessionRef = ref(this.db, `rooms/${sessionId}`)
     await update(sessionRef, { createdAt: Date.now() })
+    await update(sessionRef, { activeSceneId: DEFAULT_SCENE_ID })   // prevents undefined scene state by adding default state = waiting. 
   }
 
 
@@ -47,7 +50,8 @@ export class Firebase {
     const sceneRef = ref(this.db, `rooms/${sessionId}/activeSceneId`)
 
     return onValue(sceneRef, (snapshot) => {
-      callback(snapshot.val())
+      const value = snapshot.val()
+      callback(typeof value === "string" && value ? value : DEFAULT_SCENE_ID)
     })
   }
 
