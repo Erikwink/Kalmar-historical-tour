@@ -24,6 +24,15 @@ const startSimButton = document.getElementById("start-sim");
 const endButton = document.getElementById("end-xr");
 const canvas = document.getElementById("xr-canvas");
 
+function normalizeSessionId(rawSessionId) {
+  return typeof rawSessionId === "string" ? rawSessionId.trim() : "";
+}
+
+function getSessionFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return normalizeSessionId(params.get("session"));
+}
+
 const support = {
   vr: false,
   ar: false,
@@ -125,11 +134,9 @@ function applySceneTheme() {
 }
 
 function applySceneChange(sceneId) {
-  if (!sceneId || typeof sceneId !== "string") {
-    return;
-  }
+  const normalizedSceneId = typeof sceneId === "string" ? sceneId.trim() : DEFAULT_SCENE_ID;
 
-  activeSceneId = sceneId;
+  activeSceneId = normalizedSceneId || DEFAULT_SCENE_ID;
   setSceneIndicator(activeSceneId);
   applySceneTheme();
   setStatus(`Scene updated via onSceneChange (${sceneSource}): ${activeSceneId}`);
@@ -247,7 +254,7 @@ async function ensureXRExperience() {
 }
 
 function connectSceneStream() {
-  const sessionId = sessionInput.value.trim();
+  const sessionId = normalizeSessionId(sessionInput.value);
   if (!sessionId) {
     setStatus("Session ID is required.");
     return;
@@ -265,6 +272,17 @@ function connectSceneStream() {
   sendMockSceneButton.disabled = sceneSource !== "mock-broadcast-channel";
   connectSessionButton.textContent = "Reconnect Scene Stream";
   setStatus(`Connected to onSceneChange for session ${sessionId} (${sceneSource}).`);
+}
+
+function bootstrapFromQuery() {
+  const sessionFromUrl = getSessionFromUrl();
+  if (!sessionFromUrl) {
+    return;
+  }
+
+  sessionInput.value = sessionFromUrl;
+  setStatus(`Auto-connecting to session ${sessionFromUrl} from URL...`);
+  connectSceneStream();
 }
 
 function sendMockScene() {
@@ -436,3 +454,4 @@ window.addEventListener("beforeunload", () => {
 setSceneIndicator(activeSceneId);
 enableIdleButtons();
 initSupport();
+bootstrapFromQuery();
