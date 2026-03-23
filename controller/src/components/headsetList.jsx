@@ -26,6 +26,7 @@ export default function HeadsetList({ headsets, adapterStatus }) {
       <div className="section-header">
         <span className="section-header__title">{t('headsetList.title')}</span>
         <span className="section-header__badge">{connectedCount} / {headsets.length}</span>
+        <span className="ms" style={{ fontSize: '20px', color: 'var(--md-on-surface-variant)' }}>dashboard</span>
       </div>
 
       <div className="card">

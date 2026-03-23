@@ -97,10 +97,18 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 64px;
-  padding: 0 4px 0 16px;
+  height: auto;
+  min-height: 64px;
+  padding: 8px 4px 8px 16px;
   background: var(--md-surface);
   color: var(--md-on-surface);
+}
+
+.top-app-bar__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
 }
 
 .top-app-bar__title {
@@ -235,12 +243,13 @@ body {
 }
 
 .session-card__code {
-  font-family: var(--font-display);
-  font-size: 2.571rem;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: 'Courier New', monospace;
+  font-size: 2.857rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   color: var(--md-primary);
   font-variant-numeric: tabular-nums;
+  margin-top: 4px;
 }
 
 .session-card__tagline {
@@ -255,14 +264,14 @@ body {
   align-items: center;
   gap: 8px;
   padding: 4px 0;
+  margin-bottom: 4px;
 }
 
 .section-header__title {
-  font-size: 0.786rem;
+  font-size: 1rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--md-on-surface-variant);
+  letter-spacing: 0.02em;
+  color: var(--md-on-surface);
   flex: 1;
 }
 
@@ -662,6 +671,41 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+/* ── Tour Info Section ───────────────────────────────── */
+.tour-info-section {
+  padding: 12px 0;
+}
+
+.tour-info-section__description {
+  font-size: 1rem;
+  color: var(--md-on-surface);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Headset Section ─────────────────────────────────── */
+.headset-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.headset-section .card {
+  padding: 0;
+  overflow: visible;
+}
+
+.headset-section .section-header {
+  padding: 0;
+}
+
+.headset-section .section-header__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
 }
 
 /* ── Settings Page ───────────────────────────────────── */

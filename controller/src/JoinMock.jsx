@@ -49,11 +49,11 @@ export default function JoinMock({ sessionId, headsets }) {
         zIndex: 9999,
       }}
     >
-      <button className="" onClick={removeAll}>
+      <button className="efab efab--outline" onClick={removeAll} style={{ width: 'auto', padding: '0 16px', height: '48px' }}>
         Clear headsets
       </button>
-      <button className="" onClick={handleRemoveAllRooms}>
-        remove rooms
+      <button className="efab efab--danger" onClick={handleRemoveAllRooms} style={{ width: 'auto', padding: '0 16px', height: '48px' }}>
+        Remove rooms
       </button>
     </div>
   );
