@@ -23,7 +23,7 @@ function AppContent() {
 
     async function init() {
       try {
-        setSaasStatus(FIREBASE_STATUS.CONNECTING);
+        setSaasStatus(FIREBASE_STATUS.CONNECTING)
         await loginController(
           import.meta.env.VITE_FIREBASE_EMAIL,
           import.meta.env.VITE_FIREBASE_PASSWORD);
