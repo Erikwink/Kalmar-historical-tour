@@ -1,9 +1,15 @@
 import { useTranslation } from 'react-i18next'
+import { useState, useEffect } from 'react'
+import { HEADSET_STATUS } from '../utils/status_maps'
+
+
+const STALE_MS = 30_000
+
 
 /**
  * Maps a headset's raw status to a display status.
  * A headset that is online but not yet ready gets a distinct 'not-ready' style.
- * @param {{ status: string, ready: boolean }} h
+ * @param {{ status: string, ready: boolean }} headset
  * @returns {string} display status key
  */
 import { useTranslation } from 'react-i18next'
@@ -43,6 +49,13 @@ function displayStatus(headset) {
  */
 export default function HeadsetList({ headsets, adapterStatus }) {
   const { t } = useTranslation()
+   const [, setTick] = useState(0)  // bara för att trigga re-render
+
+  useEffect(() => {
+    const interval = setInterval(() => setTick(t => t + 1), 10_000)
+    return () => clearInterval(interval)
+  }, [])
+
   const connectedCount = headsets.filter(h => h.status === 'online').length
   // null before first connection → default to disconnected style
   const dotClass = adapterStatus ?? 'offline'
