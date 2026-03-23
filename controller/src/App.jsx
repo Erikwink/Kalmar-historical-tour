@@ -9,13 +9,20 @@ import SettingsPage from "./pages/Settingspage"
 import JoinMock from "./JoinMock" // DEV: remove when real client exists
 
 /**
- * Generates a 6-digit session ID.
- * TODO: replace hardcoded value with random generation before production.
+ * Generates a 6-digit session ID and saves it to local storage.
+ *
  * @returns {string} 6-digit session ID
  */
 function generateSessionId() {
-  // return Math.floor(100000 + Math.random() * 900000).toString()
-  return "123456"
+  const existing = localStorage.getItem("sessionId")
+  if (existing) {
+    return existing
+  } else {
+  const sessionId = Math.floor(100000 + Math.random() * 900000).toString()
+  localStorage.setItem("sessionId", sessionId)
+  return sessionId
+  }
+  //return "123456"
 }
 
 function AppContent() {
@@ -24,7 +31,7 @@ function AppContent() {
   const [saasStatus, setSaasStatus] = useState(null)
   const [headsets, setHeadsets] = useState([])
   // Session ID is generated once and never changes for the lifetime of the app
-  const [sessionId] = useState(generateSessionId)
+  const [sessionId, setSessionId] = useState(generateSessionId)
 
   useEffect(() => {
     // Subscribe to real-time headset updates; unsubscribe on unmount
@@ -71,6 +78,7 @@ function AppContent() {
       await disconnect(sessionId)
       localStorage.removeItem("sessionId")
       setActiveScene("waiting") // resets scene
+      setSessionId(generateSessionId) // Generate new session id
       setSaasStatus(null)     // resets connection state
       navigate('/')           // returns to start page
     } catch (e) {
