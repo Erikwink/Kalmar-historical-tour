@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import SceneBtn from '../components/sceneBtn'
 import { tours } from '../tours'
+=======
+import { useState } from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import SceneBtn from '../components/sceneBtn'
+import EndSessionModal from '../components/endSessionModal'
+>>>>>>> 10d7ca2 (ADD: modal for ending session, css)
 
 /**
  * Active tour control page — lets the guide select which scene headsets should display.
@@ -11,15 +19,21 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { t } = useTranslation()
+<<<<<<< HEAD
   
   const tourId = searchParams.get('tourId')
   const tour = tours.find(t => t.id === tourId)
+=======
+  const [showEndModal, setShowEndModal] = useState(false)
+  const tour = state?.tour  // passed from SessionPage via router state
+>>>>>>> 10d7ca2 (ADD: modal for ending session, css)
 
   // Fall back to empty array if tour is missing (e.g. direct URL navigation)
   const scenes = tour?.scenes ?? []
   const active = scenes.find(s => s.id === activeScene)
 
   return (
+    <>
     <div className="page">
       <div className="top-app-bar">
         <button className="icon-btn" onClick={() => navigate(`/session?tourId=${tourId}`)} aria-label={t('nav.back')}>
@@ -78,7 +92,7 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
       <div className="fab-wrap">
         <button
           className="efab efab--danger"
-          onClick={onEndSession}
+          onClick={() => setShowEndModal(true)}
         >
           <span className="ms" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
             stop_circle
@@ -87,5 +101,13 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
         </button>
       </div>
     </div>
+
+    {showEndModal && (
+      <EndSessionModal
+        onConfirm={() => { setShowEndModal(false); onEndSession() }}
+        onCancel={() => setShowEndModal(false)}
+      />
+    )}
+    </>
   )
 }

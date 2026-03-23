@@ -50,8 +50,9 @@ export default function JoinMock({ sessionId, headsets }) {
       style={{
         position: "fixed",
         top: 16,
-        right: 16,
+        right: "25%",
         display: "flex",
+        alignContent: "center",
         gap: 8,
         zIndex: 9999,
       }}
