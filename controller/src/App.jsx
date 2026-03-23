@@ -44,6 +44,7 @@ function AppContent() {
           import.meta.env.VITE_FIREBASE_EMAIL,
           import.meta.env.VITE_FIREBASE_PASSWORD);
         await connect(sessionId);
+        await publish(sessionId, "waiting")
         setSaasStatus(FIREBASE_STATUS.CONNECTED);
       } catch (e) {
         console.error("failed to connect to adapter:", e)
