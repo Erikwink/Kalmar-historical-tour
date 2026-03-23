@@ -43,7 +43,7 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   const [showQR, setShowQR] = useState(false)
 
   // Start tour button is disabled until at least one headset is online
-  const connectedCount = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length
+  const headsetsConnected = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length
 
   return (
     <div className="page">
@@ -51,9 +51,11 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
         <button className="icon-btn" onClick={() => navigate('/')} aria-label={t('nav.back')}>
           <span className="ms">arrow_back</span>
         </button>
-        <span className="top-app-bar__title">
-          {tour ? t(`tours.${tour.id}.title`) : t('sessionPage.fallbackTitle')}
-        </span>
+        <div className="top-app-bar__content">
+          <span className="top-app-bar__title">
+            {tour ? t(`tours.${tour.id}.title`) : t('sessionPage.fallbackTitle')}
+          </span>
+        </div>
         <button
           className="icon-btn"
           onClick={() => navigate('/settings')}
@@ -64,6 +66,14 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
       </div>
 
       <div className="page-content">
+        {tour && (
+          <div className="tour-info-section">
+            <p className="tour-info-section__description">
+              {t(`tours.${tour.id}.description`) || t('sessionPage.fallbackDescription')}
+            </p>
+          </div>
+        )}
+
         <div className="session-info-card card">
           <div className="session-info-card__code-row">
             <div>
@@ -80,7 +90,9 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
           </div>
         </div>
 
-        <HeadsetList headsets={headsets} adapterStatus={adapterStatus} />
+        <div className="headset-section">
+          <HeadsetList headsets={headsets} adapterStatus={adapterStatus} />
+        </div>
       </div>
 
       <div className="fab-wrap fab-wrap--row">
@@ -90,7 +102,7 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
         <button
           className="efab"
           onClick={() => navigate('/tour', { state: { tour } })}
-          disabled={connectedCount === 0}
+          disabled={headsetsConnected === 0}
         >
           <span
             className="ms"
