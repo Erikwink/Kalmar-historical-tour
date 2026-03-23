@@ -39,6 +39,12 @@
     "medium": "Medium",
     "large": "Large"
   },
+  "endSessionModal": {
+    "title": "End session?",
+    "message": "All headsets will lose their connection.",
+    "cancel": "Cancel",
+    "confirm": "End session"
+  },
   "qrModal": {
     "title": "QR code",
     "close": "Close",

@@ -39,6 +39,12 @@
     "medium": "Medel",
     "large": "Stor"
   },
+  "endSessionModal": {
+    "title": "Avsluta session?",
+    "message": " Alla headset kommer att tappa anslutningen.",
+    "cancel": "Avbryt",
+    "confirm": "Avsluta session"
+  },
   "qrModal": {
     "title": "QR-kod",
     "close": "Stäng",

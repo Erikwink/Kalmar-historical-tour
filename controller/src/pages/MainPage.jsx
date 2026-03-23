@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import SceneBtn from '../components/sceneBtn'
+import EndSessionModal from '../components/endSessionModal'
 import { tours } from '../tours'
 
 /**
@@ -11,7 +13,7 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { t } = useTranslation()
-  
+  const [showEndModal, setShowEndModal] = useState(false)
   const tourId = searchParams.get('tourId')
   const tour = tours.find(t => t.id === tourId)
 
@@ -20,6 +22,7 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
   const active = scenes.find(s => s.id === activeScene)
 
   return (
+    <>
     <div className="page">
       <div className="top-app-bar">
         <button className="icon-btn" onClick={() => navigate(`/session?tourId=${tourId}`)} aria-label={t('nav.back')}>
@@ -78,7 +81,7 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
       <div className="fab-wrap">
         <button
           className="efab efab--danger"
-          onClick={onEndSession}
+          onClick={() => setShowEndModal(true)}
         >
           <span className="ms" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>
             stop_circle
@@ -87,5 +90,13 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
         </button>
       </div>
     </div>
+
+    {showEndModal && (
+      <EndSessionModal
+        onConfirm={() => { setShowEndModal(false); onEndSession() }}
+        onCancel={() => setShowEndModal(false)}
+      />
+    )}
+    </>
   )
 }
