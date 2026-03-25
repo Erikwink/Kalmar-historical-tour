@@ -4,30 +4,37 @@ import {
   join,
   leave,
   heartbeat,
+  connect,
   removeAllRooms,
 } from "../../saas-adapter/src/index";
 
 export default function JoinMock({ sessionId, headsets }) {
-  const counter = useRef(1);
-  // const statusRef = useRef("online");
-  // const [timerActive, setTimerActive] = useState(false);
+/*   const counter = useRef(1);
+  const statusRef = useRef("online");
+  const [timerActive, setTimerActive] = useState(false);
 
-  // useEffect(() => {
-  //   if (!timerActive) return;
-  //   const interval = setInterval(() => {
-  //     statusRef.current = statusRef.current === "online" ? "offline" : "online";
-  //     heartbeat(sessionId, "mock-headset-1", statusRef.current);
-  //   }, 5000);
-  //   return () => clearInterval(interval);
-  // }, [timerActive, sessionId]);
+  useEffect(() => {
+    if (!timerActive) return;
+    const interval = setInterval(() => {
+      statusRef.current = statusRef.current === "online" ? "offline" : "online";
+      heartbeat(sessionId, "mock-headset-1", statusRef.current);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [timerActive, sessionId]);
 
-  // async function addHeadset() {
-  //   const n = counter.current++;
-  //   await join(sessionId, `mock-headset-${n}`, `Headset ${n}`);
-  // }
+  async function addHeadset() {
+    try {
+      await connect(sessionId);
+      await join(sessionId, `mock-headset-1`, `Mock Headset`);
+      setTimerActive(true);
+    } catch (e) {
+      console.error("Error adding headset:", e.message);
+    }
+  } */
 
   async function removeAll() {
-    const mocks = headsets.filter((h) => h.id?.startsWith(""));
+    setTimerActive(false);
+    const mocks = headsets.filter((h) => h.id?.startsWith("mock"));
     for (const h of mocks) {
       await leave(sessionId, h.id);
     }

@@ -36,7 +36,9 @@ function App() {
   const [headsetLabel, setHeadsetLabel] = useState(() => sessionStorage.getItem(LABEL_KEY) ?? "");
   const [activeSessionId, setActiveSessionId] = useState(() => sessionStorage.getItem(ACTIVE_SESSION_KEY) ?? "");
   const [log, setLog] = useState([]);
-  const [isReady, setIsReady] = useState(false)
+  const [isReady, setIsReady] = useState(false);
+  const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
+  const [sessionEnded, setSessionEnded] = useState(false);
   const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
 
   const xrSceneUrl = activeSessionId ? `${window.location.origin}/webxr.html?session=${activeSessionId}` : "";
@@ -65,21 +67,38 @@ function App() {
   useEffect(() => {
     if (!activeSessionId) return;
     join(activeSessionId, headsetId, headsetLabel || headsetId)
-      .then(() => appendLog("Återansluten till session."))
+      .then((result) => {
+        setDisconnectCancelFn(() => result?.cancel);
+        appendLog("Återansluten till session.");
+      })
       .catch((e) => appendLog("Fel vid återanslutning: " + e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // intentionally empty — only runs on mount
 
   // Subscribe to scene changes when an active session exists.
+  // Also detects when the room is deleted (sceneId becomes null).
   useEffect(() => {
     if (!activeSessionId) return;
     const unsubscribe = onSceneChange(activeSessionId, (sceneId) => {
+      // Null means the room was deleted by the controller
+      if (sceneId === null) {
+        appendLog("Sessionen avslutades av guide.");
+        // Cancel the onDisconnect handler to prevent room recreation
+        if (disconnectCancelFn) {
+          disconnectCancelFn();
+        }
+        // Clear the session state
+        setActiveSessionId("");
+        setSessionId("");
+        setSessionEnded(true);
+        return;
+      }
       const effectiveSceneId = typeof sceneId === "string" && sceneId.trim() ? sceneId.trim() : DEFAULT_SCENE_ID;
       setActiveSceneId(effectiveSceneId);
       appendLog(`Scen ändrad: ${effectiveSceneId}`);
     });
     return unsubscribe;
-  }, [activeSessionId]);
+  }, [activeSessionId, disconnectCancelFn]);
 
   /**
    * Joins the session using the stable headset ID and the user-provided label.
@@ -93,8 +112,10 @@ function App() {
     }
     try {
       setSessionId(normalizedSessionId);
-      await join(normalizedSessionId, headsetId, headsetLabel || headsetId);
+      const result = await join(normalizedSessionId, headsetId, headsetLabel || headsetId);
+      setDisconnectCancelFn(() => result?.cancel);
       setActiveSessionId(normalizedSessionId);
+      setSessionEnded(false);
       appendLog(`Headset ansluten till session ${normalizedSessionId}.`);
     } catch (e) {
       appendLog("Fel vid headset: " + e.message);
@@ -125,9 +146,14 @@ function App() {
       return;
     }
     try {
+      // Cancel the onDisconnect handler before leaving
+      if (disconnectCancelFn) {
+        disconnectCancelFn();
+      }
       await leave(activeSessionId, headsetId);
       setActiveSessionId("");
       setSessionId("");
+      setDisconnectCancelFn(null);
       appendLog("Headset har lämnat sessionen.");
     } catch (e) {
       appendLog("Fel vid headset: " + e.message);
@@ -141,6 +167,11 @@ function App() {
       </div>
 
       <div className="page-content">
+        {sessionEnded && (
+          <div className="card" style={{ background: 'rgba(255, 107, 107, 0.1)', borderLeft: '4px solid rgb(255, 107, 107)', padding: '16px' }}>
+            <p style={{ color: 'rgb(255, 107, 107)', fontWeight: 500, margin: 0 }}>Sessionen har avslutats</p>
+          </div>
+        )}
         <div className="card">
           <div style={{ padding: '20px' }}>
             <div className="form-group">

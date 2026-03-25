@@ -88,6 +88,7 @@ export class Firebase {
 
   // -----------------------------
   // Client: anslut headset
+  // Returnerar ett objekt med cancel() för att avbryta onDisconnect
   // -----------------------------
   async join(sessionId, clientId, label = clientId) {
     const sessionRef = ref(this.db, `rooms/${sessionId}`)
@@ -106,9 +107,14 @@ export class Firebase {
     })
 
     // Markera offline automatiskt om anslutning bryts
-    onDisconnect(clientRef).update({
+    const disconnectHandler = onDisconnect(clientRef).update({
       status: "offline"
     })
+
+    // Returnera ett objekt med en cancel-funktion
+    return {
+      cancel: () => disconnectHandler.cancel()
+    }
   }
 
   // -----------------------------

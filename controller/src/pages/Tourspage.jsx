@@ -33,7 +33,7 @@ export default function ToursPage() {
             <TourCard
               key={tour.id}
               tour={tour}
-              onClick={() => navigate('/session', { state: { tour } })}
+              onClick={() => navigate(`/session?tourId=${tour.id}`)}
             />
           ))}
         </div>
