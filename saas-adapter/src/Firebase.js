@@ -87,11 +87,20 @@ export class Firebase {
   }
 
   // -----------------------------
-  // Dev: ta bort alla rum
+  // Dev: ta bort alla rum utom 123456
   // -----------------------------
   async removeAllRooms() {
     const roomsRef = ref(this.db, "rooms")
-    await remove(roomsRef)
+    const snapshot = await get(roomsRef)
+    if (!snapshot.exists()) return
+
+    const removes = []
+    snapshot.forEach(child => {
+      if (child.key !== "123456") {
+        removes.push(remove(ref(this.db, `rooms/${child.key}`)))
+      }
+    })
+    await Promise.all(removes)
   }
 
   // -----------------------------
