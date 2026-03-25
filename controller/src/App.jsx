@@ -9,22 +9,6 @@ import SettingsPage from "./pages/Settingspage"
 import JoinMock from "./JoinMock" // DEV: remove when real client exists
 import generateSessionId from "./utils/generateSessionId"
 
-// /**
-//  * Generates a 6-digit session ID and saves it to local storage.
-//  *
-//  * @returns {string} 6-digit session ID
-//  */
-// function generateSessionId() {
-//   const existing = localStorage.getItem("sessionId")
-//   if (existing) {
-//     return existing
-//   } else {
-//   const sessionId = Math.floor(100000 + Math.random() * 900000).toString()
-//   localStorage.setItem("sessionId", sessionId)
-//   return sessionId
-//   }
-//   //return "123456"
-// }
 
 function AppContent() {
   const navigate = useNavigate()
