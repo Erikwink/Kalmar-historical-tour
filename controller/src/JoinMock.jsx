@@ -7,8 +7,7 @@ import {
 export default function JoinMock({ sessionId, headsets }) {
 
   async function removeAll() {
-    setTimerActive(false);
-    const mocks = headsets.filter((h) => h.id?.startsWith("mock"));
+    const mocks = headsets.filter((h) => h.id?.startsWith(""));
     for (const h of mocks) {
       await leave(sessionId, h.id);
     }
