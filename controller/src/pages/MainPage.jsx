@@ -1,6 +1,7 @@
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import SceneBtn from '../components/sceneBtn'
+import { tours } from '../tours'
 
 /**
  * Active tour control page — lets the guide select which scene headsets should display.
@@ -8,18 +9,20 @@ import SceneBtn from '../components/sceneBtn'
  */
 export default function MainPage({ activeScene, onScenePress, onEndSession }) {
   const navigate = useNavigate()
-  const { state } = useLocation()
+  const [searchParams] = useSearchParams()
   const { t } = useTranslation()
-  const tour = state?.tour  // passed from SessionPage via router state
+  
+  const tourId = searchParams.get('tourId')
+  const tour = tours.find(t => t.id === tourId)
 
-  // Fall back to empty array if tour state is missing (e.g. direct URL navigation)
+  // Fall back to empty array if tour is missing (e.g. direct URL navigation)
   const scenes = tour?.scenes ?? []
   const active = scenes.find(s => s.id === activeScene)
 
   return (
     <div className="page">
       <div className="top-app-bar">
-        <button className="icon-btn" onClick={() => navigate('/session')} aria-label={t('nav.back')}>
+        <button className="icon-btn" onClick={() => navigate(`/session?tourId=${tourId}`)} aria-label={t('nav.back')}>
           <span className="ms">arrow_back</span>
         </button>
         <span className="top-app-bar__title">

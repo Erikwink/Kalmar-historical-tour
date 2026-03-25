@@ -2,10 +2,14 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import HeadsetList from '../components/headsetList'
 import QRModal from '../components/QRmodal'
+import { tours } from '../tours'
 import { tours } from '../tours'
 import { HEADSET_STATUS } from '../utils/status_maps'
 
@@ -36,9 +40,11 @@ import { HEADSET_STATUS } from '../utils/status_maps'
  */
 export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   const navigate = useNavigate()
-  const { state } = useLocation()
+  const [searchParams] = useSearchParams()
   const { t } = useTranslation()
-  const tour = state?.tour  // passed from ToursPage via router state
+  
+  const tourId = searchParams.get('tourId')
+  const tour = tours.find(t => t.id === tourId)
 
   const [showQR, setShowQR] = useState(false)
 
@@ -101,7 +107,7 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
         </button>
         <button
           className="efab"
-          onClick={() => navigate('/tour', { state: { tour } })}
+          onClick={() => navigate(`/tour?tourId=${tourId}`)}
           disabled={headsetsConnected === 0}
         >
           <span

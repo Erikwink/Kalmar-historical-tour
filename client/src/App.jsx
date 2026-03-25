@@ -40,6 +40,8 @@ function App() {
   const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
+  const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   const xrSceneUrl = activeSessionId ? `${window.location.origin}/webxr.html?session=${activeSessionId}` : "";
 
@@ -67,6 +69,10 @@ function App() {
   useEffect(() => {
     if (!activeSessionId) return;
     join(activeSessionId, headsetId, headsetLabel || headsetId)
+      .then((result) => {
+        setDisconnectCancelFn(() => result?.cancel);
+        appendLog("Återansluten till session.");
+      })
       .then((result) => {
         setDisconnectCancelFn(() => result?.cancel);
         appendLog("Återansluten till session.");
