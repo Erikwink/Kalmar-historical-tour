@@ -6,11 +6,16 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
+import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
+import "@babylonjs/loaders/glTF";
 
 const DEFAULT_SCENE_ID = "waiting";
 const SCENE_ALIAS = {
   boat: "boats",
 };
+const CASTLE_MODEL_ROOT_URL = "/models/";
+const CASTLE_MODEL_FILE = "herstmonceux_castle.glb";
+const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
 
 export const SCENE_SEQUENCE = ["waiting", "castle", "church", "boats", "remove-headset"];
 
@@ -88,6 +93,14 @@ function createMaterial(scene, diffuseColor, emissiveColor, alpha = 1) {
   return material;
 }
 
+function emitSceneDebug(detail) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent(SCENE_DEBUG_EVENT, { detail }));
+}
+
 function createScreenFoundation(scene, theme, root) {
   const materials = [];
   const meshes = [];
@@ -141,32 +154,143 @@ function createScreenFoundation(scene, theme, root) {
   };
 }
 
-function addCastleSceneElements(scene, root, accentColor) {
-  const baseMat = new StandardMaterial(`castle-base-${Date.now()}`, scene);
-  baseMat.diffuseColor = accentColor;
-  const accentMat = new StandardMaterial(`castle-accent-${Date.now()}`, scene);
-  accentMat.diffuseColor = Color3.White();
+function fitImportedModel(meshes, modelAnchor, targetPosition, targetHeight = 1.5) {
+  const renderableMeshes = meshes.filter((mesh) => mesh.getTotalVertices() > 0);
+  if (renderableMeshes.length === 0) {
+    throw new Error("The imported GLB contains no renderable meshes.");
+  }
 
-  const keep = MeshBuilder.CreateBox("castle-keep", { width: 1.2, height: 1, depth: 1.1 }, scene);
-  keep.position = new Vector3(0, 1.15, -2.4);
-  keep.material = baseMat;
+  let min = new Vector3(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+  let max = new Vector3(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
 
-  const leftTower = MeshBuilder.CreateCylinder("castle-tower-left", { height: 1.35, diameter: 0.42 }, scene);
-  leftTower.position = new Vector3(-0.65, 1.1, -2.4);
-  leftTower.material = baseMat;
+  renderableMeshes.forEach((mesh) => {
+    mesh.computeWorldMatrix(true);
+    const bounds = mesh.getBoundingInfo().boundingBox;
+    min = Vector3.Minimize(min, bounds.minimumWorld);
+    max = Vector3.Maximize(max, bounds.maximumWorld);
+  });
 
-  const rightTower = MeshBuilder.CreateCylinder("castle-tower-right", { height: 1.35, diameter: 0.42 }, scene);
-  rightTower.position = new Vector3(0.65, 1.1, -2.4);
-  rightTower.material = baseMat;
+  const size = max.subtract(min);
+  if (size.y > 0) {
+    const scaleFactor = targetHeight / size.y;
+    modelAnchor.scaling = new Vector3(scaleFactor, scaleFactor, scaleFactor);
+  }
 
-  const roof = MeshBuilder.CreateBox("castle-roof", { width: 1.5, height: 0.25, depth: 1.3 }, scene);
-  roof.position = new Vector3(0, 1.78, -2.4);
-  roof.material = accentMat;
+  min = new Vector3(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+  max = new Vector3(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
 
-  keep.parent = root;
-  leftTower.parent = root;
-  rightTower.parent = root;
-  roof.parent = root;
+  renderableMeshes.forEach((mesh) => {
+    mesh.computeWorldMatrix(true);
+    const bounds = mesh.getBoundingInfo().boundingBox;
+    min = Vector3.Minimize(min, bounds.minimumWorld);
+    max = Vector3.Maximize(max, bounds.maximumWorld);
+  });
+
+  const scaledSize = max.subtract(min);
+  const scaledCenter = min.add(scaledSize.scale(0.5));
+  const desiredCenter = new Vector3(
+    targetPosition.x,
+    targetPosition.y + (scaledSize.y * 0.5),
+    targetPosition.z,
+  );
+
+  modelAnchor.position.addInPlace(desiredCenter.subtract(scaledCenter));
+}
+
+function addCastleSceneElements(scene, root, accentColor, base) {
+  base.panel.setEnabled(false);
+  base.pedestal.scaling = new Vector3(1.3, 1, 1.3);
+  emitSceneDebug({
+    sceneId: "castle",
+    status: "loading",
+    message: `Loading model ${CASTLE_MODEL_FILE}...`,
+  });
+
+  const loadingMat = new StandardMaterial(`castle-loading-${Date.now()}`, scene);
+  loadingMat.diffuseColor = accentColor;
+  loadingMat.emissiveColor = accentColor.scale(0.2);
+
+  const loadingOrb = MeshBuilder.CreateSphere("castle-loading-orb", { diameter: 0.55 }, scene);
+  loadingOrb.material = loadingMat;
+  loadingOrb.position = new Vector3(0, 1.05, -2.3);
+  loadingOrb.parent = root;
+
+  const modelAnchor = new TransformNode("castle-model-anchor", scene);
+  modelAnchor.parent = root;
+
+  let disposed = false;
+  let importedNodes = [];
+  let loadingAssetsDisposed = false;
+
+  function disposeLoadingAssets() {
+    if (loadingAssetsDisposed) {
+      return;
+    }
+
+    if (!loadingOrb.isDisposed()) {
+      loadingOrb.dispose();
+    }
+    loadingMat.dispose();
+    loadingAssetsDisposed = true;
+  }
+
+  SceneLoader.ImportMeshAsync("", CASTLE_MODEL_ROOT_URL, CASTLE_MODEL_FILE, scene)
+    .then((result) => {
+      if (disposed) {
+        result.meshes.forEach((mesh) => mesh.dispose());
+        result.transformNodes.forEach((node) => node.dispose());
+        return;
+      }
+
+      const topLevelNodes = [...result.meshes, ...result.transformNodes].filter((node) => {
+        return node !== modelAnchor && !node.parent;
+      });
+
+      topLevelNodes.forEach((node) => {
+        node.parent = modelAnchor;
+      });
+
+      importedNodes = [...result.meshes, ...result.transformNodes];
+      fitImportedModel(result.meshes, modelAnchor, new Vector3(0, 0.25, -2.3), 1.5);
+      emitSceneDebug({
+        sceneId: "castle",
+        status: "loaded",
+        message: `Loaded ${CASTLE_MODEL_FILE} with ${result.meshes.length} meshes and ${result.transformNodes.length} transform nodes.`,
+      });
+
+      disposeLoadingAssets();
+    })
+    .catch((error) => {
+      console.error(`[sceneCatalog] Could not load castle model '${CASTLE_MODEL_FILE}':`, error);
+      if (!disposed) {
+        loadingMat.emissiveColor = Color3.Red();
+        emitSceneDebug({
+          sceneId: "castle",
+          status: "error",
+          message: `Failed to load ${CASTLE_MODEL_FILE}.`,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      }
+    });
+
+  return {
+    applyMode() {},
+    dispose() {
+      disposed = true;
+      emitSceneDebug({
+        sceneId: "castle",
+        status: "disposed",
+        message: `Disposed ${CASTLE_MODEL_FILE}.`,
+      });
+      disposeLoadingAssets();
+      importedNodes.forEach((node) => {
+        if (!node.isDisposed()) {
+          node.dispose();
+        }
+      });
+      importedNodes = [];
+    },
+  };
 }
 
 function addChurchSceneElements(scene, root, accentColor) {
@@ -258,11 +382,12 @@ function composeScreen(scene, themeId, mode) {
   const theme = SCENE_LIBRARY[themeId] || SCENE_LIBRARY.default;
   const root = new TransformNode(`scene-${themeId}-root`, scene);
   const base = createScreenFoundation(scene, theme, root);
+  let sceneHandle = null;
 
   const accent = makeColor(theme.accent);
   switch (themeId) {
     case "castle":
-      addCastleSceneElements(scene, root, accent);
+      sceneHandle = addCastleSceneElements(scene, root, accent, base);
       break;
     case "church":
       addChurchSceneElements(scene, root, accent);
@@ -284,8 +409,10 @@ function composeScreen(scene, themeId, mode) {
     clearColor: makeColor4(theme.clearColor),
     applyMode(nextMode) {
       base.applyMode(nextMode);
+      sceneHandle?.applyMode?.(nextMode);
     },
     dispose() {
+      sceneHandle?.dispose?.();
       base.dispose();
     },
   };

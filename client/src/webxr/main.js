@@ -23,6 +23,8 @@ const startArButton = document.getElementById("start-ar");
 const startSimButton = document.getElementById("start-sim");
 const endButton = document.getElementById("end-xr");
 const canvas = document.getElementById("xr-canvas");
+const sceneDebugEl = document.getElementById("scene-debug");
+const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
 
 function normalizeSessionId(rawSessionId) {
   return typeof rawSessionId === "string" ? rawSessionId.trim() : "";
@@ -59,6 +61,15 @@ function setStatus(message) {
 
 function setSceneIndicator(sceneId) {
   sceneIndicatorEl.textContent = `Active scene: ${sceneId}`;
+}
+
+function setSceneDebug(message, tone = "info") {
+  if (!sceneDebugEl) {
+    return;
+  }
+
+  sceneDebugEl.textContent = message;
+  sceneDebugEl.dataset.tone = tone;
 }
 
 function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {
@@ -117,6 +128,10 @@ function stopRenderLoop() {
 }
 
 function getSceneManager() {
+  if (!scene) {
+    return null;
+  }
+
   if (!sceneManager) {
     sceneManager = createSceneManager(scene);
   }
@@ -124,7 +139,15 @@ function getSceneManager() {
 }
 
 function applySceneTheme() {
+  if (!scene) {
+    return;
+  }
+
   const manager = getSceneManager();
+  if (!manager) {
+    return;
+  }
+
   const mode = appMode === "xr-ar" ? "xr-ar" : appMode === "xr-vr" ? "xr-vr" : "simulation";
   const renderState = manager.setScene(activeSceneId, mode);
 
@@ -138,12 +161,44 @@ function applySceneChange(sceneId) {
 
   activeSceneId = normalizedSceneId || DEFAULT_SCENE_ID;
   setSceneIndicator(activeSceneId);
-  applySceneTheme();
+  if (!scene) {
+    setSceneDebug(`Scene '${activeSceneId}' is active. Babylon scene not initialized yet; render will start when XR/simulation starts.`);
+  } else {
+    setSceneDebug(`Scene '${activeSceneId}' is active. Waiting for scene-specific diagnostics...`);
+    applySceneTheme();
+  }
   setStatus(`Scene updated via onSceneChange (${sceneSource}): ${activeSceneId}`);
 }
 
+function handleSceneDebug(event) {
+  const detail = event.detail || {};
+  const debugSceneId = typeof detail.sceneId === "string" ? detail.sceneId : "unknown";
+  const status = typeof detail.status === "string" ? detail.status : "info";
+  const message = typeof detail.message === "string" ? detail.message : "No diagnostics provided.";
+  const error = typeof detail.error === "string" ? detail.error : "";
+
+  const debugMessage = error ? `[${debugSceneId}] ${message} Error: ${error}` : `[${debugSceneId}] ${message}`;
+  const tone = status === "error" ? "error" : status === "loaded" ? "success" : "info";
+  setSceneDebug(debugMessage, tone);
+
+  if (status === "error") {
+    setStatus(`Scene error in '${debugSceneId}'. See diagnostics panel.`);
+    console.error(`[webxr] ${debugMessage}`);
+  } else {
+    console.info(`[webxr] ${debugMessage}`);
+  }
+}
+
 function onModeChanged(mode) {
+  if (!scene) {
+    return;
+  }
+
   const manager = getSceneManager();
+  if (!manager) {
+    return;
+  }
+
   const renderState = manager.setMode(mode);
   if (!renderState?.clearColor) {
     return;
@@ -450,8 +505,10 @@ window.addEventListener("beforeunload", () => {
     unsubscribeScene();
   }
 });
+window.addEventListener(SCENE_DEBUG_EVENT, handleSceneDebug);
 
 setSceneIndicator(activeSceneId);
+setSceneDebug("No scene diagnostics yet.");
 enableIdleButtons();
 initSupport();
 bootstrapFromQuery();
