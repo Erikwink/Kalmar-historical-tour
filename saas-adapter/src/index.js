@@ -6,6 +6,7 @@ const adapter = new Firebase()
 // -----------------------------
 // Controller API
 // -----------------------------
+export const loginController = adapter.loginController.bind(adapter) // logga in med email + password i firebase
 export const connect = adapter.connect.bind(adapter)        // skapa session
 export const publish = adapter.publish.bind(adapter)       // skicka scen till alla
 export const onHeadsetsChange = adapter.onHeadsetsChange.bind(adapter) // lyssna på presence
@@ -15,6 +16,7 @@ export const removeAllRooms = adapter.removeAllRooms.bind(adapter) // dev only
 // -----------------------------
 // Client API
 // -----------------------------
+export const loginClient = adapter.loginClient.bind(adapter) // logga in anonymt
 export const join = adapter.join.bind(adapter)             // registrera + starta heartbeat
 export const heartbeat = adapter.heartbeat.bind(adapter)   // skicka status + lastSeenAt
 export const ready = adapter.ready.bind(adapter)
