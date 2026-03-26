@@ -10,6 +10,7 @@ import {
   remove
 } from "firebase/database"
 
+import { getAuth, signInAnonymously, signInWithEmailAndPassword } from "firebase/auth"
 import firebaseConfig from "./firebaseConfig.js"
 
 const DEFAULT_SCENE_ID = "waiting"
@@ -18,6 +19,16 @@ export class Firebase {
   constructor() {
     const app = initializeApp(firebaseConfig)
     this.db = getDatabase(app)
+    this.auth = getAuth(app)
+  }
+
+  // -----------------------------
+  // Controller: logga in med email + password i firebase
+  // -----------------------------
+  async loginController(email, password) {
+    if (!this.auth.currentUser) {
+      await signInWithEmailAndPassword(this.auth, email, password)
+    }
   }
 
   // -----------------------------
@@ -26,8 +37,11 @@ export class Firebase {
   async connect(sessionId) {
     // if room exists and is in use, send error back and let controller create new room id??
     const sessionRef = ref(this.db, `rooms/${sessionId}`)
-    await update(sessionRef, { createdAt: Date.now() })
-    await update(sessionRef, { activeSceneId: DEFAULT_SCENE_ID })   // prevents undefined scene state by adding default state = waiting. 
+    await update(sessionRef, {
+      controller: this.auth.currentUser.uid,
+      createdAt: Date.now(),
+      activeSceneId: DEFAULT_SCENE_ID
+    })
   }
 
 
@@ -41,6 +55,15 @@ export class Firebase {
       activeSceneId: sceneId,
       updatedAt: Date.now()
     })
+  }
+
+  // -----------------------------
+  // Client: logga in anonymt (om inte redan inloggad)
+  // -----------------------------
+  async loginClient() {
+    if (!this.auth.currentUser) {
+      await signInAnonymously(this.auth)
+    }
   }
 
   // -----------------------------
@@ -81,7 +104,7 @@ export class Firebase {
       ready: false,
       lastSceneId: null
     })
-    
+
     // Markera offline automatiskt om anslutning bryts
     onDisconnect(clientRef).update({
       status: "offline"
@@ -111,7 +134,7 @@ export class Firebase {
   // -----------------------------
   // Client: ändrar ready-status
   // -----------------------------
-   async ready(sessionId, clientId, ready = true) {
+  async ready(sessionId, clientId, ready = true) {
     const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`)
     await update(clientRef, { ready, lastSeenAt: Date.now() })
   }

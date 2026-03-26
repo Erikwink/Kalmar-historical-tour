@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { connect, onHeadsetsChange, publish } from "../../saas-adapter/src/index"
+import { loginController, connect, onHeadsetsChange, publish } from "../../saas-adapter/src/index"
 import SessionPage from "./pages/SessionPage";
 import MainPage from "./pages/MainPage";
 import { FIREBASE_STATUS } from "./utils/status_maps";
@@ -34,6 +34,9 @@ function App() {
     async function init() {
       try {
         setSaasStatus(FIREBASE_STATUS.CONNECTING);
+        await loginController(
+          import.meta.env.VITE_FIREBASE_EMAIL,
+          import.meta.env.VITE_FIREBASE_PASSWORD);
         await connect(sessionId);
         setSaasStatus(FIREBASE_STATUS.CONNECTED);
       } catch (e) {

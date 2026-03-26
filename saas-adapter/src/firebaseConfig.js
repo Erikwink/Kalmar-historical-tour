@@ -5,13 +5,13 @@ if (!apiKey) {
   console.error("[saas-adapter] Missing VITE_FIREBASE_API_KEY. Check this app's .env file.");
 }
 
-export default {
+export default{
   apiKey,
-  authDomain: "historical-walk-a5d3a.firebaseapp.com",
-  databaseURL: "https://historical-walk-a5d3a-default-rtdb.europe-west1.firebasedatabase.app/",
-  projectId: "historical-walk-a5d3a",
-  storageBucket: "historical-walk-a5d3a.firebasestorage.app",
-  messagingSenderId: "726112215514",
-  appId: "1:726112215514:web:7c08eef120587c216720e3",
-  measurementId: "G-HT41K1J7LF"
-}
+  authDomain: "kalmar-historical-tour.firebaseapp.com",
+  databaseURL: "https://kalmar-historical-tour-default-rtdb.europe-west1.firebasedatabase.app/",
+  projectId: "kalmar-historical-tour",
+  storageBucket: "kalmar-historical-tour.firebasestorage.app",
+  messagingSenderId: "740080561500",
+  appId: "1:740080561500:web:99a32caea5423fe7be2599",
+  measurementId: "G-H9JWC8WT64"
+};
