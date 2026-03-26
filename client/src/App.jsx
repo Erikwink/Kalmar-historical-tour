@@ -1,7 +1,6 @@
 // client/src/App.jsx
 import { useState, useEffect } from "react";
-import { join, leave, onSceneChange, ready } from "../../saas-adapter/src/index"
-
+import { loginClient, join, leave, onSceneChange, ready } from "../../saas-adapter/src/index"
 /**
  * Root application component for the VR headset client.
  * Handles joining/leaving sessions and subscribing to scene changes.
@@ -56,13 +55,19 @@ function App() {
    */
   const appendLog = (msg) => setLog((l) => [...l, msg]);
 
+  useEffect(() => {
+    loginClient()
+      .then(() => appendLog("Inloggad i Firebase (anonymous)"))
+      .catch((e) => appendLog("Login fel: " + e.message));
+  }, []);
+  
   // Re-join automatically on reload if we were already in a session.
   useEffect(() => {
     if (!activeSessionId) return;
     join(activeSessionId, headsetId, headsetLabel || headsetId)
       .then(() => appendLog("Återansluten till session."))
       .catch((e) => appendLog("Fel vid återanslutning: " + e.message));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // intentionally empty — only runs on mount
 
   // Subscribe to scene changes when an active session exists.
