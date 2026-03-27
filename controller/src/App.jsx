@@ -31,8 +31,10 @@ function AppContent() {
         await publish(sessionId, "waiting")
         setSaasStatus(FIREBASE_STATUS.CONNECTED);
       } catch (e) {
-        console.error("failed to connect to adapter:", e)
-        setSaasStatus(FIREBASE_STATUS.ERROR)
+        // Session conflict: room already exists (collision detected)
+        // Generate new sessionId and retry
+        console.warn(`Session ${sessionId} already in use, generating new ID`, e)
+        setSessionId(generateSessionId())
       }
     }
     init()

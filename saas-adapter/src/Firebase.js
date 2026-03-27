@@ -7,7 +7,8 @@ import {
   update,
   onValue,
   onDisconnect,
-  remove
+  remove,
+  runTransaction
 } from "firebase/database"
 
 import { getAuth, signInAnonymously, signInWithEmailAndPassword } from "firebase/auth"
@@ -32,16 +33,23 @@ export class Firebase {
   }
 
   // -----------------------------
-  // Controller: skapa session
+  // Controller: skapa session (atomic)
+  // Throws error if room already exists — controller retries with new sessionId
   // -----------------------------
   async connect(sessionId) {
-    // if room exists and is in use, send error back and let controller create new room id??
     const sessionRef = ref(this.db, `rooms/${sessionId}`)
-    await update(sessionRef, {
-      controller: this.auth.currentUser.uid,
-      createdAt: Date.now(),
-      activeSceneId: DEFAULT_SCENE_ID
-    })
+    try {
+      await runTransaction(sessionRef, (current) => {
+        if (current !== null) {
+          // Room already exists — abort transaction and throw error
+          throw new Error(`Session ${sessionId} is already in use`)
+        }
+        // Room doesn't exist — create it
+        return { createdAt: Date.now() }
+      })
+    } catch (e) {
+      throw new Error(`Failed to create session ${sessionId}: ${e.message}`)
+    }
   }
 
 
