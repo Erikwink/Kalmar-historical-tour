@@ -1,4 +1,18 @@
 {
+  "loginPage": {
+    "title": "Logga in",
+    "guidesIn": "WR turer",
+    "email": "E-post",
+    "city": "Kalmar",
+    "emailPlaceholder": "namn@mail.com",
+    "password": "Lösenord",
+    "showPassword": "Visa lösenord",
+    "hidePassword": "Dölj lösenord",
+    "forgotPassword": "Glömt lösenord?",
+    "submit": "Logga in",
+    "noAccount": "Har du inget konto?",
+    "signUp": "Registrera dig"
+  },
   "nav": {
     "back": "Tillbaka",
     "settings": "Inställningar"

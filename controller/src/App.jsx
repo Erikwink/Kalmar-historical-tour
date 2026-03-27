@@ -6,18 +6,21 @@ import ToursPage from "./pages/Tourspage"
 import SessionPage from "./pages/SessionPage"
 import MainPage from "./pages/MainPage"
 import SettingsPage from "./pages/Settingspage"
+import LoginPage from "./pages/LoginPage"
 import JoinMock from "./JoinMock" // DEV: remove when real client exists
 import generateSessionId from "./utils/generateSessionId"
 
 
 function AppContent() {
   const navigate = useNavigate()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [activeScene, setActiveScene] = useState("waiting")
   const [saasStatus, setSaasStatus] = useState(null)
   const [headsets, setHeadsets] = useState([])
   const [sessionId, setSessionId] = useState(generateSessionId)
 
   useEffect(() => {
+    if (!isLoggedIn) return
     // Subscribe to real-time headset updates; unsubscribe on unmount
     const unsubscribe = onHeadsetsChange(sessionId, setHeadsets)
 
@@ -40,7 +43,7 @@ function AppContent() {
     init()
 
     return unsubscribe
-  }, [sessionId])
+  }, [sessionId, isLoggedIn])
 
   /**
    * Publishes a scene change to all connected headsets.
@@ -72,6 +75,14 @@ function AppContent() {
       console.error("failed to disconnect from adapter:", e)
       setSaasStatus(FIREBASE_STATUS.ERROR)
     }
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <Routes>
+        <Route path="*" element={<LoginPage onLogin={() => setIsLoggedIn(true)} />} />
+      </Routes>
+    )
   }
 
   return (

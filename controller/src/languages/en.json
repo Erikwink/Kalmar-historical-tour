@@ -1,4 +1,18 @@
 {
+  "loginPage": {
+    "title": "Sign in",
+    "guidesIn": "WR Tour",
+    "email": "Email",
+    "city": "Kalmar",
+    "emailPlaceholder": "name@mail.com",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Sign in",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up"
+  },
   "nav": {
     "back": "Back",
     "settings": "Settings"
