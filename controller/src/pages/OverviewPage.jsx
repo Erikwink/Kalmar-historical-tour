@@ -153,7 +153,10 @@ export default function OverviewPage({ activeScene, onScenePress, onEndSession, 
                 scene={scene}
                 label={t(`scenes.${scene.id}`, scene.label)}
                 isActive={scene.id === activeScene}
-                onClick={() => onScenePress(scene.id)}
+                onClick={() => {
+                  onScenePress(scene.id);
+                  navigate(`/detail?tourId=${tourId}&sceneId=${scene.id}`);
+                }}
               />
             ))}
           </div>

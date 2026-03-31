@@ -46,6 +46,16 @@
     "pleaseRemoveHeadset": "Ta av headset",
     "endTour": "Avsluta tour"
   },
+  "detailPage": {
+    "title": "Detaljerad vy",
+    "activeView": "Aktiv vy",
+    "views": "Vyer",
+    "sound": "Ljud",
+    "picture": "Bild",
+    "nextStop": "Nästa stopp",
+    "tourComplete": "Tour slutförd",
+    "backToOverview": "Tillbaka till översikt"
+  },
   "settingsPage": {
     "title": "Inställningar",
     "tourSection": "Tour",

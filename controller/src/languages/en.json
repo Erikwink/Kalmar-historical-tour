@@ -46,6 +46,16 @@
     "pleaseRemoveHeadset": "Please remove headset",
     "endTour": "End tour"
   },
+  "detailPage": {
+    "title": "Detailed view",
+    "activeView": "Active view",
+    "views": "Views",
+    "sound": "Sound",
+    "picture": "Picture",
+    "nextStop": "Next stop",
+    "tourComplete": "Tour complete",
+    "backToOverview": "Back to overview"
+  },
   "settingsPage": {
     "title": "Settings",
     "tourSection": "Tour",
