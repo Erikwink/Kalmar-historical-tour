@@ -209,8 +209,8 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 16px;
 }
 
 /* ── Session Card ────────────────────────────────────── */
@@ -258,13 +258,105 @@ body {
   margin-top: 2px;
 }
 
+/* ── Tour Info Card ──────────────────────────────────── */
+.tour-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.tour-info-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tour-info-card__title {
+  font-size: 1.143rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+}
+
+.tour-info-card__meta {
+  font-size: 0.857rem;
+  color: var(--md-on-surface-variant);
+  display: flex;
+  gap: 16px;
+}
+
+/* ── Headset Info ────────────────────────────────────── */
+.headset-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px;
+}
+
+.headset-info__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headset-info__title {
+  font-size: 1.143rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+}
+
+.headset-info__meta {
+  font-size: 0.857rem;
+  color: var(--md-on-surface-variant);
+  display: flex;
+  gap: 16px;
+  flex-direction: column;
+}
+
+.headset-info__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.938rem;
+  color: var(--md-on-surface-variant);
+}
+
+.headset-info__item .ms {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.headset-info__item--online .ms {
+  color: #4DB8A8;
+}
+
+.headset-info__item--connecting .ms {
+  color: #FFB95A;
+}
+
+.headset-info__item--not-ready .ms {
+  color: #FFB95A;
+}
+
+.headset-info__item--offline .ms {
+  color: #999999;
+}
+
+.headset-info__item--error .ms {
+  color: #FFB4AB;
+}
+
+.headset-info__item--adapter .ms {
+  color: var(--md-primary);
+}
+
 /* ── Section Header ──────────────────────────────────── */
 .section-header {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 4px 0;
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .section-header__title {
@@ -467,6 +559,27 @@ body {
 
 .scene-btn__label {
   flex: 1;
+}
+
+/* ── Waiting Controls ────────────────────────────────── */
+.waiting-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.waiting-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.938rem;
+  color: var(--md-on-surface);
+}
+
+.waiting-status .ms {
+  font-size: 20px;
+  flex-shrink: 0;
 }
 
 .scene-btn.active .scene-btn__label {
@@ -696,6 +809,10 @@ body {
 .headset-section .card {
   padding: 0;
   overflow: visible;
+}
+
+.headset-section .headset-info {
+  padding: 17px;
 }
 
 .headset-section .section-header {

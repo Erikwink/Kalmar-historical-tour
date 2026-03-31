@@ -43,7 +43,7 @@ src/
   scenes.js            # Scenernas definitioner (id, label, ikon, färg)
   pages/
     SessionPage.jsx    # Startsida med QR-kod och headset-lista
-    MainPage.jsx       # Tourkontroll med scenknappar
+    OverviewPage.jsx       # Tourkontroll med scenknappar
   components/
     SessionCard.jsx    # Visar session-ID och QR-kod
     HeadsetList.jsx    # Visar anslutna headsets och Firebase-status

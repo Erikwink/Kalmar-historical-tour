@@ -4,7 +4,7 @@ import { loginController, connect, onHeadsetsChange, publish, disconnect } from 
 import { FIREBASE_STATUS } from "./utils/status_maps"
 import ToursPage from "./pages/Tourspage"
 import SessionPage from "./pages/SessionPage"
-import MainPage from "./pages/MainPage"
+import OverviewPage from "./pages/OverviewPage"
 import SettingsPage from "./pages/Settingspage"
 import LoginPage from "./pages/LoginPage"
 import JoinMock from "./JoinMock" // DEV: remove when real client exists
@@ -84,10 +84,11 @@ function AppContent() {
         <Route
           path="/tour"
           element={
-            <MainPage
+            <OverviewPage
               activeScene={activeScene}
               onScenePress={handleScenePress}
               onEndSession={handleEndSession}
+              headsets={headsets}
             />
           }
         />

@@ -30,9 +30,20 @@
     "cancel": "Avbryt",
     "startTour": "Starta tour"
   },
-  "mainPage": {
+  "overviewPage": {
     "activeScene": "Aktiv scen",
     "scenes": "Scener",
+    "stops": "stopp",
+    "headsetInfo": "Headset info",
+    "headsetOnline": "online",
+    "headsetConnecting": "ansluter",
+    "headsetNotReady": "inte redo",
+    "headsetOffline": "offline",
+    "headsetError": "fel",
+    "noHeadsets": "Inga headset anslutna",
+    "waitingControls": "Väntande kontroller",
+    "pleaseWaitForStart": "Vänta på start",
+    "pleaseRemoveHeadset": "Ta av headset",
     "endTour": "Avsluta tour"
   },
   "settingsPage": {

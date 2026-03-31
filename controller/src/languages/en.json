@@ -30,9 +30,20 @@
     "cancel": "Cancel",
     "startTour": "Start tour"
   },
-  "mainPage": {
+  "overviewPage": {
     "activeScene": "Active scene",
     "scenes": "Scenes",
+    "stops": "stops",
+    "headsetInfo": "Headset info",
+    "headsetOnline": "online",
+    "headsetConnecting": "connecting",
+    "headsetNotReady": "not ready",
+    "headsetOffline": "offline",
+    "headsetError": "error",
+    "noHeadsets": "No headsets connected",
+    "waitingControls": "Waiting controls",
+    "pleaseWaitForStart": "Please wait for start",
+    "pleaseRemoveHeadset": "Please remove headset",
     "endTour": "End tour"
   },
   "settingsPage": {
