@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
-export default function LoginPage({ onLogin }) {
+export default function LoginPage() {
+  const navigate = useNavigate()
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -9,24 +11,8 @@ export default function LoginPage({ onLogin }) {
 
   function handleSubmit(e) {
     e.preventDefault()
-
-    // NOTE: Firebase hanterar email-validering server-side och returnerar felkoder som
-    // auth/invalid-email, auth/user-not-found och auth/wrong-password.
-    // Nedanstående klient-validering är valfri – enbart för snabbare feedback utan API-anrop.
-    //
-    // const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
-    // if (!email || !emailValid) { setError(t('loginPage.errorEmail')); return }
-    // if (!password) { setError(t('loginPage.errorPassword')); return }
-
-    // TODO (deploy): replace with:
-    // try {
-    //   await signIn(email, password)   // från saas-adapter
-    //   onLogin()
-    // } catch (err) {
-    //   // Firebase felkoder: auth/invalid-email | auth/user-not-found | auth/wrong-password | auth/too-many-requests
-    //   setError(t(`loginPage.errors.${err.code}`) ?? t('loginPage.errors.default'))
-    // }
-    onLogin()
+    // TODO (deploy): await signIn(email, password) from saas-adapter, then navigate on success
+    navigate('/')
   }
 
   return (

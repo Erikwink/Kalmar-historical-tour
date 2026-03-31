@@ -13,18 +13,16 @@ import generateSessionId from "./utils/generateSessionId"
 
 function AppContent() {
   const navigate = useNavigate()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [activeScene, setActiveScene] = useState("waiting")
   const [saasStatus, setSaasStatus] = useState(null)
   const [headsets, setHeadsets] = useState([])
   const [sessionId, setSessionId] = useState(generateSessionId)
 
   useEffect(() => {
-    if (!isLoggedIn) return
-    // Subscribe to real-time headset updates; unsubscribe on unmount
     const unsubscribe = onHeadsetsChange(sessionId, setHeadsets)
 
     async function init() {
+      const isReconnect = localStorage.getItem('sessionId') === sessionId
       try {
         setSaasStatus(FIREBASE_STATUS.CONNECTING)
         await loginController(
@@ -34,22 +32,17 @@ function AppContent() {
         await publish(sessionId, "waiting")
         setSaasStatus(FIREBASE_STATUS.CONNECTED);
       } catch (e) {
-        // Session conflict: room already exists (collision detected)
-        // Generate new sessionId and retry
-        console.warn(`Session ${sessionId} already in use, generating new ID`, e)
+        // Real collision with another controller — generate new ID
+        console.warn(`Session ${sessionId} collision, generating new ID`, e)
+        localStorage.removeItem('sessionId')
         setSessionId(generateSessionId())
       }
     }
     init()
 
     return unsubscribe
-  }, [sessionId, isLoggedIn])
+  }, [sessionId])
 
-  /**
-   * Publishes a scene change to all connected headsets.
-   * Updates local activeScene only on success to keep UI in sync with Firebase.
-   * @param {string} sceneId - ID of the scene to activate
-   */
   async function handleScenePress(sceneId) {
     try {
       await publish(sessionId, sceneId)
@@ -60,37 +53,26 @@ function AppContent() {
     }
   }
 
-  /**
-   * Ends the tour session by disconnecting from Firebase and clearing the active session.
-   */
   async function handleEndSession() {
     try {
       await disconnect(sessionId)
-      localStorage.removeItem("sessionId")
-      setActiveScene("waiting") // resets scene
-      setSessionId(generateSessionId) // Generate new session id
-      setSaasStatus(null)     // resets connection state
-      navigate('/')           // returns to start page
+      localStorage.removeItem('sessionId')
+      setActiveScene("waiting")
+      setSessionId(generateSessionId())
+      setSaasStatus(null)
+      navigate('/')
     } catch (e) {
       console.error("failed to disconnect from adapter:", e)
       setSaasStatus(FIREBASE_STATUS.ERROR)
     }
   }
 
-  if (!isLoggedIn) {
-    return (
-      <Routes>
-        <Route path="*" element={<LoginPage onLogin={() => setIsLoggedIn(true)} />} />
-      </Routes>
-    )
-  }
-
   return (
     <>
       <Routes>
-        <Route path="/" element={<ToursPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route
-          path="/session"
+          path="/"
           element={
             <SessionPage
               sessionId={sessionId}
@@ -99,6 +81,7 @@ function AppContent() {
             />
           }
         />
+        <Route path="/tours" element={<ToursPage />} />
         <Route
           path="/tour"
           element={
@@ -109,7 +92,10 @@ function AppContent() {
             />
           }
         />
-        <Route path="/settings" element={<SettingsPage />} />
+        <Route
+          path="/settings"
+          element={<SettingsPage onLogout={() => navigate('/login')} />}
+        />
       </Routes>
 
       {/* REMOVE MOCK ONCE CLIENT IS IMPLEMENTED */}
@@ -122,7 +108,6 @@ export default function App() {
   return (
     <BrowserRouter>
       <AppContent />
-    </BrowserRouter >
+    </BrowserRouter>
   )
 }
-

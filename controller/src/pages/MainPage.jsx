@@ -30,7 +30,7 @@ export default function MainPage({ activeScene, onScenePress, onEndSession }) {
         <div className="top-app-bar">
           <button
             className="icon-btn"
-            onClick={() => navigate(`/session?tourId=${tourId}`)}
+            onClick={() => navigate('/tours')}
             aria-label={t("nav.back")}
           >
             <span className="ms">arrow_back</span>

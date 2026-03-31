@@ -734,6 +734,10 @@ body {
   border-bottom: none;
 }
 
+.settings-item--danger {
+  color: var(--md-error);
+}
+
 .settings-item__label {
   flex: 1;
 }

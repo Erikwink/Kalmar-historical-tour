@@ -10,6 +10,9 @@ export default function ToursPage() {
   return (
     <div className="page">
       <div className="top-app-bar">
+        <button className="icon-btn" onClick={() => navigate('/')} aria-label={t('nav.back')}>
+          <span className="ms">arrow_back</span>
+        </button>
         <span className="top-app-bar__title"></span>
         <button
           className="icon-btn"
@@ -33,7 +36,7 @@ export default function ToursPage() {
             <TourCard
               key={tour.id}
               tour={tour}
-              onClick={() => navigate(`/session?tourId=${tour.id}`)}
+              onClick={() => navigate(`/tour?tourId=${tour.id}`)}
             />
           ))}
         </div>

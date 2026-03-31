@@ -7,6 +7,12 @@ import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import HeadsetList from '../components/headsetList'
 import QRModal from '../components/QRmodal'
 import { tours } from '../tours'
@@ -40,11 +46,7 @@ import { HEADSET_STATUS } from '../utils/status_maps'
  */
 export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
   const { t } = useTranslation()
-  
-  const tourId = searchParams.get('tourId')
-  const tour = tours.find(t => t.id === tourId)
 
   const [showQR, setShowQR] = useState(false)
 
@@ -54,14 +56,7 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   return (
     <div className="page">
       <div className="top-app-bar">
-        <button className="icon-btn" onClick={() => navigate('/')} aria-label={t('nav.back')}>
-          <span className="ms">arrow_back</span>
-        </button>
-        <div className="top-app-bar__content">
-          <span className="top-app-bar__title">
-            {tour ? t(`tours.${tour.id}.title`) : t('sessionPage.fallbackTitle')}
-          </span>
-        </div>
+        <span className="top-app-bar__title">{t('sessionPage.fallbackTitle')}</span>
         <button
           className="icon-btn"
           onClick={() => navigate('/settings')}
@@ -72,14 +67,6 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
       </div>
 
       <div className="page-content">
-        {tour && (
-          <div className="tour-info-section">
-            <p className="tour-info-section__description">
-              {t(`tours.${tour.id}.description`) || t('sessionPage.fallbackDescription')}
-            </p>
-          </div>
-        )}
-
         <div className="session-info-card card">
           <div className="session-info-card__code-row">
             <div>
@@ -101,13 +88,10 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
         </div>
       </div>
 
-      <div className="fab-wrap fab-wrap--row">
-        <button className="efab efab--outline" onClick={() => navigate('/')}>
-          {t('sessionPage.cancel')}
-        </button>
+      <div className="fab-wrap">
         <button
           className="efab"
-          onClick={() => navigate(`/tour?tourId=${tourId}`)}
+          onClick={() => navigate('/tours')}
           disabled={headsetsConnected === 0}
         >
           <span

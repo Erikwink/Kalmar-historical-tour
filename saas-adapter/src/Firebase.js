@@ -38,17 +38,14 @@ export class Firebase {
   // -----------------------------
   async connect(sessionId) {
     const sessionRef = ref(this.db, `rooms/${sessionId}`)
-    try {
-      await runTransaction(sessionRef, (current) => {
-        if (current !== null) {
-          // Room already exists — abort transaction and throw error
-          throw new Error(`Session ${sessionId} is already in use`)
-        }
-        // Room doesn't exist — create it
-        return { createdAt: Date.now() }
-      })
-    } catch (e) {
-      throw new Error(`Failed to create session ${sessionId}: ${e.message}`)
+    const result = await runTransaction(sessionRef, (current) => {
+      if (current !== null) {
+        return undefined // abort — room already exists
+      }
+      return { createdAt: Date.now() }
+    })
+    if (!result.committed) {
+      throw new Error(`Session ${sessionId} is already in use`)
     }
   }
 

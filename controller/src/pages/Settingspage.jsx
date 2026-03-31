@@ -9,7 +9,7 @@ const LANGUAGES = [
 
 const FONT_SIZE_VALUES = ['small', 'medium', 'large']
 
-export default function SettingsPage() {
+export default function SettingsPage({ onLogout }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { theme, setTheme, language, setLanguage, fontSize, setFontSize } = useSettings()
@@ -81,6 +81,16 @@ export default function SettingsPage() {
               {theme === 'dark' ? t('settingsPage.dark') : t('settingsPage.light')}
             </button>
           </div>
+        </div>
+
+        <div className="section-header">
+          <span className="section-header__title">{t('settingsPage.accountSection')}</span>
+        </div>
+        <div className="card settings-list">
+          <button className="settings-item settings-item--danger" onClick={onLogout}>
+            <span className="settings-item__label">{t('settingsPage.logout')}</span>
+            <span className="ms settings-item__arrow">logout</span>
+          </button>
         </div>
       </div>
     </div>

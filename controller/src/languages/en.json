@@ -46,7 +46,9 @@
     "appearance": "Appearance",
     "toggleDarkMode": "Toggle dark mode",
     "dark": "Dark",
-    "light": "Light"
+    "light": "Light",
+    "accountSection": "Account",
+    "logout": "Log out"
   },
   "fontSizes": {
     "small": "Small",

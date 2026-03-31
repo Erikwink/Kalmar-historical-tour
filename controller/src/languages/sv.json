@@ -46,7 +46,9 @@
     "appearance": "Utseende",
     "toggleDarkMode": "Växla mörkt läge",
     "dark": "Mörkt",
-    "light": "Ljust"
+    "light": "Ljust",
+    "accountSection": "Konto",
+    "logout": "Logga ut"
   },
   "fontSizes": {
     "small": "Liten",
