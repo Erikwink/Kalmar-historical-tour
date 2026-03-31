@@ -34,19 +34,16 @@ export class Firebase {
 
   // -----------------------------
   // Controller: skapa session (atomic)
-  // Throws error if room already exists — controller retries with new sessionId
+  // Idempotent — if room already exists, does nothing (handles reconnects and StrictMode)
   // -----------------------------
   async connect(sessionId) {
     const sessionRef = ref(this.db, `rooms/${sessionId}`)
-    const result = await runTransaction(sessionRef, (current) => {
+    await runTransaction(sessionRef, (current) => {
       if (current !== null) {
-        return undefined // abort — room already exists
+        return undefined // room already exists — abort, no change needed
       }
-      return { createdAt: Date.now() }
+      return { createdAt: Date.now(), controller: this.auth.currentUser?.uid ?? null }
     })
-    if (!result.committed) {
-      throw new Error(`Session ${sessionId} is already in use`)
-    }
   }
 
 
@@ -121,7 +118,7 @@ export class Firebase {
     })
 
     // Markera offline automatiskt om anslutning bryts
-    const disconnectHandler = onDisconnect(clientRef).update({
+    const disconnectHandler = await onDisconnect(clientRef).update({
       status: "offline"
     })
 

@@ -59,11 +59,11 @@ function App() {
    */
   const appendLog = (msg) => setLog((l) => [...l, msg]);
 
-  useEffect(() => {
-    loginClient()
-      .then(() => appendLog("Inloggad i Firebase (anonymous)"))
-      .catch((e) => appendLog("Login fel: " + e.message));
-  }, []);
+  // useEffect(() => {
+  //   loginClient()
+  //     .then(() => appendLog("Inloggad i Firebase (anonymous)"))
+  //     .catch((e) => appendLog("Login fel: " + e.message));
+  // }, []);
   
   // Re-join automatically on reload if we were already in a session.
   useEffect(() => {
@@ -79,8 +79,9 @@ function App() {
       })
       .catch((e) => appendLog("Fel vid återanslutning: " + e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // intentionally empty — only runs on mount
-
+  }, []);
+  
+  
   // Subscribe to scene changes when an active session exists.
   // Also detects when the room is deleted (sceneId becomes null).
   useEffect(() => {

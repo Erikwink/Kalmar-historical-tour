@@ -19,28 +19,27 @@ function AppContent() {
   const [sessionId, setSessionId] = useState(generateSessionId)
 
   useEffect(() => {
-    const unsubscribe = onHeadsetsChange(sessionId, setHeadsets)
+    let unsubscribe = () => {}
 
     async function init() {
-      const isReconnect = localStorage.getItem('sessionId') === sessionId
       try {
         setSaasStatus(FIREBASE_STATUS.CONNECTING)
         await loginController(
           import.meta.env.VITE_FIREBASE_EMAIL,
-          import.meta.env.VITE_FIREBASE_PASSWORD);
-        await connect(sessionId);
+          import.meta.env.VITE_FIREBASE_PASSWORD)
+        await connect(sessionId)
         await publish(sessionId, "waiting")
-        setSaasStatus(FIREBASE_STATUS.CONNECTED);
+        // listen to headsets after connection to firebase
+        unsubscribe = onHeadsetsChange(sessionId, setHeadsets)
+        setSaasStatus(FIREBASE_STATUS.CONNECTED)
       } catch (e) {
-        // Real collision with another controller — generate new ID
-        console.warn(`Session ${sessionId} collision, generating new ID`, e)
-        localStorage.removeItem('sessionId')
-        setSessionId(generateSessionId())
+        console.error("Failed to connect:", e)
+        setSaasStatus(FIREBASE_STATUS.ERROR)
       }
     }
     init()
 
-    return unsubscribe
+    return () => unsubscribe()
   }, [sessionId])
 
   async function handleScenePress(sceneId) {
