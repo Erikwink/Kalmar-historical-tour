@@ -6,7 +6,6 @@ import ToursPage from "./pages/Tourspage"
 import SessionPage from "./pages/SessionPage"
 import OverviewPage from "./pages/OverviewPage"
 import DetailPage from "./pages/DetailPage"
-import DetailPage from "./pages/DetailPage"
 import SettingsPage from "./pages/Settingspage"
 import LoginPage from "./pages/LoginPage"
 import JoinMock from "./JoinMock" // DEV: remove when real client exists

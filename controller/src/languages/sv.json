@@ -55,7 +55,8 @@
     "picture": "Bild",
     "nextStop": "Nästa stopp",
     "tourComplete": "Tour slutförd",
-    "backToOverview": "Tillbaka till översikt"
+    "backToOverview": "Tillbaka till översikt",
+    "lastScene": "Sista scenen"
   },
   "settingsPage": {
     "title": "Inställningar",
@@ -112,10 +113,6 @@
       "title": "Kalmar Slott",
       "description": "Vandra genom det magnifika Kalmar slott och upplev dess rika historia"
     }
-  },
-  "detailPage": {
-    "views": "vyer",
-    "lastScene": "Sista scenen"
   },
   "controls": {
     "castle-360": "Visa slottet",

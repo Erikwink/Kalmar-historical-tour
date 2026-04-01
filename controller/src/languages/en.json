@@ -55,7 +55,8 @@
     "picture": "Picture",
     "nextStop": "Next stop",
     "tourComplete": "Tour complete",
-    "backToOverview": "Back to overview"
+    "backToOverview": "Back to overview",
+    "lastScene": "Last scene"
   },
   "settingsPage": {
     "title": "Settings",
@@ -112,10 +113,6 @@
       "title": "Kalmar Castle",
       "description": "Tour the magnificent Kalmar Castle and experience its rich history"
     }
-  },
-  "detailPage": {
-    "views": "Views",
-    "lastScene": "Last scene"
   },
   "controls": {
     "castle-360": "Show the castle",
