@@ -1,210 +1,106 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SceneBtn from "../components/sceneBtn";
 import EndSessionModal from "../components/endSessionModal";
-import { tours } from "../tours";
-import { HEADSET_STATUS } from "../utils/status_maps";
+import HeadsetSummary from "../components/HeadsetSummary";
+import TopAppBar from "../components/TopAppBar";
+import ActiveSceneChip from "../components/ActiveSceneChip";
+import Section from "../components/Section";
+import Fab from "../components/Fab";
+import { tours, WAITING_CONTROLS } from "../../../tours/index";
+import { setTourId } from "../../../saas-adapter/src/index";
 
 /**
  * Active tour control page — lets the guide select which scene headsets should display.
- * @param {{ activeScene: string, onScenePress: Function, onEndSession: Function, headsets: Array }} props
+ * @param {{ sessionId: string, activeScene: string, onScenePress: Function, onEndSession: Function, headsets: Array }} props
  */
-export default function OverviewPage({ activeScene, onScenePress, onEndSession, headsets = [] }) {
+export default function OverviewPage({ sessionId, activeScene, onScenePress, onEndSession, headsets = [] }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const [showEndModal, setShowEndModal] = useState(false);
 
-  // get tour from serchParam
   const tourId = searchParams.get("tourId");
-  // lookup the tour in tours.js
-  const tour = tours.find((t) => t.id === tourId);
-  // get the scenes from tours, empty array as fallback
-  const scenes = tour?.scenes ?? [];
-  // find active scene to display
-  const active = scenes.find((s) => s.id === activeScene);
 
-  // Count headsets by status
-  const onlineCount = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length;
-  const connectingCount = headsets.filter(h => h.status === HEADSET_STATUS.CONNECTING).length;
-  const notReadyCount = headsets.filter(h => h.status === HEADSET_STATUS.NOT_READY).length;
-  const offlineCount = headsets.filter(h => h.status === HEADSET_STATUS.OFFLINE).length;
-  const errorCount = headsets.filter(h => h.status === HEADSET_STATUS.ERROR).length;
+  useEffect(() => {
+    if (sessionId && tourId) {
+      setTourId(sessionId, tourId);
+    }
+  }, [sessionId, tourId]);
+
+  const tour = tours.find((t) => t.id === tourId);
+  const scenes = tour?.scenes ?? [];
+  const active = [...scenes, ...WAITING_CONTROLS].find((s) => s.id === activeScene);
 
   return (
     <>
       <div className="page">
-        <div className="top-app-bar">
-          <button
-            className="icon-btn"
-            onClick={() => navigate('/tours')}
-            aria-label={t("nav.back")}
-          >
-            <span className="ms">arrow_back</span>
-          </button>
-          <span className="top-app-bar__title">
-            {tour ? t(`tours.${tour.id}.title`) : "Tour"}
-          </span>
-
-          <button
-            className="icon-btn"
-            onClick={() => navigate("/settings")}
-            aria-label={t("nav.settings")}
-          >
-            <span className="ms">settings</span>
-          </button>
-        </div>
+        <TopAppBar
+          title={tour ? t(`tours.${tour.id}.title`) : "Tour"}
+          onBack={() => navigate('/tours')}
+        />
 
         <div className="page-content">
-          <div className="tour-info-card card">
-            <div className="tour-info-card__header">
-              <span className="tour-info-card__title">
-                {tour ? t(`tours.${tour.id}.title`) : "Tour"}
-              </span>
-            </div>
-            <div className="tour-info-card__meta">
+          <div className="card tour-summary">
+            <div className="tour-summary__meta">
               <span>{scenes.length} {t("overviewPage.stops")}</span>
+              {tour?.durationMinutes && (
+                <span> · {tour.durationMinutes >= 60
+                  ? `${Math.floor(tour.durationMinutes / 60)}h${tour.durationMinutes % 60 ? ` ${tour.durationMinutes % 60}min` : ""}`
+                  : `${tour.durationMinutes}min`}
+                </span>
+              )}
+            </div>
+            <hr className="tour-summary__divider" />
+            <div className="headset-info__meta">
+              <HeadsetSummary headsets={headsets} />
             </div>
           </div>
 
-          <div className="headset-section">
-            <div className="headset-info card">
-              <div className="headset-info__header">
-                <span className="headset-info__title">
-                  {t("overviewPage.headsetInfo")}
-                </span>
-              </div>
-              <div className="headset-info__meta">
-                {onlineCount > 0 && (
-                  <div className="headset-info__item headset-info__item--online">
-                    <span className="ms">headset</span>
-                    <span>{onlineCount} {t("overviewPage.headsetOnline")}</span>
-                  </div>
-                )}
-                {connectingCount > 0 && (
-                  <div className="headset-info__item headset-info__item--connecting">
-                    <span className="ms">sync</span>
-                    <span>{connectingCount} {t("overviewPage.headsetConnecting")}</span>
-                  </div>
-                )}
-                {notReadyCount > 0 && (
-                  <div className="headset-info__item headset-info__item--not-ready">
-                    <span className="ms">schedule</span>
-                    <span>{notReadyCount} {t("overviewPage.headsetNotReady")}</span>
-                  </div>
-                )}
-                {offlineCount > 0 && (
-                  <div className="headset-info__item headset-info__item--offline">
-                    <span className="ms">cloud_off</span>
-                    <span>{offlineCount} {t("overviewPage.headsetOffline")}</span>
-                  </div>
-                )}
-                {errorCount > 0 && (
-                  <div className="headset-info__item headset-info__item--error">
-                    <span className="ms">warning</span>
-                    <span>{errorCount} {t("overviewPage.headsetError")}</span>
-                  </div>
-                )}
-                {headsets.length === 0 && (
-                  <div className="headset-info__item">
-                    <span className="ms">info</span>
-                    <span>{t("overviewPage.noHeadsets")}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
           {active && (
-            <>
-              <div className="section-header">
-                <span className="section-header__title">
-                  {t("overviewPage.activeScene")}
-                </span>
-              </div>
-              <div
-                className="active-scene-chip"
-                style={{ "--scene-color": active.color }}
-              >
-                <span
-                  className="ms"
-                  style={{
-                    fontSize: "16px",
-                    fontVariationSettings:
-                      "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20",
-                  }}
-                >
-                  {active.icon}
-                </span>
-                {t(`scenes.${active.id}`, active.label)}
-              </div>
-            </>
+            <Section title={t("overviewPage.activeScene")}>
+              <ActiveSceneChip scene={active} label={t(`scenes.${active.id}`, active.label)} />
+            </Section>
           )}
 
-          <div className="section-header">
-            <span className="section-header__title">
-              {t("overviewPage.scenes")}
-            </span>
-          </div>
-          <div className="card scene-list">
-            {scenes.map((scene) => (
-              <SceneBtn
-                key={scene.id}
-                scene={scene}
-                label={t(`scenes.${scene.id}`, scene.label)}
-                isActive={scene.id === activeScene}
-                onClick={() => {
-                  onScenePress(scene.id);
-                  navigate(`/detail?tourId=${tourId}&sceneId=${scene.id}`);
-                }}
-              />
-            ))}
-          </div>
+          <Section title={t("overviewPage.scenes")}>
+            <div className="card scene-list">
+              {scenes.map((scene) => (
+                <SceneBtn
+                  key={scene.id}
+                  scene={scene}
+                  label={t(`scenes.${scene.id}`, scene.label)}
+                  isActive={scene.id === activeScene}
+                  onClick={() => navigate(`/tour/detail?tourId=${tourId}&sceneId=${scene.id}`)}
+                />
+              ))}
+            </div>
+          </Section>
 
-          <div className="section-header">
-            <span className="section-header__title">
-              {t("overviewPage.waitingControls")}
-            </span>
-          </div>
-          <div className="card waiting-controls">
-            <div className="waiting-status">
-              <span className="ms" style={{ color: "var(--md-sys-color-primary)" }}>
-                hourglass_empty
-              </span>
-              <span>{t("overviewPage.pleaseWaitForStart")}</span>
+          <Section title={t("overviewPage.waitingControls")}>
+            <div className="card scene-list">
+              {WAITING_CONTROLS.map((scene) => (
+                <SceneBtn
+                  key={scene.id}
+                  scene={scene}
+                  label={t(`scenes.${scene.id}`, scene.label)}
+                  isActive={scene.id === activeScene}
+                  onClick={() => onScenePress(scene.id)}
+                />
+              ))}
             </div>
-            <div className="waiting-status">
-              <span className="ms">headset_off</span>
-              <span>{t("overviewPage.pleaseRemoveHeadset")}</span>
-            </div>
-          </div>
+          </Section>
         </div>
 
-        <div className="fab-wrap">
-          <button
-            className="efab efab--danger"
-            onClick={() => setShowEndModal(true)}
-          >
-            <span
-              className="ms"
-              style={{
-                fontVariationSettings:
-                  "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24",
-              }}
-            >
-              stop_circle
-            </span>
-            {t("overviewPage.endTour")}
-          </button>
-        </div>
+        <Fab icon="stop_circle" variant="danger" onClick={() => setShowEndModal(true)}>
+          {t("overviewPage.endTour")}
+        </Fab>
       </div>
 
       {showEndModal && (
         <EndSessionModal
-          onConfirm={() => {
-            setShowEndModal(false);
-            onEndSession();
-          }}
+          onConfirm={() => { setShowEndModal(false); onEndSession(); }}
           onCancel={() => setShowEndModal(false)}
         />
       )}
