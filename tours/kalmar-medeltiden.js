@@ -4,13 +4,14 @@ export default {
   id:    "kalmar-medeltid",
   title: "Kalmar Medeltid",
   image,
-  icon:    "castle",
+  icon:            "castle",
+  durationMinutes: 120,
   scenes: [
     {
       id:       "castle",
       label:    "Kalmar slott",
       icon:     "castle",
-      color:    "#CFBCFF",
+      color:    "#573c9b",
       controls: [
         {
           id: "castle-360",
@@ -36,7 +37,7 @@ export default {
       id:       "church",
       label:    "Kalmar domkyrka",
       icon:     "church",
-      color:    "#A8C7FA",
+      color:    "#121c2c",
       controls: [
         { 
           id: "church-360",

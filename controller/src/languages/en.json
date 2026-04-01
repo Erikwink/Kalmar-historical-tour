@@ -23,9 +23,10 @@
     "selectTour": "Select tour"
   },
   "sessionPage": {
-    "fallbackTitle": "Tour overview",
+    "fallbackTitle": "Session overview",
     "fallbackDescription": "Experience this immersive tour",
     "sessionId": "Session ID",
+    "headsets": "Headsets",
     "showQR": "Show QR code",
     "cancel": "Cancel",
     "startTour": "Start tour"
@@ -111,6 +112,17 @@
       "title": "Kalmar Castle",
       "description": "Tour the magnificent Kalmar Castle and experience its rich history"
     }
+  },
+  "detailPage": {
+    "views": "Views",
+    "lastScene": "Last scene"
+  },
+  "controls": {
+    "castle-360": "Show the castle",
+    "castle-amb": "Ambient sound",
+    "castle-nar": "Narration",
+    "church-360": "Show the church",
+    "church-org": "Organ music"
   },
   "scenes": {
     "waiting": "Waiting to start",

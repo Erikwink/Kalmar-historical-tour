@@ -59,15 +59,36 @@ export class Firebase {
   }
 
   // -----------------------------
-  // Controller: publicera scen
+  // Controller: sätt tourId (körs en gång vid OverviewPage mount)
+  // -----------------------------
+  async setTourId(sessionId, tourId) {
+    const sessionRef = ref(this.db, `rooms/${sessionId}`);
+    await update(sessionRef, { tourId });
+  }
+
+  // -----------------------------
+  // Controller: publicera scen + rensa activeControls
   // -----------------------------
   async publish(sessionId, sceneId) {
     const sessionRef = ref(this.db, `rooms/${sessionId}`);
 
     await update(sessionRef, {
       activeSceneId: sceneId,
+      activeControls: {},
       updatedAt: Date.now(),
     });
+  }
+
+  // -----------------------------
+  // Controller: toggle en control (sätter eller tar bort)
+  // -----------------------------
+  async toggleControl(sessionId, controlId, currentValue) {
+    const controlRef = ref(this.db, `rooms/${sessionId}/activeControls/${controlId}`);
+    if (currentValue) {
+      await remove(controlRef);
+    } else {
+      await set(controlRef, true);
+    }
   }
 
   // -----------------------------

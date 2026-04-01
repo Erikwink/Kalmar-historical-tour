@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSettings } from '../context/SettingsContext'
+import TopAppBar from '../components/TopAppBar'
 
 const LANGUAGES = [
   { value: 'sv', label: 'Svenska' },
@@ -16,12 +17,7 @@ export default function SettingsPage({ onLogout }) {
 
   return (
     <div className="page">
-      <div className="top-app-bar">
-        <button className="icon-btn" onClick={() => navigate(-1)} aria-label={t('nav.back')}>
-          <span className="ms">arrow_back</span>
-        </button>
-        <span className="top-app-bar__title">{t('settingsPage.title')}</span>
-      </div>
+      <TopAppBar title={t('settingsPage.title')} onBack={() => navigate(-1)} showSettings={false} />
 
       <div className="page-content">
         <div className="section-header">

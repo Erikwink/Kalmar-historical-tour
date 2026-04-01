@@ -9,6 +9,6 @@ export const WAITING_CONTROLS = [
     id: "remove-headset",
     label: "Ta av headset",
     icon: "headset_off",
-    color: "#FFB4AB",
+    color: "#d53b2a",
   },
 ];

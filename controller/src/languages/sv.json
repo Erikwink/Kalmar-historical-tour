@@ -23,8 +23,9 @@
     "selectTour": "Välj tour"
   },
   "sessionPage": {
-    "fallbackTitle": "Touröversikt",
+    "fallbackTitle": "Översikt session",
     "fallbackDescription": "Upplev denna fantastiska tour",
+    "headsets": "Headsets",
     "sessionId": "Session-ID",
     "showQR": "Visa QR-kod",
     "cancel": "Avbryt",
@@ -111,6 +112,17 @@
       "title": "Kalmar Slott",
       "description": "Vandra genom det magnifika Kalmar slott och upplev dess rika historia"
     }
+  },
+  "detailPage": {
+    "views": "vyer",
+    "lastScene": "Sista scenen"
+  },
+  "controls": {
+    "castle-360": "Visa slottet",
+    "castle-amb": "Ambient ljud",
+    "castle-nar": "Berättarröst",
+    "church-360": "Visa kyrkan",
+    "church-org": "Orgelmusik"
   },
   "scenes": {
     "waiting": "Vänta på start",

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react"
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
-import { loginController, connect, onHeadsetsChange, publish, disconnect } from "../../saas-adapter/src/index"
+import { loginController, connect, onHeadsetsChange, publish, toggleControl, disconnect } from "../../saas-adapter/src/index"
 import { FIREBASE_STATUS } from "./utils/status_maps"
 import ToursPage from "./pages/Tourspage"
 import SessionPage from "./pages/SessionPage"
 import OverviewPage from "./pages/OverviewPage"
+import DetailPage from "./pages/DetailPage"
 import DetailPage from "./pages/DetailPage"
 import SettingsPage from "./pages/Settingspage"
 import LoginPage from "./pages/LoginPage"
@@ -15,6 +16,7 @@ import generateSessionId from "./utils/generateSessionId"
 function AppContent() {
   const navigate = useNavigate()
   const [activeScene, setActiveScene] = useState("waiting")
+  const [activeControls, setActiveControls] = useState({})
   const [saasStatus, setSaasStatus] = useState(null)
   const [headsets, setHeadsets] = useState([])
   const [sessionId, setSessionId] = useState(generateSessionId)
@@ -47,8 +49,24 @@ function AppContent() {
     try {
       await publish(sessionId, sceneId)
       setActiveScene(sceneId)
+      setActiveControls({})
     } catch (e) {
       console.error("failed to publish scene:", e)
+      setSaasStatus(FIREBASE_STATUS.ERROR)
+    }
+  }
+
+  async function handleControlToggle(controlId, currentValue) {
+    try {
+      await toggleControl(sessionId, controlId, currentValue)
+      setActiveControls((prev) => {
+        const next = { ...prev }
+        if (currentValue) delete next[controlId]
+        else next[controlId] = true
+        return next
+      })
+    } catch (e) {
+      console.error("failed to toggle control:", e)
       setSaasStatus(FIREBASE_STATUS.ERROR)
     }
   }
@@ -86,6 +104,7 @@ function AppContent() {
           path="/tour"
           element={
             <OverviewPage
+              sessionId={sessionId}
               activeScene={activeScene}
               onScenePress={handleScenePress}
               onEndSession={handleEndSession}
@@ -94,12 +113,13 @@ function AppContent() {
           }
         />
         <Route
-          path="/detail"
+          path="/tour/detail"
           element={
             <DetailPage
               activeScene={activeScene}
+              activeControls={activeControls}
               onScenePress={handleScenePress}
-              headsets={headsets}
+              onControlToggle={handleControlToggle}
             />
           }
         />
