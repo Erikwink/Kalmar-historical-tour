@@ -153,10 +153,6 @@ function App() {
       return;
     }
     try {
-      // Cancel the onDisconnect handler before leaving
-      if (disconnectCancelFn) {
-        disconnectCancelFn();
-      }
       await leave(activeSessionId, headsetId);
       setActiveSessionId("");
       setSessionId("");
