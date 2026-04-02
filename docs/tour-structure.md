@@ -26,9 +26,7 @@ Each tour has a list of **scenes**. Each scene has a list of **controls** — th
 // tours/index.js
 import kalmarMedeltiden from "./kalmar-medeltiden";
 
-export const tours = [
-  kalmarMedeltiden,
-];
+export const tours = [kalmarMedeltiden];
 
 export { WAITING_CONTROLS } from "./waiting-controls";
 ```
@@ -38,11 +36,13 @@ export { WAITING_CONTROLS } from "./waiting-controls";
 import image from "./img/kalmar-kyrka.png";
 
 export default {
-  id:    "kalmar-medeltid",   // unique ID, used in Firebase + routing
+  id: "kalmar-medeltid", // unique ID, used in Firebase + routing
   title: "Kalmar Medeltid",
-  image,                      // thumbnail for tour list
-  icon:  "castle",            // material symbol
-  scenes: [ /* Scene[] */ ],
+  image, // thumbnail for tour list
+  icon: "castle", // material symbol
+  scenes: [
+    /* Scene[] */
+  ],
 };
 ```
 
@@ -75,13 +75,13 @@ export default {
 
 ### Control types
 
-| type | Description | Required fields |
-|---|---|---|
-| `360-photo` | Equirectangular still image shown on headset | `src` |
-| `360-video` | Equirectangular video, loops or plays once | `src` |
-| `flat-video` | Video shown as a flat screen in 3D space | `src` |
-| `audio` | Background/ambient audio, loops during scene | `src` |
-| `narration` | Narration track — UI distinction from ambient, can duck background audio | `src` |
+| type         | Description                                                              | Required fields |
+| ------------ | ------------------------------------------------------------------------ | --------------- |
+| `360-photo`  | Equirectangular still image shown on headset                             | `src`           |
+| `360-video`  | Equirectangular video, loops or plays once                               | `src`           |
+| `flat-video` | Video shown as a flat screen in 3D space                                 | `src`           |
+| `audio`      | Background/ambient audio, loops during scene                             | `src`           |
+| `narration`  | Narration track — UI distinction from ambient, can duck background audio | `src`           |
 
 ---
 
@@ -91,8 +91,18 @@ Shared controls used in all tours. Clicking them sets `activeSceneId` directly �
 
 ```js
 export const WAITING_CONTROLS = [
-  { id: "waiting",        label: "Vänta på start", icon: "schedule",    color: "#FFB95A" },
-  { id: "remove-headset", label: "Ta av headset",  icon: "headset_off", color: "#FFB4AB" },
+  {
+    id: "waiting",
+    label: "Vänta på start",
+    icon: "schedule",
+    color: "#FFB95A",
+  },
+  {
+    id: "remove-headset",
+    label: "Ta av headset",
+    icon: "headset_off",
+    color: "#FFB4AB",
+  },
 ];
 ```
 
@@ -104,16 +114,16 @@ export const WAITING_CONTROLS = [
 {
   "rooms": {
     "<sessionId>": {
-      "tourId":        "kalmar-medeltid",
+      "tourId": "kalmar-medeltid",
       "activeSceneId": "castle",
       "activeControls": {
         "castle-360": true,
         "castle-amb": true
       },
       "controller": "<uid>",
-      "clients":    { },
-      "createdAt":  1774960749815,
-      "updatedAt":  1774963121964
+      "clients": {},
+      "createdAt": 1774960749815,
+      "updatedAt": 1774963121964
     }
   }
 }
@@ -129,40 +139,60 @@ export const WAITING_CONTROLS = [
 
 ## saas-adapter API (controller)
 
-| Function | Description |
-|---|---|
-| `setTourId(sessionId, tourId)` | Write tourId to Firebase — called once on OverviewPage mount |
-| `publish(sessionId, sceneId)` | Set activeSceneId + reset activeControls to `{}` |
-| `toggleControl(sessionId, controlId, currentValue)` | Set or remove a single control in activeControls |
+| Function                                            | Description                                                  |
+| --------------------------------------------------- | ------------------------------------------------------------ |
+| `setTourId(sessionId, tourId)`                      | Write tourId to Firebase — called once on OverviewPage mount |
+| `publish(sessionId, sceneId)`                       | Set activeSceneId + reset activeControls to `{}`             |
+| `toggleControl(sessionId, controlId, currentValue)` | Set or remove a single control in activeControls             |
 
 ---
 
-## scenes.json
+## Tour object (tours/)
 
-Produced by the Scene Editor, consumed by the client. Keyed by scene ID for O(1) lookup (`scenes[id]`).
+Tours are the single source of truth — used by both controller and client. Each tour is a JS file in `tours/` and exported via `tours/index.js`.
 
-`src` is always a top-level field. Volume, fadeIn etc. are separate optional fields.
+Each scene has a `controls` array. Each control has a unique `id`, a `type`, a `label`, and a `src` path.
 
-```json
+```js
+// tours/kalmar-medeltiden.js
 {
-  "version": "1",
-  "scenes": {
-    "castle": {
-      "type":      "360-photo",
-      "src":       "castle/image.jpg",
-      "ambientSrc": "castle/ambient.mp3",
-      "volume":    0.6,
-      "fadeIn":    1.5
-    },
-    "church": {
-      "type": "360-photo",
-      "src":  "church/image.jpg"
-    },
-    "waiting":        { "type": "waiting" },
-    "remove-headset": { "type": "message", "text": "Ta av dig headsetet" }
-  }
+  id: "kalmar-medeltid",
+  title: "Kalmar Medeltid",
+  icon: "castle",
+  image: import("./img/kalmar-kyrka.png"),
+  durationMinutes: 120,
+  scenes: [
+    {
+      id: "castle",
+      label: "Kalmar slott",
+      icon: "castle",
+      color: "#573c9b",
+      controls: [
+        { 
+          id: "castle-360", 
+          type: "360-photo",
+          label: "Visa slottet",
+          src: "castle/image.jpg" 
+        },
+        { 
+          id: "castle-amb",
+          type: "audio",
+          label: "Ambient ljud",
+          src: "castle/ambient.mp3" 
+        },
+        { 
+          id: "castle-nar",
+          type: "narration",
+          label: "Berättarröst",
+          src: "castle/narration.mp3" 
+        },
+      ]
+    }
+  ]
 }
 ```
+
+`WAITING_CONTROLS` (waiting, remove-headset) are exported separately from `tours/waiting-controls.js` and are shared across all tours.
 
 ---
 
@@ -187,30 +217,56 @@ ToursPage
 import image from "./img/kalmar-kyrka.png";
 
 export default {
-  id:    "kalmar-medeltid",
+  id: "kalmar-medeltid",
   title: "Kalmar Medeltid",
   image,
-  icon:  "castle",
+  icon: "castle",
+  durationMinutes: 120,
   scenes: [
     {
-      id:    "castle",
+      id: "castle",
       label: "Kalmar slott",
-      icon:  "castle",
+      icon: "castle",
       color: "#CFBCFF",
       controls: [
-        { id: "castle-360", type: "360-photo", label: "Visa slottet",  src: "castle/image.jpg" },
-        { id: "castle-amb", type: "audio",     label: "Ambient ljud",  src: "castle/ambient.mp3" },
-        { id: "castle-nar", type: "narration", label: "Berättarröst",  src: "castle/narration.mp3" },
+        {
+          id: "castle-360",
+          type: "360-photo",
+          label: "Visa slottet",
+          src: "castle/image.jpg",
+        },
+        {
+          id: "castle-amb",
+          type: "audio",
+          label: "Ambient ljud",
+          src: "castle/ambient.mp3",
+        },
+        {
+          id: "castle-nar",
+          type: "narration",
+          label: "Berättarröst",
+          src: "castle/narration.mp3",
+        },
       ],
     },
     {
-      id:    "church",
+      id: "church",
       label: "Kalmar domkyrka",
-      icon:  "church",
+      icon: "church",
       color: "#102a54",
       controls: [
-        { id: "church-360", type: "360-photo", label: "Visa kyrkan", src: "church/image.jpg" },
-        { id: "church-org", type: "audio",     label: "Orgelmusik",  src: "church/organ.mp3" },
+        {
+          id: "church-360",
+          type: "360-photo",
+          label: "Visa kyrkan",
+          src: "church/image.jpg",
+        },
+        {
+          id: "church-org",
+          type: "audio",
+          label: "Orgelmusik",
+          src: "church/organ.mp3",
+        },
       ],
     },
   ],

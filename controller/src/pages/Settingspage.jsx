@@ -10,6 +10,10 @@ const LANGUAGES = [
 
 const FONT_SIZE_VALUES = ['small', 'medium', 'large']
 
+/**
+ * App settings page — language, font size, theme, and account actions.
+ * @param {{ onLogout: Function }} props
+ */
 export default function SettingsPage({ onLogout }) {
   const navigate = useNavigate()
   const { t } = useTranslation()

@@ -27,12 +27,14 @@ export default function DetailPage({ activeScene, activeControls, onScenePress, 
   const tourId = searchParams.get("tourId");
   const sceneId = searchParams.get("sceneId");
 
-  const tour = tours.find((t) => t.id === tourId);
+  const tour = tours.find((tour) => tour.id === tourId);
   const scenes = tour?.scenes ?? [];
-  const sceneIndex = scenes.findIndex((s) => s.id === sceneId);
+  const sceneIndex = scenes.findIndex((scene) => scene.id === sceneId);
   const scene = scenes[sceneIndex];
+  // null on the last scene — used to disable the next button
   const nextScene = scenes[sceneIndex + 1] ?? null;
 
+  // Publish the scene to Firebase when navigating here directly (e.g. deep link or page refresh)
   useEffect(() => {
     if (sceneId && sceneId !== activeScene) {
       onScenePress(sceneId);

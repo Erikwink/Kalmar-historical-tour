@@ -23,21 +23,35 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
 
   const tourId = searchParams.get("tourId");
 
+  // Write tourId to Firebase once so the client knows which tour is running
   useEffect(() => {
     if (sessionId && tourId) {
       setTourId(sessionId, tourId);
     }
   }, [sessionId, tourId]);
 
-  const tour = tours.find((t) => t.id === tourId);
+  const tour = tours.find((tour) => tour.id === tourId);
   const scenes = tour?.scenes ?? [];
-  const active = [...scenes, ...WAITING_CONTROLS].find((s) => s.id === activeScene);
+  // Search both scenes and waiting controls to find the currently active one
+  const currentScene = [...scenes, ...WAITING_CONTROLS].find((scene) => scene.id === activeScene);
+
+  /** Formats the duration of the tour. 
+   *  
+   * @param {number} minutes 
+   * @returns {string} e.g. "90min", "2h", "2h 30min" 
+   */
+  function formatDuration(minutes) {
+    if (minutes < 60) return `${minutes}min`;
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return m ? `${h}h ${m}min` : `${h}h`;
+  }
 
   return (
     <>
       <div className="page">
         <TopAppBar
-          title={tour ? t(`tours.${tour.id}.title`) : "Tour"}
+          title={t(`tours.${tour.id}.title`)}
           onBack={() => navigate('/tours')}
         />
 
@@ -46,10 +60,7 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
             <div className="tour-summary__meta">
               <span>{scenes.length} {t("overviewPage.stops")}</span>
               {tour?.durationMinutes && (
-                <span> · {tour.durationMinutes >= 60
-                  ? `${Math.floor(tour.durationMinutes / 60)}h${tour.durationMinutes % 60 ? ` ${tour.durationMinutes % 60}min` : ""}`
-                  : `${tour.durationMinutes}min`}
-                </span>
+                <span> · {formatDuration(tour.durationMinutes)}</span>
               )}
             </div>
             <hr className="tour-summary__divider" />
@@ -58,9 +69,9 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
             </div>
           </div>
 
-          {active && (
+          {currentScene && (
             <Section title={t("overviewPage.activeScene")}>
-              <ActiveSceneChip scene={active} label={t(`scenes.${active.id}`, active.label)} />
+              <ActiveSceneChip scene={currentScene} label={t(`scenes.${currentScene.id}`, currentScene.label)} />
             </Section>
           )}
 

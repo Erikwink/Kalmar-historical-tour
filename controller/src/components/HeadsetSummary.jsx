@@ -9,6 +9,10 @@ const STATUS_CONFIG = [
   { status: HEADSET_STATUS.ERROR,      icon: "warning",   tKey: "overviewPage.headsetError",      className: "headset-info__item--error" },
 ];
 
+/**
+ * Renders a status summary row for each headset status that has at least one headset.
+ * @param {{ headsets: Array<{ status: string }> }} props
+ */
 export default function HeadsetSummary({ headsets = [] }) {
   const { t } = useTranslation();
 

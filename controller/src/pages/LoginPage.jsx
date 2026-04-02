@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
+/** Login page — email/password form. Auth is stubbed until saas-adapter signIn is wired up. */
 export default function LoginPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()

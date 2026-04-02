@@ -5,6 +5,7 @@ import TopAppBar from '../components/TopAppBar'
 import Section from '../components/Section'
 import { tours } from '../../../tours/index'
 
+/** Tour selection page — lists all available tours for the guide to choose from. */
 export default function ToursPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
