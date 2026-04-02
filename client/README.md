@@ -1,16 +1,29 @@
-# React + Vite
+# Kalmar WebXR Client
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React/Vite client for the headset flow and the isolated Babylon WebXR sandbox.
 
-Currently, two official plugins are available:
+## Commands
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```bash
+npm install
+npm run dev
+npm run lint
+npm run build
+```
 
-## React Compiler
+## WebXR Sandbox
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Open `webxr.html` through Vite and use `?session=123456` to auto-connect a scene stream.
 
-## Expanding the ESLint configuration
+The sandbox now includes a dedicated `locomotion-test` scene with:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- a large floor area for teleportation testing
+- elevated platforms that can act as additional teleport targets
+- Babylon teleportation wired to the right-hand VR controller
+- custom left-thumbstick locomotion wired on top of Babylon XR input
+- a local scene preview button that works even when the real scene stream is connected
+- desktop locomotion controls in simulation: `W/A/S/D` or arrow keys to move, mouse drag to look, and double-click to teleport on valid floor meshes
+
+## Current limitation
+
+Teleportation and thumbstick locomotion are implemented and scene-wired, but they still require a real immersive-vr headset session to fully verify controller behavior and comfort.

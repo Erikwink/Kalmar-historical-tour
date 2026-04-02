@@ -5,6 +5,7 @@ import {
   Engine,
   HemisphericLight,
   Scene,
+  UniversalCamera,
   Vector3,
   WebXRDefaultExperience,
   WebXRState,
@@ -25,6 +26,14 @@ const endButton = document.getElementById("end-xr");
 const canvas = document.getElementById("xr-canvas");
 const sceneDebugEl = document.getElementById("scene-debug");
 const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
+const LOCOMOTION_TEST_SCENE_ID = "locomotion-test";
+const LEFT_HANDEDNESS = "left";
+const RIGHT_HANDEDNESS = "right";
+const XR_MOVE_SPEED_METERS_PER_SECOND = 2.2;
+const XR_MOVE_DEADZONE = 0.18;
+const DESKTOP_EYE_HEIGHT_METERS = 1.7;
+const FORWARD_AXIS = new Vector3(0, 0, 1);
+const RIGHT_AXIS = new Vector3(1, 0, 0);
 
 function normalizeSessionId(rawSessionId) {
   return typeof rawSessionId === "string" ? rawSessionId.trim() : "";
@@ -44,16 +53,23 @@ let activeSceneId = DEFAULT_SCENE_ID;
 let sceneSource = "not-connected";
 let currentSessionId = "";
 let unsubscribeScene = null;
+let activeLocomotion = { enabled: false, floorMeshes: [] };
+let registeredTeleportFloorMeshes = [];
 
 let appMode = "idle";
 
 let engine = null;
 let scene = null;
-let camera = null;
+let orbitCamera = null;
+let desktopCamera = null;
 let xrExperience = null;
 let renderLoopActive = false;
 let resizeHandlerRegistered = false;
 let sceneManager = null;
+let desktopLocomotionWasActive = false;
+const tmpForward = new Vector3();
+const tmpRight = new Vector3();
+const tmpMovement = new Vector3();
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -96,17 +112,22 @@ function syncEngineSize() {
   engine.resize();
 }
 
+function detachPreviewCameraControls() {
+  orbitCamera?.detachControl();
+  desktopCamera?.detachControl();
+}
+
 function setCameraControlsEnabled(enabled) {
-  if (!camera) {
+  if (!orbitCamera || !desktopCamera) {
     return;
   }
 
-  if (enabled) {
-    camera.attachControl(canvas, true);
+  if (!enabled) {
+    detachPreviewCameraControls();
     return;
   }
 
-  camera.detachControl();
+  syncPreviewCamera();
 }
 
 function startRenderLoop() {
@@ -138,6 +159,190 @@ function getSceneManager() {
   return sceneManager;
 }
 
+/**
+ * Stores locomotion metadata for the active scene and syncs XR features when available.
+ */
+function applyLocomotionState(renderState) {
+  activeLocomotion = renderState?.locomotion || { enabled: false, floorMeshes: [] };
+  syncXRTeleportationState();
+}
+
+/**
+ * Returns true only when the dedicated locomotion scene is active in immersive VR.
+ */
+function isVRLocomotionActive() {
+  return appMode === "xr-vr" && activeSceneId === LOCOMOTION_TEST_SCENE_ID && activeLocomotion.enabled;
+}
+
+/**
+ * Returns true only when the locomotion test scene is active in desktop simulation mode.
+ */
+function isDesktopLocomotionActive() {
+  return appMode === "simulation" && activeSceneId === LOCOMOTION_TEST_SCENE_ID && activeLocomotion.enabled;
+}
+
+/**
+ * Enables or disables Babylon teleportation and keeps its floor meshes aligned with the active scene.
+ */
+function syncXRTeleportationState() {
+  if (!xrExperience?.teleportation) {
+    return;
+  }
+
+  registeredTeleportFloorMeshes.forEach((mesh) => {
+    if (!mesh.isDisposed()) {
+      xrExperience.teleportation.removeFloorMesh(mesh);
+    }
+  });
+  registeredTeleportFloorMeshes = [];
+
+  const shouldEnableTeleportation = isVRLocomotionActive();
+  xrExperience.teleportation.teleportationEnabled = shouldEnableTeleportation;
+
+  if (!shouldEnableTeleportation) {
+    if (activeSceneId === LOCOMOTION_TEST_SCENE_ID) {
+      setSceneDebug(
+        "Locomotion test scene is loaded. Teleportation and thumbstick movement will activate in immersive-vr; headset verification is still required.",
+      );
+    }
+    return;
+  }
+
+  activeLocomotion.floorMeshes.forEach((mesh) => {
+    if (!mesh || mesh.isDisposed()) {
+      return;
+    }
+
+    xrExperience.teleportation.addFloorMesh(mesh);
+    registeredTeleportFloorMeshes.push(mesh);
+  });
+
+  setSceneDebug(
+    "Locomotion test scene is active. Teleportation is wired to the right-hand controller; left thumbstick movement is enabled in VR.",
+    "success",
+  );
+}
+
+/**
+ * Reads the left controller thumbstick/touchpad and applies smooth locomotion to the XR camera.
+ */
+function updateXRThumbstickMovement(deltaSeconds) {
+  if (!isVRLocomotionActive() || !xrExperience?.input || !xrExperience?.baseExperience?.camera) {
+    return;
+  }
+
+  const leftController = xrExperience.input.controllers.find((controller) => {
+    return controller.inputSource.handedness === LEFT_HANDEDNESS && controller.motionController;
+  });
+  const movementComponent =
+    leftController?.motionController?.getComponentOfType("thumbstick") ||
+    leftController?.motionController?.getComponentOfType("touchpad");
+
+  if (!movementComponent) {
+    return;
+  }
+
+  const moveX = Math.abs(movementComponent.axes.x) > XR_MOVE_DEADZONE ? movementComponent.axes.x : 0;
+  const moveY = Math.abs(movementComponent.axes.y) > XR_MOVE_DEADZONE ? movementComponent.axes.y : 0;
+  if (!moveX && !moveY) {
+    return;
+  }
+
+  const xrCamera = xrExperience.baseExperience.camera;
+  xrCamera.getDirectionToRef(FORWARD_AXIS, tmpForward);
+  xrCamera.getDirectionToRef(RIGHT_AXIS, tmpRight);
+
+  tmpForward.y = 0;
+  tmpRight.y = 0;
+  if (tmpForward.lengthSquared() < 0.0001 || tmpRight.lengthSquared() < 0.0001) {
+    return;
+  }
+
+  tmpForward.normalize();
+  tmpRight.normalize();
+  tmpMovement.copyFrom(tmpRight).scaleInPlace(moveX);
+  tmpMovement.addInPlace(tmpForward.scale(-moveY));
+
+  if (tmpMovement.lengthSquared() < 0.0001) {
+    return;
+  }
+
+  tmpMovement.normalize().scaleInPlace(XR_MOVE_SPEED_METERS_PER_SECOND * deltaSeconds);
+  xrCamera.position.addInPlace(tmpMovement);
+}
+
+/**
+ * Resets the desktop locomotion preview camera to a predictable starting pose.
+ */
+function resetDesktopLocomotionCamera() {
+  if (!desktopCamera) {
+    return;
+  }
+
+  desktopCamera.position.set(0, DESKTOP_EYE_HEIGHT_METERS, 4.5);
+  desktopCamera.rotation.set(0, Math.PI, 0);
+}
+
+/**
+ * Switches between orbit preview and desktop locomotion preview based on mode and active scene.
+ */
+function syncPreviewCamera() {
+  if (!scene || !orbitCamera || !desktopCamera) {
+    return;
+  }
+
+  const shouldUseDesktopLocomotion = isDesktopLocomotionActive();
+  if (shouldUseDesktopLocomotion && !desktopLocomotionWasActive) {
+    resetDesktopLocomotionCamera();
+  }
+  desktopLocomotionWasActive = shouldUseDesktopLocomotion;
+
+  const nextCamera = shouldUseDesktopLocomotion ? desktopCamera : orbitCamera;
+  if (scene.activeCamera !== nextCamera) {
+    scene.activeCamera = nextCamera;
+  }
+
+  detachPreviewCameraControls();
+  if (appMode === "xr-vr" || appMode === "xr-ar") {
+    return;
+  }
+
+  nextCamera.attachControl(canvas, true);
+  if (shouldUseDesktopLocomotion) {
+    canvas.focus();
+    setSceneDebug(
+      "Desktop locomotion active. Use W/A/S/D or arrow keys to move, drag with the mouse to look around, and double-click a floor surface to teleport.",
+      "success",
+    );
+  }
+}
+
+/**
+ * Teleports the desktop preview camera to the clicked locomotion surface for local scene verification.
+ */
+function teleportDesktopPreviewToPointer() {
+  if (!isDesktopLocomotionActive() || !scene || !desktopCamera) {
+    return;
+  }
+
+  const pick = scene.pick(scene.pointerX, scene.pointerY, (mesh) => {
+    return activeLocomotion.floorMeshes.includes(mesh);
+  });
+  if (!pick?.hit || !pick.pickedPoint) {
+    return;
+  }
+
+  desktopCamera.position.set(
+    pick.pickedPoint.x,
+    pick.pickedPoint.y + DESKTOP_EYE_HEIGHT_METERS,
+    pick.pickedPoint.z,
+  );
+  setSceneDebug(
+    "Desktop teleport applied. Use W/A/S/D or arrow keys to continue moving around the locomotion test scene.",
+    "success",
+  );
+}
+
 function applySceneTheme() {
   if (!scene) {
     return;
@@ -150,6 +355,8 @@ function applySceneTheme() {
 
   const mode = appMode === "xr-ar" ? "xr-ar" : appMode === "xr-vr" ? "xr-vr" : "simulation";
   const renderState = manager.setScene(activeSceneId, mode);
+  applyLocomotionState(renderState);
+  syncPreviewCamera();
 
   if (renderState?.clearColor) {
     scene.clearColor = renderState.clearColor;
@@ -200,6 +407,8 @@ function onModeChanged(mode) {
   }
 
   const renderState = manager.setMode(mode);
+  applyLocomotionState(renderState);
+  syncPreviewCamera();
   if (!renderState?.clearColor) {
     return;
   }
@@ -233,12 +442,14 @@ function renderFrame() {
   }
 
   const t = performance.now() * 0.001;
+  const dt = engine?.getDeltaTime() ? engine.getDeltaTime() / 1000 : 0.016;
 
   const screen = scene.getMeshByName("screen-orb") || scene.getMeshByName("screen-pedestal") || null;
   if (screen) {
     screen.rotation.y = t * 0.2;
   }
 
+  updateXRThumbstickMovement(dt);
   scene.render();
 }
 
@@ -257,7 +468,7 @@ function ensureBabylonContext() {
   scene = new Scene(engine);
   scene.clearColor = new Color4(0, 0, 0, 1);
 
-  camera = new ArcRotateCamera(
+  orbitCamera = new ArcRotateCamera(
     "preview-camera",
     -Math.PI / 2,
     Math.PI / 2.35,
@@ -265,11 +476,26 @@ function ensureBabylonContext() {
     new Vector3(0, 1.45, -1.4),
     scene,
   );
-  camera.lowerRadiusLimit = 0.8;
-  camera.upperRadiusLimit = 6;
-  camera.wheelPrecision = 35;
-  camera.panningSensibility = 0;
-  camera.attachControl(canvas, true);
+  orbitCamera.lowerRadiusLimit = 0.8;
+  orbitCamera.upperRadiusLimit = 6;
+  orbitCamera.wheelPrecision = 35;
+  orbitCamera.panningSensibility = 0;
+
+  desktopCamera = new UniversalCamera(
+    "desktop-locomotion-camera",
+    new Vector3(0, DESKTOP_EYE_HEIGHT_METERS, 4.5),
+    scene,
+  );
+  desktopCamera.minZ = 0.05;
+  desktopCamera.speed = 0.18;
+  desktopCamera.angularSensibility = 3500;
+  desktopCamera.keysUp.push(87);
+  desktopCamera.keysLeft.push(65);
+  desktopCamera.keysDown.push(83);
+  desktopCamera.keysRight.push(68);
+  resetDesktopLocomotionCamera();
+  scene.activeCamera = orbitCamera;
+  orbitCamera.attachControl(canvas, true);
 
   const hemiLight = new HemisphericLight("hemi-light", new Vector3(0, 1, 0), scene);
   hemiLight.intensity = 1.05;
@@ -296,9 +522,16 @@ async function ensureXRExperience() {
   xrExperience = await WebXRDefaultExperience.CreateAsync(scene, {
     disableDefaultUI: true,
     disableNearInteraction: true,
-    disablePointerSelection: true,
-    disableTeleportation: true,
+    disablePointerSelection: false,
+    disableTeleportation: false,
+    floorMeshes: [],
+    teleportationOptions: {
+      forceHandedness: RIGHT_HANDEDNESS,
+      backwardsMovementEnabled: false,
+      timeToTeleportStart: 0,
+    },
   });
+  xrExperience.teleportation.teleportationEnabled = false;
   xrExperience.baseExperience.onStateChangedObservable.add((state) => {
     if (state === WebXRState.NOT_IN_XR && (appMode === "xr-vr" || appMode === "xr-ar")) {
       onSessionEnded();
@@ -324,7 +557,7 @@ function connectSceneStream() {
   currentSessionId = sessionId;
   sceneSource = subscription.source;
   unsubscribeScene = typeof subscription.unsubscribe === "function" ? subscription.unsubscribe : null;
-  sendMockSceneButton.disabled = sceneSource !== "mock-broadcast-channel";
+  sendMockSceneButton.disabled = false;
   connectSessionButton.textContent = "Reconnect Scene Stream";
   setStatus(`Connected to onSceneChange for session ${sessionId} (${sceneSource}).`);
 }
@@ -341,19 +574,17 @@ function bootstrapFromQuery() {
 }
 
 function sendMockScene() {
-  if (!currentSessionId) {
-    setStatus("Connect a session before sending a mock scene.");
-    return;
-  }
-
-  if (sceneSource !== "mock-broadcast-channel") {
-    setStatus("Mock scenes can only be sent when the mock BroadcastChannel is active.");
-    return;
-  }
-
   const sceneId = mockSceneSelect.value;
-  publishMockScene(currentSessionId, sceneId);
-  setStatus(`Mock scene sent: ${sceneId}`);
+  if (sceneSource === "mock-broadcast-channel" && currentSessionId) {
+    publishMockScene(currentSessionId, sceneId);
+    setStatus(`Mock scene sent: ${sceneId}`);
+    return;
+  }
+
+  applySceneChange(sceneId);
+  setStatus(
+    `Local scene preview applied: ${sceneId}. The connected scene stream (${sceneSource}) can still override this when it publishes a new scene.`,
+  );
 }
 
 function onSessionEnded() {
@@ -366,6 +597,7 @@ function onSessionEnded() {
   enableIdleButtons();
   onModeChanged("simulation");
   applySceneTheme();
+  syncXRTeleportationState();
   setStatus(`XR session ended. Latest scene: ${activeSceneId}`);
 }
 
@@ -400,6 +632,7 @@ async function startXR(mode) {
       xr.renderTarget,
       sessionInit,
     );
+    syncXRTeleportationState();
     setStatus(`${mode} active. Rendering Babylon.js scene '${activeSceneId}'.`);
   } catch (error) {
     appMode = "idle";
@@ -408,6 +641,7 @@ async function startXR(mode) {
     setCameraControlsEnabled(true);
     enableIdleButtons();
     applySceneTheme();
+    syncXRTeleportationState();
     setStatus(`Could not start ${mode}: ${error.message}`);
   }
 }
@@ -418,6 +652,7 @@ function startSimulation() {
     appMode = "simulation";
     setCameraControlsEnabled(true);
     onModeChanged(appMode);
+    syncXRTeleportationState();
     setButtons({
       canStartVr: false,
       canStartAr: false,
@@ -446,6 +681,7 @@ async function endCurrentSession() {
     setCameraControlsEnabled(true);
     enableIdleButtons();
     applySceneTheme();
+    syncXRTeleportationState();
     setStatus("Simulation ended.");
   }
 }
@@ -494,12 +730,15 @@ async function initSupport() {
 }
 
 populateMockSceneSelect();
+sendMockSceneButton.disabled = false;
 startVrButton.addEventListener("click", () => startXR("immersive-vr"));
 startArButton.addEventListener("click", () => startXR("immersive-ar"));
 startSimButton.addEventListener("click", startSimulation);
 endButton.addEventListener("click", endCurrentSession);
 connectSessionButton.addEventListener("click", connectSceneStream);
 sendMockSceneButton.addEventListener("click", sendMockScene);
+canvas.tabIndex = 0;
+canvas.addEventListener("dblclick", teleportDesktopPreviewToPointer);
 window.addEventListener("beforeunload", () => {
   if (typeof unsubscribeScene === "function") {
     unsubscribeScene();

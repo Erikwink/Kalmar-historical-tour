@@ -17,7 +17,7 @@ const CASTLE_MODEL_ROOT_URL = "/models/";
 const CASTLE_MODEL_FILE = "herstmonceux_castle.glb";
 const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
 
-export const SCENE_SEQUENCE = ["waiting", "castle", "church", "boats", "remove-headset"];
+export const SCENE_SEQUENCE = ["waiting", "castle", "church", "boats", "locomotion-test", "remove-headset"];
 
 const SCENE_LIBRARY = {
   waiting: {
@@ -40,6 +40,13 @@ const SCENE_LIBRARY = {
     ground: "#132b48",
     accent: "#9ad0ff",
     build: buildChurchScreen,
+  },
+  "locomotion-test": {
+    displayName: "Locomotion Test",
+    clearColor: "#10161f",
+    ground: "#1a2230",
+    accent: "#90f7c9",
+    build: buildLocomotionTestScreen,
   },
   boats: {
     displayName: "Boats",
@@ -146,6 +153,7 @@ function createScreenFoundation(scene, theme, root) {
       pedestalMat.specularColor = isAr ? makeColor("#ffffff") : makeColor(theme.accent);
       panelMat.emissiveColor = makeColor(theme.accent).scale(panelGlow);
     },
+    locomotion: null,
     dispose() {
       meshes.forEach((mesh) => mesh.dispose());
       materials.forEach((material) => material.dispose());
@@ -361,6 +369,82 @@ function addDefaultElements(scene, root, accentColor) {
   orb.parent = root;
 }
 
+function buildLocomotionTestScene(scene) {
+  const theme = SCENE_LIBRARY["locomotion-test"];
+  const root = new TransformNode("scene-locomotion-test-root", scene);
+  const meshes = [];
+  const materials = [];
+
+  const floorMat = createMaterial(scene, makeColor(theme.ground), makeColor(theme.ground).scale(0.08));
+  materials.push(floorMat);
+
+  const highlightMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent).scale(0.15), 0.92);
+  materials.push(highlightMat);
+
+  const markerMat = createMaterial(scene, Color3.White().scale(0.88), Color3.White().scale(0.02));
+  materials.push(markerMat);
+
+  const mainFloor = MeshBuilder.CreateGround("locomotion-floor-main", { width: 36, height: 36, subdivisions: 4 }, scene);
+  mainFloor.material = floorMat;
+  mainFloor.parent = root;
+  meshes.push(mainFloor);
+
+  const platformWest = MeshBuilder.CreateBox("locomotion-platform-west", { width: 6, depth: 6, height: 0.35 }, scene);
+  platformWest.position = new Vector3(-7, 0.175, -5);
+  platformWest.material = highlightMat;
+  platformWest.parent = root;
+  meshes.push(platformWest);
+
+  const platformEast = MeshBuilder.CreateBox("locomotion-platform-east", { width: 5, depth: 5, height: 0.55 }, scene);
+  platformEast.position = new Vector3(8, 0.275, 7);
+  platformEast.material = highlightMat;
+  platformEast.parent = root;
+  meshes.push(platformEast);
+
+  const startPad = MeshBuilder.CreateCylinder("locomotion-start-pad", { height: 0.08, diameter: 2.2 }, scene);
+  startPad.position = new Vector3(0, 0.04, 0);
+  startPad.material = highlightMat;
+  startPad.parent = root;
+  meshes.push(startPad);
+
+  [
+    new Vector3(-14, 0.45, -14),
+    new Vector3(14, 0.45, -14),
+    new Vector3(-14, 0.45, 14),
+    new Vector3(14, 0.45, 14),
+  ].forEach((position, index) => {
+    const marker = MeshBuilder.CreateCylinder(`locomotion-marker-${index}`, { height: 0.9, diameter: 0.25 }, scene);
+    marker.position = position;
+    marker.material = markerMat;
+    marker.parent = root;
+    meshes.push(marker);
+  });
+
+  emitSceneDebug({
+    sceneId: "locomotion-test",
+    status: "loaded",
+    message: "Locomotion test scene loaded with a large floor and elevated teleport targets. Teleportation and thumbstick movement are ready for immersive-vr verification.",
+  });
+
+  return {
+    clearColor: makeColor4(theme.clearColor),
+    locomotion: {
+      enabled: true,
+      floorMeshes: [mainFloor, platformWest, platformEast, startPad],
+    },
+    applyMode(nextMode) {
+      const isAr = nextMode === "xr-ar";
+      floorMat.alpha = isAr ? 0.28 : 1;
+      highlightMat.alpha = isAr ? 0.52 : 0.92;
+    },
+    dispose() {
+      meshes.forEach((mesh) => mesh.dispose());
+      materials.forEach((material) => material.dispose());
+      root.dispose();
+    },
+  };
+}
+
 function addRemoveHeadsetElements(scene, root, accentColor) {
   const ringMat = new StandardMaterial(`remove-ring-${Date.now()}`, scene);
   ringMat.diffuseColor = accentColor;
@@ -407,6 +491,7 @@ function composeScreen(scene, themeId, mode) {
   return {
     root,
     clearColor: makeColor4(theme.clearColor),
+    locomotion: sceneHandle?.locomotion || base.locomotion || null,
     applyMode(nextMode) {
       base.applyMode(nextMode);
       sceneHandle?.applyMode?.(nextMode);
@@ -428,6 +513,10 @@ function buildCastleScreen(scene, mode) {
 
 function buildChurchScreen(scene, mode) {
   return composeScreen(scene, "church", mode);
+}
+
+function buildLocomotionTestScreen(scene, mode) {
+  return buildLocomotionTestScene(scene, mode);
 }
 
 function buildBoatsScreen(scene, mode) {
@@ -458,7 +547,7 @@ export function createSceneManager(scene) {
 
     if (nextId === activeSceneId && handle && nextMode === activeMode) {
       handle.applyMode(nextMode);
-      return { sceneId: nextId, clearColor: handle.clearColor };
+      return { sceneId: nextId, clearColor: handle.clearColor, locomotion: handle.locomotion || null };
     }
 
     if (handle) {
@@ -472,7 +561,7 @@ export function createSceneManager(scene) {
     activeMode = nextMode;
     handle.applyMode(nextMode);
 
-    return { sceneId: nextId, clearColor: handle.clearColor };
+    return { sceneId: nextId, clearColor: handle.clearColor, locomotion: handle.locomotion || null };
   }
 
   function setMode(mode) {
@@ -480,7 +569,7 @@ export function createSceneManager(scene) {
     if (handle) {
       handle.applyMode(activeMode);
     }
-    return { sceneId: activeSceneId, clearColor: handle?.clearColor };
+    return { sceneId: activeSceneId, clearColor: handle?.clearColor, locomotion: handle?.locomotion || null };
   }
 
   return {
