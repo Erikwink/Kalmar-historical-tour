@@ -1,8 +1,8 @@
-import image from "./img/kalmar-kyrka.png";
+import image from "./img/kalmar-sund.png"
 
 export default {
-  id:    "kalmar-medeltid",
-  title: "Kalmar Medeltid",
+  id:    "kalmar",
+  title: "Kalmar",
   image,
   icon:            "castle",
   durationMinutes: 120,
@@ -29,7 +29,7 @@ export default {
          id: "castle-nar",
          type: "narration",
          label: "Berättarröst",
-         src: "client/assets/kalmar/castle/narration.mp3" 
+         src: "castle/narration.mp3" 
         },
       ],
     },
