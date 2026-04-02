@@ -78,6 +78,12 @@
     "medium": "Medium",
     "large": "Large"
   },
+  "manageHeadsetsModal": {
+    "title": "Manage headsets",
+    "empty": "No headsets connected.",
+    "remove": "Remove headset",
+    "close": "Close"
+  },
   "endSessionModal": {
     "title": "End session?",
     "message": "All headsets will lose their connection.",

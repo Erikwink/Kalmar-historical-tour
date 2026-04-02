@@ -191,6 +191,14 @@ export class Firebase {
   }
 
   // -----------------------------
+  // Controller: ta bort ett headset från sessionen
+  // -----------------------------
+  async removeHeadset(sessionId, headsetId) {
+    const clientRef = ref(this.db, `rooms/${sessionId}/clients/${headsetId}`);
+    await remove(clientRef);
+  }
+
+  // -----------------------------
   // Client: lämna session
   // -----------------------------
   async leave(sessionId, clientId) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
-import { loginController, connect, onHeadsetsChange, publish, toggleControl, disconnect } from "../../saas-adapter/src/index"
+import { loginController, connect, onHeadsetsChange, publish, toggleControl, disconnect, removeHeadset } from "../../saas-adapter/src/index"
 import { FIREBASE_STATUS } from "./utils/status_maps"
 import ToursPage from "./pages/Tourspage"
 import SessionPage from "./pages/SessionPage"
@@ -70,6 +70,14 @@ function AppContent() {
     }
   }
 
+  async function handleRemoveHeadset(headsetId) {
+    try {
+      await removeHeadset(sessionId, headsetId)
+    } catch (e) {
+      console.error("failed to remove headset:", e)
+    }
+  }
+
   async function handleEndSession() {
     try {
       await disconnect(sessionId)
@@ -124,7 +132,13 @@ function AppContent() {
         />
         <Route
           path="/settings"
-          element={<SettingsPage onLogout={() => navigate('/login')} />}
+          element={
+            <SettingsPage
+              onLogout={() => navigate('/login')}
+              headsets={headsets}
+              onRemoveHeadset={handleRemoveHeadset}
+            />
+          }
         />
       </Routes>
 

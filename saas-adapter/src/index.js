@@ -13,6 +13,7 @@ export const publish = adapter.publish.bind(adapter)       // skicka scen till a
 export const toggleControl = adapter.toggleControl.bind(adapter) // toggle en control i activeControls
 export const onHeadsetsChange = adapter.onHeadsetsChange.bind(adapter) // lyssna på presence
 export const disconnect = adapter.disconnect.bind(adapter)      // städa upp vid stängning. Removes all data for session
+export const removeHeadset = adapter.removeHeadset.bind(adapter) // ta bort ett headset ur sessionen
 export const removeAllRooms = adapter.removeAllRooms.bind(adapter) // dev only
 
 // -----------------------------

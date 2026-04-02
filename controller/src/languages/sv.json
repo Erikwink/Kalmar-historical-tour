@@ -78,6 +78,12 @@
     "medium": "Medel",
     "large": "Stor"
   },
+  "manageHeadsetsModal": {
+    "title": "Hantera headsets",
+    "empty": "Inga headsets anslutna.",
+    "remove": "Ta bort headset",
+    "close": "Stäng"
+  },
   "endSessionModal": {
     "title": "Avsluta session?",
     "message": " Alla headset kommer att tappa anslutningen.",
