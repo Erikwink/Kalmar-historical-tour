@@ -14,6 +14,7 @@ npm run build
 ## WebXR Sandbox
 
 Open `webxr.html` through Vite and use `?session=123456` to auto-connect a scene stream.
+The client now also reads `tourId` from the Firebase session and falls back to `kalmar-medeltid` during development until the controller has written the field.
 
 The sandbox now includes a dedicated `locomotion-test` scene with:
 

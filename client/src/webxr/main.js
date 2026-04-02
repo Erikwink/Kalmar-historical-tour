@@ -10,10 +10,12 @@ import {
   WebXRDefaultExperience,
   WebXRState,
 } from "@babylonjs/core";
-import { publishMockScene, subscribeToSceneChanges } from "./backendClient.js";
+import { publishMockScene, subscribeToSceneChanges, subscribeToTourIdChanges } from "./backendClient.js";
 import { createSceneManager, DEFAULT_SCENE_ID, SCENE_SEQUENCE } from "./scenes/sceneCatalog.js";
+import { resolveTour } from "../toursClient.js";
 
 const statusEl = document.getElementById("status");
+const tourIndicatorEl = document.getElementById("tour-indicator");
 const sceneIndicatorEl = document.getElementById("scene-indicator");
 const sessionInput = document.getElementById("session-id");
 const connectSessionButton = document.getElementById("connect-session");
@@ -44,15 +46,23 @@ function getSessionFromUrl() {
   return normalizeSessionId(params.get("session"));
 }
 
+function getTourIdFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const rawTourId = params.get("tourId");
+  return typeof rawTourId === "string" ? rawTourId.trim() : "";
+}
+
 const support = {
   vr: false,
   ar: false,
 };
 
+let activeTourState = resolveTour(getTourIdFromUrl());
 let activeSceneId = DEFAULT_SCENE_ID;
 let sceneSource = "not-connected";
 let currentSessionId = "";
 let unsubscribeScene = null;
+let unsubscribeTour = null;
 let activeLocomotion = { enabled: false, floorMeshes: [] };
 let registeredTeleportFloorMeshes = [];
 
@@ -75,6 +85,16 @@ function setStatus(message) {
   statusEl.textContent = message;
 }
 
+function setTourIndicator(tourState) {
+  if (!tourIndicatorEl) {
+    return;
+  }
+
+  const title = tourState.tour?.title ?? tourState.resolvedTourId;
+  const suffix = tourState.usedFallback ? " (fallback)" : "";
+  tourIndicatorEl.textContent = `Active tour: ${title} [${tourState.resolvedTourId}]${suffix}`;
+}
+
 function setSceneIndicator(sceneId) {
   sceneIndicatorEl.textContent = `Active scene: ${sceneId}`;
 }
@@ -86,6 +106,15 @@ function setSceneDebug(message, tone = "info") {
 
   sceneDebugEl.textContent = message;
   sceneDebugEl.dataset.tone = tone;
+}
+
+/**
+ * Resolves the active tour from session or URL state and keeps the UI indicator in sync.
+ */
+function applyTourId(rawTourId) {
+  const nextRawTourId = typeof rawTourId === "string" && rawTourId.trim() ? rawTourId.trim() : getTourIdFromUrl();
+  activeTourState = resolveTour(nextRawTourId);
+  setTourIndicator(activeTourState);
 }
 
 function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {
@@ -552,11 +581,17 @@ function connectSceneStream() {
     unsubscribeScene();
     unsubscribeScene = null;
   }
+  if (typeof unsubscribeTour === "function") {
+    unsubscribeTour();
+    unsubscribeTour = null;
+  }
 
   const subscription = subscribeToSceneChanges(sessionId, applySceneChange);
+  const tourSubscription = subscribeToTourIdChanges(sessionId, applyTourId);
   currentSessionId = sessionId;
   sceneSource = subscription.source;
   unsubscribeScene = typeof subscription.unsubscribe === "function" ? subscription.unsubscribe : null;
+  unsubscribeTour = typeof tourSubscription.unsubscribe === "function" ? tourSubscription.unsubscribe : null;
   sendMockSceneButton.disabled = false;
   connectSessionButton.textContent = "Reconnect Scene Stream";
   setStatus(`Connected to onSceneChange for session ${sessionId} (${sceneSource}).`);
@@ -564,6 +599,7 @@ function connectSceneStream() {
 
 function bootstrapFromQuery() {
   const sessionFromUrl = getSessionFromUrl();
+  applyTourId(getTourIdFromUrl());
   if (!sessionFromUrl) {
     return;
   }
@@ -743,9 +779,13 @@ window.addEventListener("beforeunload", () => {
   if (typeof unsubscribeScene === "function") {
     unsubscribeScene();
   }
+  if (typeof unsubscribeTour === "function") {
+    unsubscribeTour();
+  }
 });
 window.addEventListener(SCENE_DEBUG_EVENT, handleSceneDebug);
 
+setTourIndicator(activeTourState);
 setSceneIndicator(activeSceneId);
 setSceneDebug("No scene diagnostics yet.");
 enableIdleButtons();

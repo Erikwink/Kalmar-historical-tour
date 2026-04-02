@@ -113,6 +113,18 @@ export class Firebase {
   }
 
   // -----------------------------
+  // Client: lyssna på tourId
+  // -----------------------------
+  onTourIdChange(sessionId, callback) {
+    const tourRef = ref(this.db, `rooms/${sessionId}/tourId`);
+
+    return onValue(tourRef, (snapshot) => {
+      const value = snapshot.val();
+      callback(typeof value === "string" && value.trim() ? value.trim() : null);
+    });
+  }
+
+  // -----------------------------
   // Dev: ta bort alla rum utom 123456
   // -----------------------------
   async removeAllRooms() {

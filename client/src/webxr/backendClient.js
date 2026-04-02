@@ -1,4 +1,4 @@
-import { onSceneChange } from "../../../saas-adapter/src/index.js"
+import { onSceneChange, onTourIdChange } from "../../../saas-adapter/src/index.js"
 
 const MOCK_PREFIX = "kalmar-scene"
 
@@ -81,6 +81,41 @@ export function subscribeToSceneChanges(sessionId, callback) {
       callback(sceneId)
     }),
   }
+}
+
+/**
+ * Returns a tourId subscription for a session ID.
+ * Uses shared saas-adapter (Firebase) when available and falls back
+ * to a no-op development subscription when the runtime adapter is unavailable.
+ */
+export function subscribeToTourIdChanges(sessionId, callback) {
+  const normalizedSessionId = normalizeSessionId(sessionId);
+  if (!normalizedSessionId) {
+    callback(null);
+    return {
+      source: "invalid-session",
+      unsubscribe() {},
+    };
+  }
+
+  if (typeof onTourIdChange === "function") {
+    try {
+      return {
+        source: "firebase-adapter",
+        unsubscribe: onTourIdChange(normalizedSessionId, (tourId) => {
+          callback(typeof tourId === "string" && tourId.trim() ? tourId.trim() : null);
+        }),
+      };
+    } catch (error) {
+      console.error("[backendClient] Failed to subscribe to tourId via Firebase adapter:", error);
+    }
+  }
+
+  callback(null);
+  return {
+    source: "dev-fallback",
+    unsubscribe() {},
+  };
 }
 
 /**

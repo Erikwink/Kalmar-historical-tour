@@ -1,6 +1,7 @@
 // client/src/App.jsx
-import { useState, useEffect } from "react";
-import { loginClient, join, leave, onSceneChange, ready } from "../../saas-adapter/src/index"
+import { useCallback, useEffect, useState } from "react";
+import { join, leave, loginClient, onSceneChange, onTourIdChange, ready } from "../../saas-adapter/src/index";
+import { resolveTour } from "./toursClient.js";
 /**
  * Root application component for the VR headset client.
  * Handles joining/leaving sessions and subscribing to scene changes.
@@ -40,9 +41,14 @@ function App() {
   const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
+  const [tourState, setTourState] = useState(() => resolveTour(""));
 
-
-  const xrSceneUrl = activeSessionId ? `${window.location.origin}/webxr.html?session=${activeSessionId}` : "";
+  const activeTour = tourState.tour;
+  const activeTourId = tourState.resolvedTourId;
+  const activeTourTitle = activeTour?.title ?? activeTourId;
+  const xrSceneUrl = activeSessionId
+    ? `${window.location.origin}/webxr.html?session=${activeSessionId}&tourId=${encodeURIComponent(activeTourId)}`
+    : "";
 
   // Stable client ID — generated once and persisted in sessionStorage.
   const [headsetId] = useState(() => getOrCreateHeadsetId());
@@ -56,13 +62,15 @@ function App() {
    * Appends a message to the activity log.
    * @param {string} msg - The message to append.
    */
-  const appendLog = (msg) => setLog((l) => [...l, msg]);
+  const appendLog = useCallback((msg) => {
+    setLog((l) => [...l, msg]);
+  }, []);
 
   useEffect(() => {
     loginClient()
       .then(() => appendLog("Inloggad i Firebase (anonymous)"))
       .catch((e) => appendLog("Login fel: " + e.message));
-  }, []);
+  }, [appendLog]);
   
   // Re-join automatically on reload if we were already in a session.
   useEffect(() => {
@@ -104,7 +112,28 @@ function App() {
       appendLog(`Scen ändrad: ${effectiveSceneId}`);
     });
     return unsubscribe;
-  }, [activeSessionId, disconnectCancelFn]);
+  }, [activeSessionId, appendLog, disconnectCancelFn]);
+
+  useEffect(() => {
+    if (!activeSessionId) {
+      setTourState(resolveTour(""));
+      return;
+    }
+
+    const unsubscribe = onTourIdChange(activeSessionId, (tourId) => {
+      const resolved = resolveTour(tourId);
+      setTourState(resolved);
+
+      if (resolved.usedFallback) {
+        appendLog(`tourId missing or invalid for session. Falling back to ${resolved.resolvedTourId}.`);
+        return;
+      }
+
+      appendLog(`Tour updated: ${resolved.resolvedTourId}`);
+    });
+
+    return unsubscribe;
+  }, [activeSessionId, appendLog]);
 
   /**
    * Joins the session using the stable headset ID and the user-provided label.
@@ -192,6 +221,14 @@ function App() {
               <input
                 type="text"
                 value={activeSceneId}
+                readOnly
+              />
+            </div>
+            <div className="form-group">
+              <label>Aktiv tour</label>
+              <input
+                type="text"
+                value={activeTourTitle}
                 readOnly
               />
             </div>
