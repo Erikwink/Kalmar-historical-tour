@@ -1,0 +1,141 @@
+{
+  "loginPage": {
+    "title": "Sign in",
+    "guidesIn": "WR Tour",
+    "email": "Email",
+    "city": "Kalmar",
+    "emailPlaceholder": "name@mail.com",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Sign in",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up"
+  },
+  "nav": {
+    "back": "Back",
+    "settings": "Settings"
+  },
+  "toursPage": {
+    "guidesIn": "Guides in",
+    "city": "Kalmar",
+    "selectTour": "Select tour"
+  },
+  "sessionPage": {
+    "fallbackTitle": "Session overview",
+    "fallbackDescription": "Experience this immersive tour",
+    "sessionId": "Session ID",
+    "headsets": "Headsets",
+    "showQR": "Show QR code",
+    "cancel": "Cancel",
+    "startTour": "Start tour"
+  },
+  "overviewPage": {
+    "activeScene": "Active scene",
+    "scenes": "Scenes",
+    "stops": "stops",
+    "headsetInfo": "Headset info",
+    "headsetOnline": "online",
+    "headsetConnecting": "connecting",
+    "headsetNotReady": "not ready",
+    "headsetOffline": "offline",
+    "headsetError": "error",
+    "noHeadsets": "No headsets connected",
+    "waitingControls": "Waiting controls",
+    "pleaseWaitForStart": "Please wait for start",
+    "pleaseRemoveHeadset": "Please remove headset",
+    "endTour": "End tour"
+  },
+  "detailPage": {
+    "title": "Detailed view",
+    "activeView": "Active view",
+    "views": "Views",
+    "sound": "Sound",
+    "picture": "Picture",
+    "nextStop": "Next stop",
+    "tourComplete": "Tour complete",
+    "backToOverview": "Back to overview",
+    "lastScene": "Last scene"
+  },
+  "settingsPage": {
+    "title": "Settings",
+    "tourSection": "Tour",
+    "editTour": "Edit tour",
+    "manageDevices": "Manage devices",
+    "generalSection": "General",
+    "language": "Language",
+    "fontSize": "Font size",
+    "appearance": "Appearance",
+    "toggleDarkMode": "Toggle dark mode",
+    "dark": "Dark",
+    "light": "Light",
+    "accountSection": "Account",
+    "logout": "Log out"
+  },
+  "fontSizes": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "manageHeadsetsModal": {
+    "title": "Manage headsets",
+    "empty": "No headsets connected.",
+    "remove": "Remove headset",
+    "close": "Close"
+  },
+  "endSessionModal": {
+    "title": "End session?",
+    "message": "All headsets will lose their connection.",
+    "cancel": "Cancel",
+    "confirm": "End session"
+  },
+  "qrModal": {
+    "title": "QR code",
+    "close": "Close",
+    "hint": "Scan to join session"
+  },
+  "headsetList": {
+    "title": "Headsets"
+  },
+  "sessionCard": {
+    "label": "Session",
+    "tagline": "Scan to join the tour"
+  },
+  "tours": {
+    "kalmar-medeltid": { 
+      "title": "Medieval Kalmar",
+      "description": "Explore Kalmar during the Middle Ages, from the ancient castle to the cathedral"
+    },
+    "kalmarsund": { 
+      "title": "Kalmarsund",
+      "description": "Discover the historical maritime heritage and the famous Kalmarsund strait"
+    },
+    "kalmar-union": { 
+      "title": "The Kalmar Union",
+      "description": "Learn about the historic union between Sweden, Norway, and Denmark"
+    },
+    "kalmar-slott": { 
+      "title": "Kalmar Castle",
+      "description": "Tour the magnificent Kalmar Castle and experience its rich history"
+    }
+  },
+  "controls": {
+    "castle-360": "Show the castle",
+    "castle-amb": "Ambient sound",
+    "castle-nar": "Narration",
+    "church-360": "Show the church",
+    "church-org": "Organ music"
+  },
+  "scenes": {
+    "waiting": "Waiting to start",
+    "remove-headset": "Remove headset",
+    "castle": "Kalmar Castle",
+    "church": "Kalmar Cathedral",
+    "audio": "Priest speaking",
+    "harbor": "The Harbor",
+    "boats": "The Warship",
+    "throne-room": "The Throne Room",
+    "city-center": "City Center"
+  }
+}

@@ -1,92 +1,157 @@
-import { useEffect, useState } from "react";
-import { loginController, connect, onHeadsetsChange, publish } from "../../saas-adapter/src/index"
-import SessionPage from "./pages/SessionPage";
-import MainPage from "./pages/MainPage";
-import { FIREBASE_STATUS } from "./utils/status_maps";
-import JoinMock from "./JoinMock"; // DEV: remove when real client exists
+import { useEffect, useState } from "react"
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom"
+import { loginController, connect, onHeadsetsChange, publish, toggleControl, disconnect, removeHeadset } from "../../saas-adapter/src/index"
+import { FIREBASE_STATUS } from "./utils/status_maps"
+import ToursPage from "./pages/Tourspage"
+import SessionPage from "./pages/SessionPage"
+import OverviewPage from "./pages/OverviewPage"
+import DetailPage from "./pages/DetailPage"
+import SettingsPage from "./pages/Settingspage"
+import LoginPage from "./pages/LoginPage"
+import JoinMock from "./JoinMock" // DEV: remove when real client exists
+import generateSessionId from "./utils/generateSessionId"
 
 
-
-/** Generate session id.
- * 
- * @returns 6-digit number
- */
-function generateSessionId() {
-  //return Math.floor(100000 + Math.random() * 900000).toString();
-  const num = 123456
-  return num.toString()
-}
-
-function App() {
-  const [page, setPage] = useState("session");
-  const [activeScene, setActiveScene] = useState("waiting");
-  const [SaasStatus, setSaasStatus] = useState(null);
-  const [headsets, setHeadsets] = useState([]);
-  const [sessionId] = useState(generateSessionId);
+function AppContent() {
+  const navigate = useNavigate()
+  const [activeScene, setActiveScene] = useState("waiting")
+  const [activeControls, setActiveControls] = useState({})
+  const [saasStatus, setSaasStatus] = useState(null)
+  const [headsets, setHeadsets] = useState([])
+  const [sessionId, setSessionId] = useState(generateSessionId)
 
   useEffect(() => {
-    // subscribe to headsets
-    const unsubscribe = onHeadsetsChange(sessionId, setHeadsets);
+    let unsubscribe = () => {}
 
-    /** Connect to Firebase/backend
-     *
-     */
     async function init() {
       try {
-        setSaasStatus(FIREBASE_STATUS.CONNECTING);
+        setSaasStatus(FIREBASE_STATUS.CONNECTING)
         await loginController(
           import.meta.env.VITE_FIREBASE_EMAIL,
-          import.meta.env.VITE_FIREBASE_PASSWORD);
-        await connect(sessionId);
-        setSaasStatus(FIREBASE_STATUS.CONNECTED);
+          import.meta.env.VITE_FIREBASE_PASSWORD)
+        await connect(sessionId)
+        await publish(sessionId, "waiting")
+        // listen to headsets after connection to firebase
+        unsubscribe = onHeadsetsChange(sessionId, setHeadsets)
+        setSaasStatus(FIREBASE_STATUS.CONNECTED)
       } catch (e) {
-        console.error("failed to connect to adapter:", e);
-        setSaasStatus(FIREBASE_STATUS.ERROR);
+        console.error("Failed to connect:", e)
+        setSaasStatus(FIREBASE_STATUS.ERROR)
       }
     }
-    init();
+    init()
 
-    return unsubscribe;
-  }, [sessionId]);
+    return () => unsubscribe()
+  }, [sessionId])
 
-   /** Send scene to backend and set active scene.
-   * 
-   * @param {String} sceneId - Value beeing sent to Saas
-   */
   async function handleScenePress(sceneId) {
     try {
-      await publish(sessionId, sceneId);
-      setActiveScene(sceneId);
+      await publish(sessionId, sceneId)
+      setActiveScene(sceneId)
+      setActiveControls({})
     } catch (e) {
-      console.error("failed to publish scene:", e);
-      setSaasStatus(FIREBASE_STATUS.ERROR);
+      console.error("failed to publish scene:", e)
+      setSaasStatus(FIREBASE_STATUS.ERROR)
     }
   }
 
-  if (page === "session") {
-    return (
-      <>
-        <SessionPage
-          sessionId={sessionId}
-          headsets={headsets}
-          adapterStatus={SaasStatus}
-          onStart={() => setPage("main")}
-        />
-        {/* REMOVE MOCK ONCE CLIENT IS IMPLEMENTED */}
-        <JoinMock sessionId={sessionId} headsets={headsets} />
-      </>
-    );
+  async function handleControlToggle(controlId, currentValue) {
+    try {
+      await toggleControl(sessionId, controlId, currentValue)
+      setActiveControls((prev) => {
+        const next = { ...prev }
+        if (currentValue) delete next[controlId]
+        else next[controlId] = true
+        return next
+      })
+    } catch (e) {
+      console.error("failed to toggle control:", e)
+      setSaasStatus(FIREBASE_STATUS.ERROR)
+    }
+  }
+
+  async function handleRemoveHeadset(headsetId) {
+    try {
+      await removeHeadset(sessionId, headsetId)
+    } catch (e) {
+      console.error("failed to remove headset:", e)
+    }
+  }
+
+  async function handleEndSession() {
+    try {
+      await disconnect(sessionId)
+      localStorage.removeItem('sessionId')
+      setActiveScene("waiting")
+      setSessionId(generateSessionId())
+      setSaasStatus(null)
+      navigate('/')
+    } catch (e) {
+      console.error("failed to disconnect from adapter:", e)
+      setSaasStatus(FIREBASE_STATUS.ERROR)
+    }
   }
 
   return (
-    <MainPage
-      headsets={headsets}
-      adapterStatus={SaasStatus}
-      activeScene={activeScene}
-      onScenePress={handleScenePress}
-      onBack={() => setPage("session")}
-    />
-  );
+    <>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <SessionPage
+              sessionId={sessionId}
+              headsets={headsets}
+              adapterStatus={saasStatus}
+            />
+          }
+        />
+        <Route path="/tours" element={<ToursPage />} />
+        <Route
+          path="/tour"
+          element={
+            <OverviewPage
+              sessionId={sessionId}
+              activeScene={activeScene}
+              onScenePress={handleScenePress}
+              onEndSession={handleEndSession}
+              headsets={headsets}
+            />
+          }
+        />
+        <Route
+          path="/tour/detail"
+          element={
+            <DetailPage
+              activeScene={activeScene}
+              activeControls={activeControls}
+              onScenePress={handleScenePress}
+              onControlToggle={handleControlToggle}
+            />
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <SettingsPage
+              onLogout={() => navigate('/login')}
+              headsets={headsets}
+              onRemoveHeadset={handleRemoveHeadset}
+            />
+          }
+        />
+      </Routes>
+
+      {/* REMOVE MOCK ONCE CLIENT IS IMPLEMENTED */}
+      <JoinMock sessionId={sessionId} headsets={headsets} />
+    </>
+  )
 }
 
-export default App;
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  )
+}

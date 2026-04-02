@@ -13,7 +13,7 @@ classDiagram
             +sessionId: string
             +headsets: Headset[]
         }
-        class MainPage {
+        class OverviewPage {
             +headsets: Headset[]
             +activeScene: string
         }
@@ -72,11 +72,11 @@ classDiagram
 
     %% Controller
     Controller --> SessionPage : renders
-    Controller --> MainPage : renders
+    Controller --> OverviewPage : renders
     Controller --> Firebase : via saas-adapter
     SessionPage --> Headset : visar lista
-    MainPage --> Scene : visar knappar
-    MainPage --> Headset : visar lista
+    OverviewPage --> Scene : visar knappar
+    OverviewPage --> Headset : visar lista
 
     %% Client
     ClientApp --> JoinPage : renders

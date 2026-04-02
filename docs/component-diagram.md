@@ -7,7 +7,7 @@ graph LR
             App["App"]
             subgraph ControllerUI["Pages & Components"]
                 SP["SessionPage"]
-                MP["MainPage"]
+                OP["OverviewPage"]
             end
             ControllerAdapter["saas-adapter"]
         end
