@@ -40,8 +40,7 @@ function App() {
   const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
-  const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
-  const [sessionEnded, setSessionEnded] = useState(false);
+
 
   const xrSceneUrl = activeSessionId ? `${window.location.origin}/webxr.html?session=${activeSessionId}` : "";
 
@@ -59,11 +58,11 @@ function App() {
    */
   const appendLog = (msg) => setLog((l) => [...l, msg]);
 
-  // useEffect(() => {
-  //   loginClient()
-  //     .then(() => appendLog("Inloggad i Firebase (anonymous)"))
-  //     .catch((e) => appendLog("Login fel: " + e.message));
-  // }, []);
+  useEffect(() => {
+    loginClient()
+      .then(() => appendLog("Inloggad i Firebase (anonymous)"))
+      .catch((e) => appendLog("Login fel: " + e.message));
+  }, []);
   
   // Re-join automatically on reload if we were already in a session.
   useEffect(() => {
