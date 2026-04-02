@@ -1,35 +1,43 @@
-import SessionCard from '../components/sessionCard'
+import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import HeadsetList from '../components/headsetList'
-import { HEADSET_STATUS } from "../utils/status_maps"
+import TopAppBar from '../components/TopAppBar'
+import Fab from '../components/Fab'
+import { HEADSET_STATUS } from '../utils/status_maps'
 
-export default function SessionPage({ sessionId, headsets, adapterStatus, onStart }) {
+/**
+ * Session overview page — shows the session ID and headset list.
+ * The guide starts the tour from here once at least one headset is connected.
+ * @param {{ sessionId: string, headsets: Array, adapterStatus: string|null }} props
+ */
+export default function SessionPage({ sessionId, headsets, adapterStatus }) {
+  const navigate = useNavigate()
+  const { t } = useTranslation()
 
-  // track number of headsets connected
-  // cant start session with 0 headsets
-  const connectedCount = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length
+  const headsetsConnected = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length
 
   return (
     <div className="page">
-      <div className="top-app-bar top-app-bar--medium">
-        <h1 className="top-app-bar__title">Kalmar Historical Tour</h1>
-        <span className="top-app-bar__sub">Guide Controller</span>
-      </div>
+      <TopAppBar title={t('sessionPage.fallbackTitle')} />
 
       <div className="page-content">
-        <SessionCard sessionId={sessionId} />
-        <HeadsetList headsets={headsets} adapterStatus={adapterStatus} />
+        <div className="session-info-card card">
+          <div className="session-info-card__code-row">
+            <div>
+              <div className="session-card__label">{t('sessionPage.sessionId')}</div>
+              <div className="session-card__code">{sessionId}</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="headset-section">
+          <HeadsetList headsets={headsets} adapterStatus={adapterStatus} />
+        </div>
       </div>
 
-      <div className="fab-wrap">
-        <button
-          className="efab"
-          onClick={onStart}
-          disabled={connectedCount === 0}
-        >
-          <span className="ms" style={{ fontVariationSettings: "'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24" }}>play_circle</span>
-          Start tour
-        </button>
-      </div>
+      <Fab icon="play_circle" disabled={headsetsConnected === 0} onClick={() => navigate('/tours')}>
+        {t('sessionPage.startTour')}
+      </Fab>
     </div>
   )
 }

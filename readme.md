@@ -16,6 +16,15 @@ client/          VR client app for headsets (WebXR + Babylon.js)
 saas-adapter/    Firebase integration shared by both
 docs/            Flow diagrams and documentation
 ```
+## Docs
+
+- [System flow & API](./docs/flow.md)
+- [Component-diagram](./docs/component-diagram.md)
+- [Class-diagram](./docs/class-diagram.md)
+- [Tours JSON structure](./docs/tour-structure.md)
+
+## Scene editor tool
+[Scene editor](https://github.com/Gemerin/sceneEditorTool)
 
 ## Getting started
 
@@ -71,3 +80,4 @@ ngrok will print a public URL, e.g. `https://abc123.ngrok-free.app` — open it 
 - [System flow & API](./docs/flow.md)
 - [Component-diagram](./docs/component-diagram.md)
 - [Class-diagram](./docs/class-diagram.md)
+- [Tours JSON structure](./docs/)

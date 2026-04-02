@@ -40,12 +40,44 @@
   --font-ui:      'Outfit', system-ui, sans-serif;
 }
 
+/* ── Font Size (sets rem base on html element) ───────── */
+[data-font-size="small"]  { font-size: 12px; }
+[data-font-size="medium"] { font-size: 14px; }
+[data-font-size="large"]  { font-size: 17px; }
+
+/* ── MD3 Light Theme Tokens ──────────────────────────── */
+[data-theme="light"] {
+  --md-primary:              #30364F;
+  --md-on-primary:           #F5F3F1;
+  --md-primary-container:    #ACBAC4;
+  --md-on-primary-container: #001F24;
+
+  --md-error:           #BA1A1A;
+  --md-error-container: #FFDAD6;
+
+  --md-background:      #FAFDFE;
+  --md-on-background:   #191C1D;
+  --md-surface:         #FAFDFE;
+  --md-on-surface:      #191C1D;
+
+  --md-surface-variant:    #DBE4E6;
+  --md-on-surface-variant: #3F484A;
+
+  --md-outline:         #6F797A;
+  --md-outline-variant: #BFC8CA;
+
+  --md-surface-container-low:     #F2FAFB;
+  --md-surface-container:         #ECF4F5;
+  --md-surface-container-high:    #E6EEF0;
+  --md-surface-container-highest: #E0E8EA;
+}
+
 /* ── Base ────────────────────────────────────────────── */
 body {
   background: var(--md-background);
   color: var(--md-on-background);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 1rem;
   line-height: 1.5;
   min-height: 100dvh;
   -webkit-tap-highlight-color: transparent;
@@ -65,21 +97,29 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 64px;
-  padding: 0 4px 0 16px;
+  height: auto;
+  min-height: 64px;
+  padding: 8px 4px 8px 16px;
   background: var(--md-surface);
   color: var(--md-on-surface);
 }
 
+.top-app-bar__content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
 .top-app-bar__title {
   font-family: var(--font-ui);
-  font-size: 22px;
+  font-size: 1.571rem;
   font-weight: 400;
   flex: 1;
 }
 
 .top-app-bar__sub {
-  font-size: 12px;
+  font-size: 0.857rem;
   color: var(--md-on-surface-variant);
   letter-spacing: 0.02em;
 }
@@ -94,7 +134,7 @@ body {
 
 .top-app-bar--medium .top-app-bar__title {
   font-family: var(--font-display);
-  font-size: 28px;
+  font-size: 2rem;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -169,8 +209,8 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 16px;
 }
 
 /* ── Session Card ────────────────────────────────────── */
@@ -195,7 +235,7 @@ body {
 }
 
 .session-card__label {
-  font-size: 11px;
+  font-size: 0.786rem;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -203,18 +243,139 @@ body {
 }
 
 .session-card__code {
-  font-family: var(--font-display);
-  font-size: 36px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-family: 'Courier New', monospace;
+  font-size: 2.857rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   color: var(--md-primary);
   font-variant-numeric: tabular-nums;
+  margin-top: 4px;
 }
 
 .session-card__tagline {
-  font-size: 12px;
+  font-size: 0.857rem;
   color: var(--md-on-surface-variant);
   margin-top: 2px;
+}
+
+/* ── Tour Summary (stops + headset info combined) ───── */
+.tour-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.tour-summary__meta {
+  font-size: 0.857rem;
+  color: var(--md-on-surface-variant);
+}
+
+.tour-summary__divider {
+  border: none;
+  border-top: 1px solid var(--md-outline-variant);
+  margin: 0;
+}
+
+.tour-summary .headset-info__meta {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 0.857rem;
+  color: var(--md-on-surface-variant);
+}
+
+/* ── Tour Info Card ──────────────────────────────────── */
+.tour-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.tour-info-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tour-info-card__title {
+  font-size: 1.143rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+}
+
+.tour-info-card__meta {
+  font-size: 0.857rem;
+  color: var(--md-on-surface-variant);
+  display: flex;
+  gap: 16px;
+}
+
+/* ── Headset Info ────────────────────────────────────── */
+.headset-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px;
+}
+
+.headset-info__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headset-info__title {
+  font-size: 1.143rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+}
+
+.headset-info__meta {
+  font-size: 0.857rem;
+  color: var(--md-on-surface-variant);
+  display: flex;
+  gap: 16px;
+  flex-direction: column;
+}
+
+.headset-info__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.938rem;
+  color: var(--md-on-surface-variant);
+}
+
+.headset-info__item .ms {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.headset-info__item--online .ms {
+  color: #4DB8A8;
+}
+
+.headset-info__item--connecting .ms {
+  color: #FFB95A;
+}
+
+.headset-info__item--not-ready .ms {
+  color: #FFB95A;
+}
+
+.headset-info__item--offline .ms {
+  color: #999999;
+}
+
+.headset-info__item--error .ms {
+  color: #FFB4AB;
+}
+
+.headset-info__item--adapter .ms {
+  color: var(--md-primary);
 }
 
 /* ── Section Header ──────────────────────────────────── */
@@ -223,19 +384,19 @@ body {
   align-items: center;
   gap: 8px;
   padding: 4px 0;
+  margin-bottom: 0;
 }
 
 .section-header__title {
-  font-size: 11px;
+  font-size: 1rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--md-on-surface-variant);
+  letter-spacing: 0.02em;
+  color: var(--md-on-surface);
   flex: 1;
 }
 
 .section-header__badge {
-  font-size: 12px;
+  font-size: 0.857rem;
   font-weight: 500;
   color: var(--md-on-surface-variant);
   background: var(--md-surface-container-highest);
@@ -265,14 +426,14 @@ body {
 .saas-dot--disconnected { background: var(--md-outline); }
 
 .saas-label {
-  font-size: 12px;
+  font-size: 0.857rem;
   color: var(--md-on-surface-variant);
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
 
 .saas-status {
-  font-size: 12px;
+  font-size: 0.857rem;
   color: var(--md-on-surface-variant);
   margin-left: auto;
 }
@@ -282,6 +443,7 @@ body {
   list-style: none;
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 .headset-item {
@@ -315,29 +477,27 @@ body {
 
 .headset-item__label {
   flex: 1;
-  font-size: 14px;
+  font-size: 1rem;
   color: var(--md-on-surface);
 }
 
 .headset-item__status {
-  font-size: 12px;
+  font-size: 0.857rem;
   color: var(--md-on-surface-variant);
 }
 
 /* ── Active Scene Chip ───────────────────────────────── */
 .active-scene-chip {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 16px 6px 10px;
-  border-radius: 999px;
+  padding: 12px 16px;
+  border-radius: 12px;
   background: color-mix(in srgb, var(--scene-color, var(--md-primary)) 14%, var(--md-surface-container));
   border: 1px solid color-mix(in srgb, var(--scene-color, var(--md-primary)) 30%, transparent);
-  font-size: 14px;
+  font-size: 1rem;
   font-weight: 500;
   color: var(--scene-color, var(--md-primary));
-  align-self: flex-start;
-  margin-bottom: 4px;
 }
 
 /* ── Scene List & Buttons ────────────────────────────── */
@@ -358,7 +518,7 @@ body {
   background: transparent;
   color: var(--md-on-surface);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 1.071rem;
   font-weight: 400;
   text-align: left;
   cursor: pointer;
@@ -428,6 +588,62 @@ body {
   flex: 1;
 }
 
+/* ── Waiting Controls ────────────────────────────────── */
+.waiting-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.waiting-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.938rem;
+  color: var(--md-on-surface);
+}
+
+.waiting-status .ms {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* ── Views List ──────────────────────────────────────── */
+.views-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.view-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--md-surface-container);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms;
+}
+
+.view-item:hover {
+  background: var(--md-surface-container-high);
+}
+
+.view-item__checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--md-primary);
+}
+
+.view-item__label {
+  font-size: 0.938rem;
+  color: var(--md-on-surface);
+}
+
 .scene-btn.active .scene-btn__label {
   font-weight: 500;
 }
@@ -462,10 +678,10 @@ body {
   height: 56px;
   border: none;
   border-radius: 16px;
-  background: var(--md-primary-container);
-  color: var(--md-on-primary-container);
+  background: var(--md-primary);
+  color: var(--md-on-primary);
   font-family: var(--font-ui);
-  font-size: 15px;
+  font-size: 1.071rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   cursor: pointer;
@@ -484,6 +700,507 @@ body {
   box-shadow: none;
 }
 
+/* ── FAB row ─────────────────────────────────────────── */
+.fab-wrap--row {
+  display: flex;
+  gap: 12px;
+}
+
+.fab-wrap--row .efab {
+  flex: 1;
+}
+
+.efab--outline {
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  border: 1px solid var(--md-outline-variant);
+}
+
+.efab--outline:hover {
+  background: color-mix(in srgb, var(--md-on-surface) 8%, transparent);
+}
+
+.efab--danger {
+  background: color-mix(in srgb, var(--md-error) 20%, var(--md-surface-container));
+  color: var(--md-error);
+}
+
+/* ── Tours Page ──────────────────────────────────────── */
+.tours-header {
+  padding: 4px 0 8px;
+}
+
+.tours-header__sub {
+  font-size: 0.857rem;
+  color: var(--md-on-surface-variant);
+  display: block;
+}
+
+.tours-header__city {
+  font-family: var(--font-display);
+  font-size: 2.286rem;
+  font-weight: 700;
+  color: var(--md-on-surface);
+  line-height: 1.1;
+}
+
+.section-label {
+  font-size: 1rem;
+  color: var(--md-on-surface-variant);
+  margin-bottom: -4px;
+}
+
+.tour-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ── Tour Card ───────────────────────────────────────── */
+.tour-card {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--md-surface-container);
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  transition: box-shadow 120ms;
+}
+
+.tour-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+}
+
+.tour-card:active {
+  opacity: 0.85;
+}
+
+.tour-card__image {
+  height: 100px;
+  display: grid;
+  place-items: center;
+  background: var(--md-surface-container-high);
+}
+
+.tour-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tour-card__icon {
+  font-size: 40px;
+  color: var(--md-on-surface-variant);
+}
+
+.tour-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 12px;
+}
+
+.tour-card__title {
+  font-size: 0.929rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+  line-height: 1.3;
+}
+
+/* ── Tour card: gradient + white text overlaid on image ─────────────────── */
+.tour-card--gradient {
+  position: relative;
+}
+.tour-card--gradient .tour-card__image {
+  position: relative;
+  height: 160px;
+}
+.tour-card--gradient .tour-card__image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 80%);
+}
+.tour-card--gradient .tour-card__body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 12px 12px;
+  z-index: 1;
+}
+.tour-card--gradient .tour-card__title {
+  color: #fff;
+}
+
+/* ── Session Info Card ───────────────────────────────── */
+.session-info-card {
+  padding: 16px 20px;
+}
+
+.session-info-card__code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Tour Info Section ───────────────────────────────── */
+.tour-info-section {
+  padding: 12px 0;
+}
+
+.tour-info-section__description {
+  font-size: 1rem;
+  color: var(--md-on-surface);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Headset Section ─────────────────────────────────── */
+.headset-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.headset-section .card {
+  padding: 0;
+  overflow: visible;
+}
+
+.headset-section .headset-info {
+  padding: 17px;
+}
+
+.headset-section .section-header {
+  padding: 0;
+}
+
+.headset-section .section-header__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+}
+
+/* ── Settings Page ───────────────────────────────────── */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 16px;
+  border: none;
+  border-bottom: 1px solid var(--md-outline-variant);
+  background: transparent;
+  color: var(--md-on-surface);
+  font-family: var(--font-ui);
+  font-size: 1.071rem;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item--danger {
+  color: var(--md-error);
+}
+
+.settings-item__label {
+  flex: 1;
+}
+
+.settings-item__arrow {
+  color: var(--md-on-surface-variant);
+  font-size: 20px;
+}
+
+.settings-item--select {
+  cursor: default;
+}
+
+.settings-select {
+  background: var(--md-surface-container-high);
+  color: var(--md-on-surface);
+  border: 1px solid var(--md-outline-variant);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 0.929rem;
+  cursor: pointer;
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--md-outline-variant);
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  font-family: var(--font-ui);
+  font-size: 0.929rem;
+  cursor: pointer;
+}
+
+.settings-toggle--active {
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  border-color: transparent;
+}
+
+/* ── QR Modal ────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  animation: fade-in 150ms ease;
+}
+
+.modal {
+  background: var(--md-surface-container-high);
+  border-radius: 20px;
+  width: min(340px, calc(100vw - 48px));
+  overflow: hidden;
+  animation: slide-up 200ms ease;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  padding: 8px 8px 8px 20px;
+  border-bottom: 1px solid var(--md-outline-variant);
+}
+
+.modal__title {
+  flex: 1;
+  font-size: 1.143rem;
+  font-weight: 500;
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.modal__qr {
+  padding: 12px;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.modal__hint {
+  font-size: 0.929rem;
+  color: var(--md-on-surface-variant);
+  text-align: center;
+}
+
+.modal__message {
+  text-align: center;
+}
+
+.modal__footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 16px;
+}
+
+.modal__footer .efab {
+  height: 44px;
+  border-radius: 12px;
+  font-size: 0.929rem;
+}
+
+/* ── Login Page ──────────────────────────────────────── */
+.login-page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: #F1F3F8;
+}
+
+.login-top {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 56px 24px 0;
+  background: #30364F;
+}
+
+.login-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.login-logo__sub {
+  font-size: 0.857rem;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.login-logo__city {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.1;
+}
+
+/* Berg-element mellan sektionerna */
+.login-hill-wrap {
+  padding: 0 0px;
+  margin: 16px 0 0;
+}
+
+.login-wave {
+  display: block;
+  width: 100%;
+  height: 90px;
+  flex-shrink: 0;
+  margin-top: -1px;
+}
+
+.login-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px 24px 32px;
+}
+
+.login-card__heading {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1E2235;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.login-field__label {
+  font-size: 0.929rem;
+  font-weight: 500;
+  color: #444;
+}
+
+.login-field__input {
+  height: 52px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 12px;
+  background: #DDE3F0;
+  color: #1E2235;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  outline: none;
+  width: 100%;
+  transition: background 120ms, box-shadow 120ms;
+}
+
+.login-field__input:focus {
+  background: #D3DAF0;
+  box-shadow: 0 0 0 2px #30364F40;
+}
+
+.login-field__password-wrap {
+  position: relative;
+}
+
+.login-field__password-wrap .login-field__input {
+  padding-right: 52px;
+}
+
+.login-field__eye {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: #6670A0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.login-field__eye:hover {
+  background: rgba(48, 54, 79, 0.08);
+}
+
+.login-forgot {
+  align-self: flex-end;
+  font-size: 0.857rem;
+  color: #6670A0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-family: var(--font-ui);
+}
+
+.login-submit {
+  background: #30364F;
+  color: #fff;
+  margin-top: 4px;
+}
+
+.login-submit:hover {
+  box-shadow: 0 4px 12px rgba(48, 54, 79, 0.35);
+}
+
+.login-signup {
+  font-size: 0.929rem;
+  color: #6670A0;
+  text-align: center;
+  margin-top: auto;
+}
+
+.login-signup__link {
+  background: none;
+  border: none;
+  color: #30364F;
+  font-family: var(--font-ui);
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
 /* ── Animations ──────────────────────────────────────── */
 @keyframes pulse {
   0%, 100% { opacity: 1; }
@@ -492,5 +1209,15 @@ body {
 
 @keyframes page-enter {
   from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
