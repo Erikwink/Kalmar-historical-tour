@@ -23,6 +23,9 @@ docs/            Flow diagrams and documentation
 - [Class-diagram](./docs/class-diagram.md)
 - [Tours JSON structure](./docs/tour-structure.md)
 
+## Scene editor tool
+[Scene editor](https://github.com/Gemerin/sceneEditorTool)
+
 ## Getting started
 
 Install dependencies:
