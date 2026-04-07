@@ -30,7 +30,7 @@ function displayStatus(headset) {
  * Renders the list of connected headsets and the Firebase connection status row.
  * @param {{ headsets: Array, adapterStatus: string|null }} props
  */
-export default function HeadsetList({ headsets }) {
+export default function HeadsetList({ headsets, title, icon }) {
   const { t } = useTranslation();
   const [, setTick] = useState(0);
 
@@ -42,11 +42,12 @@ export default function HeadsetList({ headsets }) {
 
   return (
     <div className="headset-list">
-      <div className="headset-list__header">
-        <span className="headset-list__title">{t("sessionPage.connectedDevices")}</span>
-        <span className="ms headset-list__icon"><span class="material-symbols-outlined">head_mounted_device</span>
-</span>
-      </div>
+      {title && (
+        <div className="headset-list__header">
+          <span className="headset-list__title">{title}</span>
+          {icon && <span className="ms headset-list__icon">{icon}</span>}
+        </div>
+      )}
 
       <div className="card">
         <ul className="headset-items" style={{ padding: "0 16px" }}>

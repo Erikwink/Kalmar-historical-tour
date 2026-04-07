@@ -78,6 +78,9 @@
     "accountSection": "Account",
     "logout": "Log out"
   },
+  "readyPage": {
+    "headsets": "Headsets"
+  },
   "fontSizes": {
     "small": "Small",
     "medium": "Medium",

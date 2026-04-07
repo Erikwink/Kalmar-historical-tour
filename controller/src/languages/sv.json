@@ -78,6 +78,9 @@
     "accountSection": "Konto",
     "logout": "Logga ut"
   },
+  "readyPage": {
+    "headsets": "Headsets"
+  },
   "fontSizes": {
     "small": "Liten",
     "medium": "Medel",

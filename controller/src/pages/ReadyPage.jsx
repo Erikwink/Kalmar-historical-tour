@@ -30,11 +30,18 @@ export default function ReadyPage({ headsets, adapterStatus }) {
       />
 
       <div className="page-content">
-        <TourSummaryCard tour={tour} scenes={scenes} />
-        <HeadsetList headsets={headsets} adapterStatus={adapterStatus} />
+        <TourSummaryCard 
+          tour={tour} 
+          scenes={scenes} 
+      />
+        <HeadsetList
+         headsets={headsets}
+         adapterStatus={adapterStatus}
+         title={t("readyPage.headsets")}
+       />
       </div>
 
-      <Fab disabled={headsetsReady === 0} onClick={() => navigate(`/tour?tourId=${tourId}`)}>
+      <Fab disabled={headsetsReady != headsets.length} onClick={() => navigate(`/tour?tourId=${tourId}`)}>
         {t('sessionPage.startTour')}
       </Fab>
     </div>

@@ -4,7 +4,6 @@ import HeadsetList from '../components/headsetList'
 import TopAppBar from '../components/TopAppBar'
 import Fab from '../components/Fab'
 import Section from '../components/Section'
-import { HEADSET_STATUS } from '../utils/status_maps'
 import SessionCard from '../components/sessionCard'
 
 /**
@@ -39,9 +38,11 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
 
 
 
-          <HeadsetList 
-          headsets={headsets} 
-          adapterStatus={adapterStatus} 
+          <HeadsetList
+            headsets={headsets}
+            adapterStatus={adapterStatus}
+            title={t('sessionPage.connectedDevices')}
+            icon="head_mounted_device"
           />
         </div>
     
