@@ -65,17 +65,6 @@ function HeadsetForm({
         >
           {isReady ? "Inte redo" : "Jag är redo"}
         </button>
-
-        {/* {activeSessionId ? (
-          <a
-            href={xrSceneUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ display: "block", marginTop: "10px" }}
-          >
-            Öppna WebXR-scenen för sessionen
-          </a>
-        ) : null} */}
       </div>
     </div>
   );
