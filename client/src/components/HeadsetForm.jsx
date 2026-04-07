@@ -11,8 +11,7 @@ function HeadsetForm({
   onRemoveHeadset,
   onToggleReady,
   isReady,
-  activeSessionId,
-  xrSceneUrl,
+  activeSessionId
 }) {
   return (
     <div className="card">
