@@ -25,7 +25,7 @@ export default function ToursPage() {
               <TourCard
                 key={tour.id}
                 tour={tour}
-                onClick={() => navigate(`/tour/pre?tourId=${tour.id}`)}
+                onClick={() => navigate(`/tour/ready?tourId=${tour.id}`)}
               />
             ))}
           </div>

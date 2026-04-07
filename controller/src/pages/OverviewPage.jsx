@@ -52,7 +52,7 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
       <div className="page">
         <TopAppBar
           title={t(`tours.${tour.id}.title`)}
-          onBack={() => navigate('/tours')}
+          onBack={() => navigate(`/tour/ready?tourId=${tourId}`)}
         />
 
         <div className="page-content">

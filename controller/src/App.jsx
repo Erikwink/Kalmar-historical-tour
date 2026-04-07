@@ -109,7 +109,7 @@ function AppContent() {
         />
         <Route path="/tours" element={<ToursPage />} />
         <Route
-          path="/tour/pre"
+          path="/tour/ready"
           element={
             <ReadyPage
               headsets={headsets}
@@ -147,13 +147,14 @@ function AppContent() {
               onLogout={() => navigate('/login')}
               headsets={headsets}
               onRemoveHeadset={handleRemoveHeadset}
+              adapterStatus={saasStatus}
             />
           }
         />
       </Routes>
 
       {/* REMOVE MOCK ONCE CLIENT IS IMPLEMENTED */}
-      <JoinMock sessionId={sessionId} headsets={headsets} />
+      {/* <JoinMock sessionId={sessionId} headsets={headsets} /> */}
     </>
   )
 }
