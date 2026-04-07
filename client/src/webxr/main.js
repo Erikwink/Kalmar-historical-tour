@@ -11,8 +11,8 @@ import {
   WebXRState,
 } from "@babylonjs/core";
 import { publishMockScene, subscribeToSceneChanges, subscribeToTourIdChanges } from "./backendClient.js";
-import { createSceneManager, DEFAULT_SCENE_ID, SCENE_SEQUENCE } from "./scenes/sceneCatalog.js";
-import { resolveTour } from "../toursClient.js";
+import { createSceneManager, DEFAULT_SCENE_ID } from "./scenes/sceneCatalog.js";
+import { getSelectableScenes, resolveScene, resolveTour } from "../toursClient.js";
 
 const statusEl = document.getElementById("status");
 const tourIndicatorEl = document.getElementById("tour-indicator");
@@ -58,7 +58,8 @@ const support = {
 };
 
 let activeTourState = resolveTour(getTourIdFromUrl());
-let activeSceneId = DEFAULT_SCENE_ID;
+let activeSceneState = resolveScene(activeTourState, DEFAULT_SCENE_ID, { includeDevelopmentScenes: true });
+let activeSceneId = activeSceneState.resolvedSceneId;
 let sceneSource = "not-connected";
 let currentSessionId = "";
 let unsubscribeScene = null;
@@ -95,8 +96,10 @@ function setTourIndicator(tourState) {
   tourIndicatorEl.textContent = `Active tour: ${title} [${tourState.resolvedTourId}]${suffix}`;
 }
 
-function setSceneIndicator(sceneId) {
-  sceneIndicatorEl.textContent = `Active scene: ${sceneId}`;
+function setSceneIndicator(sceneState) {
+  const label = sceneState.scene?.label ?? sceneState.resolvedSceneId;
+  const suffix = sceneState.usedFallback ? " (fallback)" : "";
+  sceneIndicatorEl.textContent = `Active scene: ${label} [${sceneState.resolvedSceneId}]${suffix}`;
 }
 
 function setSceneDebug(message, tone = "info") {
@@ -115,6 +118,14 @@ function applyTourId(rawTourId) {
   const nextRawTourId = typeof rawTourId === "string" && rawTourId.trim() ? rawTourId.trim() : getTourIdFromUrl();
   activeTourState = resolveTour(nextRawTourId);
   setTourIndicator(activeTourState);
+  populateMockSceneSelect();
+
+  activeSceneState = resolveScene(activeTourState, activeSceneId, { includeDevelopmentScenes: true });
+  activeSceneId = activeSceneState.resolvedSceneId;
+  setSceneIndicator(activeSceneState);
+  if (scene) {
+    applySceneTheme();
+  }
 }
 
 function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {
@@ -383,7 +394,7 @@ function applySceneTheme() {
   }
 
   const mode = appMode === "xr-ar" ? "xr-ar" : appMode === "xr-vr" ? "xr-vr" : "simulation";
-  const renderState = manager.setScene(activeSceneId, mode);
+  const renderState = manager.setScene(activeSceneState.scene || { id: activeSceneId }, mode);
   applyLocomotionState(renderState);
   syncPreviewCamera();
 
@@ -393,17 +404,23 @@ function applySceneTheme() {
 }
 
 function applySceneChange(sceneId) {
-  const normalizedSceneId = typeof sceneId === "string" ? sceneId.trim() : DEFAULT_SCENE_ID;
-
-  activeSceneId = normalizedSceneId || DEFAULT_SCENE_ID;
-  setSceneIndicator(activeSceneId);
+  activeSceneState = resolveScene(activeTourState, sceneId, { includeDevelopmentScenes: true });
+  activeSceneId = activeSceneState.resolvedSceneId;
+  setSceneIndicator(activeSceneState);
   if (!scene) {
-    setSceneDebug(`Scene '${activeSceneId}' is active. Babylon scene not initialized yet; render will start when XR/simulation starts.`);
+    const requestedSceneId = activeSceneState.requestedSceneId || activeSceneState.resolvedSceneId;
+    setSceneDebug(
+      `Scene '${requestedSceneId}' resolved to '${activeSceneState.resolvedSceneId}'. Babylon scene not initialized yet; render will start when XR/simulation starts.`,
+    );
   } else {
     setSceneDebug(`Scene '${activeSceneId}' is active. Waiting for scene-specific diagnostics...`);
     applySceneTheme();
   }
-  setStatus(`Scene updated via onSceneChange (${sceneSource}): ${activeSceneId}`);
+  const fallbackSuffix =
+    activeSceneState.usedFallback && activeSceneState.requestedSceneId
+      ? ` (fallback from '${activeSceneState.requestedSceneId}')`
+      : "";
+  setStatus(`Scene updated via onSceneChange (${sceneSource}): ${activeSceneId}${fallbackSuffix}`);
 }
 
 function handleSceneDebug(event) {
@@ -452,10 +469,10 @@ function populateMockSceneSelect() {
   }
 
   mockSceneSelect.innerHTML = "";
-  SCENE_SEQUENCE.forEach((sceneId) => {
+  getSelectableScenes(activeTourState, { includeDevelopmentScenes: true }).forEach((sceneRef) => {
     const option = document.createElement("option");
-    option.value = sceneId;
-    option.textContent = sceneId;
+    option.value = sceneRef.id;
+    option.textContent = sceneRef.id;
     mockSceneSelect.appendChild(option);
   });
   mockSceneSelect.value = activeSceneId;
@@ -786,7 +803,7 @@ window.addEventListener("beforeunload", () => {
 window.addEventListener(SCENE_DEBUG_EVENT, handleSceneDebug);
 
 setTourIndicator(activeTourState);
-setSceneIndicator(activeSceneId);
+setSceneIndicator(activeSceneState);
 setSceneDebug("No scene diagnostics yet.");
 enableIdleButtons();
 initSupport();

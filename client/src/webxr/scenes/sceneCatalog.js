@@ -17,8 +17,6 @@ const CASTLE_MODEL_ROOT_URL = "/models/";
 const CASTLE_MODEL_FILE = "herstmonceux_castle.glb";
 const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
 
-export const SCENE_SEQUENCE = ["waiting", "castle", "church", "boats", "locomotion-test", "remove-headset"];
-
 const SCENE_LIBRARY = {
   waiting: {
     displayName: "Waiting",
@@ -71,20 +69,44 @@ const SCENE_LIBRARY = {
   },
 };
 
-function normalizeSceneId(raw) {
+function normalizeSceneRef(sceneRef) {
+  if (typeof sceneRef === "string") {
+    return { id: sceneRef.trim() || DEFAULT_SCENE_ID };
+  }
+  if (!sceneRef || typeof sceneRef !== "object") {
+    return { id: DEFAULT_SCENE_ID };
+  }
+
+  const sceneId = typeof sceneRef.id === "string" && sceneRef.id.trim() ? sceneRef.id.trim() : DEFAULT_SCENE_ID;
+  return {
+    ...sceneRef,
+    id: sceneId,
+  };
+}
+
+function normalizeRendererId(raw) {
   if (typeof raw !== "string") {
-    return DEFAULT_SCENE_ID;
+    return "default";
   }
 
   const normalized = raw.trim();
   if (SCENE_ALIAS[normalized]) {
     return SCENE_ALIAS[normalized];
   }
-  return SCENE_LIBRARY[normalized] ? normalized : DEFAULT_SCENE_ID;
+  return SCENE_LIBRARY[normalized] ? normalized : "default";
+}
+
+function normalizeHexColor(raw, fallback) {
+  if (typeof raw !== "string") {
+    return fallback;
+  }
+
+  const normalized = raw.trim();
+  return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized : fallback;
 }
 
 function makeColor(hex, fallback = "#ffffff") {
-  return Color3.FromHexString(hex || fallback);
+  return Color3.FromHexString(normalizeHexColor(hex, fallback));
 }
 
 function makeColor4(hex, alpha = 1) {
@@ -98,6 +120,38 @@ function createMaterial(scene, diffuseColor, emissiveColor, alpha = 1) {
   material.emissiveColor = emissiveColor;
   material.alpha = alpha;
   return material;
+}
+
+function buildDynamicTheme(sceneRef) {
+  const accent = normalizeHexColor(sceneRef?.color, SCENE_LIBRARY.default.accent);
+  const accentColor = makeColor(accent, SCENE_LIBRARY.default.accent);
+  return {
+    displayName: sceneRef?.label || "Scene",
+    clearColor: accentColor.scale(0.18).toHexString(),
+    ground: accentColor.scale(0.34).toHexString(),
+    accent,
+  };
+}
+
+function getThemeForScene(sceneRef) {
+  const normalizedScene = normalizeSceneRef(sceneRef);
+  const rendererId = normalizeRendererId(normalizedScene.id);
+  if (rendererId === "default") {
+    return {
+      rendererId,
+      theme: buildDynamicTheme(normalizedScene),
+    };
+  }
+
+  const baseTheme = SCENE_LIBRARY[rendererId] || SCENE_LIBRARY.default;
+  return {
+    rendererId,
+    theme: {
+      ...baseTheme,
+      displayName: normalizedScene.label || baseTheme.displayName,
+      accent: normalizeHexColor(normalizedScene.color, baseTheme.accent),
+    },
+  };
 }
 
 function emitSceneDebug(detail) {
@@ -369,8 +423,7 @@ function addDefaultElements(scene, root, accentColor) {
   orb.parent = root;
 }
 
-function buildLocomotionTestScene(scene) {
-  const theme = SCENE_LIBRARY["locomotion-test"];
+function buildLocomotionTestScene(scene, theme = SCENE_LIBRARY["locomotion-test"]) {
   const root = new TransformNode("scene-locomotion-test-root", scene);
   const meshes = [];
   const materials = [];
@@ -462,14 +515,13 @@ function addRemoveHeadsetElements(scene, root, accentColor) {
   warning.parent = root;
 }
 
-function composeScreen(scene, themeId, mode) {
-  const theme = SCENE_LIBRARY[themeId] || SCENE_LIBRARY.default;
-  const root = new TransformNode(`scene-${themeId}-root`, scene);
+function composeScreen(scene, theme, rendererId, mode) {
+  const root = new TransformNode(`scene-${rendererId}-root`, scene);
   const base = createScreenFoundation(scene, theme, root);
   let sceneHandle = null;
 
   const accent = makeColor(theme.accent);
-  switch (themeId) {
+  switch (rendererId) {
     case "castle":
       sceneHandle = addCastleSceneElements(scene, root, accent, base);
       break;
@@ -504,48 +556,58 @@ function composeScreen(scene, themeId, mode) {
 }
 
 function buildWaitingScreen(scene, mode) {
-  return composeScreen(scene, "waiting", mode);
+  return composeScreen(scene, SCENE_LIBRARY.waiting, "waiting", mode);
 }
 
 function buildCastleScreen(scene, mode) {
-  return composeScreen(scene, "castle", mode);
+  return composeScreen(scene, SCENE_LIBRARY.castle, "castle", mode);
 }
 
 function buildChurchScreen(scene, mode) {
-  return composeScreen(scene, "church", mode);
+  return composeScreen(scene, SCENE_LIBRARY.church, "church", mode);
 }
 
 function buildLocomotionTestScreen(scene, mode) {
-  return buildLocomotionTestScene(scene, mode);
+  return buildLocomotionTestScene(scene, SCENE_LIBRARY["locomotion-test"], mode);
 }
 
 function buildBoatsScreen(scene, mode) {
-  return composeScreen(scene, "boats", mode);
+  return composeScreen(scene, SCENE_LIBRARY.boats, "boats", mode);
 }
 
 function buildRemoveHeadsetScreen(scene, mode) {
-  return composeScreen(scene, "remove-headset", mode);
+  return composeScreen(scene, SCENE_LIBRARY["remove-headset"], "remove-headset", mode);
 }
 
 function buildDefaultScreen(scene, mode) {
-  return composeScreen(scene, "default", mode);
+  return composeScreen(scene, SCENE_LIBRARY.default, "default", mode);
 }
 
-function getDefinition(sceneId) {
-  const key = normalizeSceneId(sceneId);
-  return SCENE_LIBRARY[key] || SCENE_LIBRARY.default;
+function buildSceneHandle(scene, sceneRef, mode) {
+  const { rendererId, theme } = getThemeForScene(sceneRef);
+  if (rendererId === "locomotion-test") {
+    return buildLocomotionTestScene(scene, theme, mode);
+  }
+  return composeScreen(scene, theme, rendererId, mode);
 }
 
 export function createSceneManager(scene) {
   let activeSceneId = DEFAULT_SCENE_ID;
   let activeMode = "preview";
+  let activeSceneSignature = "";
   let handle = null;
 
-  function setScene(sceneId, mode = activeMode) {
-    const nextId = normalizeSceneId(sceneId);
+  function setScene(sceneRef, mode = activeMode) {
+    const normalizedScene = normalizeSceneRef(sceneRef);
+    const nextId = normalizedScene.id;
     const nextMode = mode || "preview";
+    const nextSceneSignature = JSON.stringify({
+      id: normalizedScene.id,
+      label: normalizedScene.label || "",
+      color: normalizedScene.color || "",
+    });
 
-    if (nextId === activeSceneId && handle && nextMode === activeMode) {
+    if (nextId === activeSceneId && handle && nextMode === activeMode && nextSceneSignature === activeSceneSignature) {
       handle.applyMode(nextMode);
       return { sceneId: nextId, clearColor: handle.clearColor, locomotion: handle.locomotion || null };
     }
@@ -555,10 +617,10 @@ export function createSceneManager(scene) {
       handle = null;
     }
 
-    const definition = getDefinition(nextId);
-    handle = definition.build(scene, nextMode);
+    handle = buildSceneHandle(scene, normalizedScene, nextMode);
     activeSceneId = nextId;
     activeMode = nextMode;
+    activeSceneSignature = nextSceneSignature;
     handle.applyMode(nextMode);
 
     return { sceneId: nextId, clearColor: handle.clearColor, locomotion: handle.locomotion || null };
@@ -573,9 +635,6 @@ export function createSceneManager(scene) {
   }
 
   return {
-    getAvailableScenes() {
-      return [...SCENE_SEQUENCE];
-    },
     getActiveScene() {
       return activeSceneId;
     },
@@ -586,6 +645,7 @@ export function createSceneManager(scene) {
         handle.dispose();
         handle = null;
       }
+      activeSceneSignature = "";
     },
   };
 }

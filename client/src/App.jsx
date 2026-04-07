@@ -1,7 +1,7 @@
 // client/src/App.jsx
 import { useCallback, useEffect, useState } from "react";
 import { join, leave, loginClient, onSceneChange, onTourIdChange, ready } from "../../saas-adapter/src/index";
-import { resolveTour } from "./toursClient.js";
+import { resolveScene, resolveTour } from "./toursClient.js";
 /**
  * Root application component for the VR headset client.
  * Handles joining/leaving sessions and subscribing to scene changes.
@@ -46,6 +46,10 @@ function App() {
   const activeTour = tourState.tour;
   const activeTourId = tourState.resolvedTourId;
   const activeTourTitle = activeTour?.title ?? activeTourId;
+  const activeSceneState = resolveScene(tourState, activeSceneId);
+  const activeSceneDisplay = `${activeSceneState.scene?.label ?? activeSceneState.resolvedSceneId} [${activeSceneState.resolvedSceneId}]${
+    activeSceneState.usedFallback ? " (fallback)" : ""
+  }`;
   const xrSceneUrl = activeSessionId
     ? `${window.location.origin}/webxr.html?session=${activeSessionId}&tourId=${encodeURIComponent(activeTourId)}`
     : "";
@@ -220,7 +224,7 @@ function App() {
               <label>Aktiv scen</label>
               <input
                 type="text"
-                value={activeSceneId}
+                value={activeSceneDisplay}
                 readOnly
               />
             </div>
