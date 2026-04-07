@@ -25,10 +25,18 @@ export default function TourSummaryCard({ tour, scenes }) {
   const timeRange = tour?.durationMinutes ? formatTimeRange(tour.durationMinutes) : null
 
   return (
-    <div className="card tour-summary">
+    <div className="tour-summary">
       <div className="tour-summary__meta">
-        <span>{scenes.length} {t('overviewPage.stops')} - {formatDuration(tour?.durationMinutes)}</span>
-        {timeRange && <span> · {timeRange}</span>}
+        <span>
+          {scenes.length} {t('overviewPage.stops')} - {formatDuration(tour?.durationMinutes)}
+        </span>
+        {/* only render timerange if not null */}
+        {timeRange && 
+        <>
+        <span className="tour-summary__sep"></span>
+        <span>{timeRange}</span>
+        </>}
+
       </div>
     </div>
   )

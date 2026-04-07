@@ -1,5 +1,7 @@
 /* ── Reset ───────────────────────────────────────────── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -37,42 +39,50 @@
 
   /* Typography */
   --font-display: 'Playfair Display', Georgia, serif;
-  --font-ui:      'Outfit', system-ui, sans-serif;
+  --font-ui: 'Outfit', system-ui, sans-serif;
 
   /* UX color tokens — dark mode (default) */
-  --color-background:      #252C35;
-  --color-list:            #353A43;
-  --color-button:          #43A3C6;
-  --color-sign-in-box:     #D7DFEF;
+  --color-background: #252C35;
+  --color-list: #353A43;
+  --color-button: #43A3C6;
+  --color-sign-in-box: #D7DFEF;
   --color-connected-ready: #2C9934;
-  --color-not-ready:       #FFA508;
-  --color-warning:         #FF6464;
+  --color-not-ready: #FFA508;
+  --color-warning: #FF6464;
 
-  --color-button-text:     black;
-  --text-color:            #efefef;
-  --line-color:            #7f7d7d; 
+  --color-button-text: black;
+  --text-color: #efefef;
+  --line-color: #7f7d7d;
 }
 
 /* ── Font Size (sets rem base on html element) ───────── */
-[data-font-size="small"]  { font-size: 12px; }
-[data-font-size="medium"] { font-size: 14px; }
-[data-font-size="large"]  { font-size: 17px; }
+[data-font-size="small"] {
+  font-size: 12px;
+}
+
+[data-font-size="medium"] {
+  font-size: 14px;
+}
+
+[data-font-size="large"] {
+  font-size: 17px;
+}
 
 /* ── MD3 Light Theme Tokens ──────────────────────────── */
 [data-theme="light"] {
-   /* UX color tokens — light mode */
-  --color-background:      #EFEFEF;
-  --color-list:            #EBEBEB;
-  --color-button:          #30364F;
- 
-  --color-sign-in-box:     #D7DFEF;
-  --color-connected-ready: #209934;
-  --color-not-ready:       #D16900;
-  --color-warning:         #FF3333;
+  /* UX color tokens — light mode */
+  --color-background: #EFEFEF;
+  --color-list: #EBEBEB;
+  --color-button: #30364F;
 
-  --color-button-text:     #efefef;
-  --text-color:            black;
-  --line-color:            #c7c5c5;
+  --color-sign-in-box: #D7DFEF;
+  --color-connected-ready: #209934;
+  --color-not-ready: #D16900;
+  --color-warning: #FF3333;
+
+  --color-button-text: #efefef;
+  --text-color: black;
+  --line-color: #c7c5c5;
 
 
   /* --md-primary:              #30364F;
@@ -99,7 +109,7 @@
   --md-surface-container-high:    #E6EEF0;
   --md-surface-container-highest: #E0E8EA; */
 
- 
+
 }
 
 /* ── Base ────────────────────────────────────────────── */
@@ -169,8 +179,13 @@ body {
   transition: opacity 80ms;
 }
 
-.icon-btn:hover::before  { opacity: 0.08; }
-.icon-btn:active::before { opacity: 0.12; }
+.icon-btn:hover::before {
+  opacity: 0.08;
+}
+
+.icon-btn:active::before {
+  opacity: 0.12;
+}
 
 /* ── Material Symbols helper ─────────────────────────── */
 .ms {
@@ -184,11 +199,11 @@ body {
   display: inline-block;
   white-space: nowrap;
   direction: ltr;
-  font-variation-settings: 
-  'FILL' 0, 
-  'wght' 350, 
-  'GRAD' 0, 
-  'opsz' 50;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 350,
+    'GRAD' 0,
+    'opsz' 50;
   user-select: none;
 }
 
@@ -232,24 +247,14 @@ body {
   padding: 12px 16px;
 }
 
-.tour-summary__meta {
-  font-size: 0.857rem;
-  color: var(--md-on-surface-variant);
-}
-
-.tour-summary__divider {
-  border: none;
-  border-top: 1px solid var(--md-outline-variant);
-  margin: 0;
-}
-
-.tour-summary .headset-info__meta {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  font-size: 0.857rem;
-  color: var(--md-on-surface-variant);
+.tour-summary__sep {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  margin: 0 6px;
+  vertical-align: middle;
 }
 
 /* ── Tour Info Card ──────────────────────────────────── */
@@ -279,70 +284,43 @@ body {
   gap: 16px;
 }
 
-/* ── Headset Info ────────────────────────────────────── */
-.headset-info {
+/* ── Headset Status Bar ──────────────────────────────── */
+.headset-status-bar-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 24px;
+  gap: 4px;
 }
 
-.headset-info__header {
+.headset-status-bar {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.headset-info__title {
-  font-size: 1.143rem;
-  font-weight: 600;
-  color: var(--md-on-surface);
-}
-
-.headset-info__meta {
-  font-size: 0.857rem;
-  color: var(--md-on-surface-variant);
-  display: flex;
-  gap: 16px;
-  flex-direction: column;
-}
-
-.headset-info__item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  cursor: default;
+  width: 100%;
+  background-color: var(--color-list);
+  text-align: left;
+  font-family: var(--font-ui);
   font-size: 0.938rem;
-  color: var(--md-on-surface-variant);
+  transition: background 0.15s;
 }
 
-.headset-info__item .ms {
-  font-size: 20px;
-  flex-shrink: 0;
+.headset-status-bar--ok {
+  color: var(--text-color);
 }
 
-.headset-info__item--online .ms {
-  color: #4DB8A8;
+.headset-status-bar--warning {
+  color: var(--color-warning);
 }
 
-.headset-info__item--connecting .ms {
-  color: #FFB95A;
-}
+.headset-status-bar__icon { font-size: 1.25rem; }
+.headset-status-bar__text { flex: 1; }
+.headset-status-bar__warning { color: var(--color-warning); font-size: 1.1rem; }
+.headset-status-bar__chevron { font-size: 1.25rem; color: var(--text-color); }
 
-.headset-info__item--not-ready .ms {
-  color: #FFB95A;
-}
 
-.headset-info__item--offline .ms {
-  color: #999999;
-}
-
-.headset-info__item--error .ms {
-  color: #FFB4AB;
-}
-
-.headset-info__item--adapter .ms {
-  color: var(--md-primary);
-}
 
 /* ── Section Header ──────────────────────────────────── */
 .section-header {
@@ -379,10 +357,21 @@ body {
   flex-shrink: 0;
 }
 
-.saas-dot--connected    {background-color: var(--color-connected-ready);}
-.saas-dot--connecting   {background-color: var(--color-not-ready);}
-.saas-dot--error        { background: var(--color-warning); }
-.saas-dot--disconnected { background: grey; }
+.saas-dot--connected {
+  background-color: var(--color-connected-ready);
+}
+
+.saas-dot--connecting {
+  background-color: var(--color-not-ready);
+}
+
+.saas-dot--error {
+  background: var(--color-warning);
+}
+
+.saas-dot--disconnected {
+  background: grey;
+}
 
 
 /* ── Headset List ────────────────────────────────────── */
@@ -444,13 +433,33 @@ body {
   flex-shrink: 0;
 }
 
-.headset-item__dot--online {background-color: var(--color-connected-ready);}
-.headset-item__dot--connected  {background-color: var(--color-connected-ready);}
-.headset-item__dot--not-ready {background-color: var(--color-not-ready);}
-.headset-item__dot--connecting {background-color: var(--color-not-ready);}
-.headset-item__dot--error      { background: var(--color-warning); }
-.headset-item__dot--offline { background-color: grey;}
-.headset-item__dot--disconnected { background-color: grey;}
+.headset-item__dot--online {
+  background-color: var(--color-connected-ready);
+}
+
+.headset-item__dot--connected {
+  background-color: var(--color-connected-ready);
+}
+
+.headset-item__dot--not-ready {
+  background-color: var(--color-not-ready);
+}
+
+.headset-item__dot--connecting {
+  background-color: var(--color-not-ready);
+}
+
+.headset-item__dot--error {
+  background: var(--color-warning);
+}
+
+.headset-item__dot--offline {
+  background-color: grey;
+}
+
+.headset-item__dot--disconnected {
+  background-color: grey;
+}
 
 /* ── Active Scene Chip ───────────────────────────────── */
 .active-scene-chip {
@@ -498,9 +507,17 @@ body {
   border-bottom: none;
 }
 
-.card .scene-btn:first-child { border-radius: 12px 12px 0 0; }
-.card .scene-btn:last-child  { border-radius: 0 0 12px 12px; }
-.card .scene-btn:only-child  { border-radius: 12px; }
+.card .scene-btn:first-child {
+  border-radius: 12px 12px 0 0;
+}
+
+.card .scene-btn:last-child {
+  border-radius: 0 0 12px 12px;
+}
+
+.card .scene-btn:only-child {
+  border-radius: 12px;
+}
 
 .scene-btn:active {
   background: color-mix(in srgb, var(--md-on-surface) 8%, transparent);
@@ -781,16 +798,19 @@ body {
 .tour-card--gradient {
   position: relative;
 }
+
 .tour-card--gradient .tour-card__image {
   position: relative;
   height: 160px;
 }
+
 .tour-card--gradient .tour-card__image::after {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 80%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.1) 55%, transparent 80%);
 }
+
 .tour-card--gradient .tour-card__body {
   position: absolute;
   bottom: 0;
@@ -799,6 +819,7 @@ body {
   padding: 10px 12px 12px;
   z-index: 1;
 }
+
 .tour-card--gradient .tour-card__title {
   color: #fff;
 }
@@ -825,6 +846,7 @@ body {
   min-width: 120px;
   max-width: 180px;
 }
+
 .session-card__label {
   font-size: 0.786rem;
   font-weight: 500;
@@ -853,7 +875,7 @@ body {
 /* overwrite ms class to increase size of icon */
 .session-info-card__sound-btn .ms {
   font-size: 4rem;
-  
+
 }
 
 .session-info-card__sound-btn:disabled {
@@ -887,9 +909,6 @@ body {
   overflow: visible;
 }
 
-.headset-section .headset-info {
-  padding: 17px;
-}
 
 .headset-section .section-header {
   padding: 0;
@@ -1231,21 +1250,47 @@ body {
 
 /* ── Animations ──────────────────────────────────────── */
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 @keyframes page-enter {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes fade-in {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slide-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
