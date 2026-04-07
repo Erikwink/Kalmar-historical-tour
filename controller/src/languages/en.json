@@ -28,8 +28,19 @@
     "sessionId": "Session ID",
     "headsets": "Headsets",
     "showQR": "Show QR code",
+    "broadcastAudio": "Broadcast session ID as audio",
     "cancel": "Cancel",
     "startTour": "Start tour"
+  },
+  "audioBroadcastModal": {
+    "title": "Broadcast session ID",
+    "close": "Close",
+    "status": {
+      "idle": "Hold the phone close to the headset and press play.",
+      "playing": "Broadcasting...",
+      "done": "Done! The headset should have received the session ID.",
+      "error": "Something went wrong. Try again or enter the ID manually."
+    }
   },
   "overviewPage": {
     "activeScene": "Active scene",

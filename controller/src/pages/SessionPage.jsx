@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import HeadsetList from '../components/headsetList'
 import TopAppBar from '../components/TopAppBar'
 import Fab from '../components/Fab'
+import AudioBroadcastModal from '../components/AudioBroadcastModal'
 import { HEADSET_STATUS } from '../utils/status_maps'
 
 /**
@@ -13,6 +15,7 @@ import { HEADSET_STATUS } from '../utils/status_maps'
 export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const [showAudioModal, setShowAudioModal] = useState(false)
 
   const headsetsConnected = headsets.filter(h => h.status === HEADSET_STATUS.ONLINE).length
 
@@ -27,8 +30,22 @@ export default function SessionPage({ sessionId, headsets, adapterStatus }) {
               <div className="session-card__label">{t('sessionPage.sessionId')}</div>
               <div className="session-card__code">{sessionId}</div>
             </div>
+            <button
+              className="icon-btn"
+              onClick={() => setShowAudioModal(true)}
+              title={t('sessionPage.broadcastAudio')}
+            >
+              <span className="ms">volume_up</span>
+            </button>
           </div>
         </div>
+
+        {showAudioModal && (
+          <AudioBroadcastModal
+            sessionId={sessionId}
+            onClose={() => setShowAudioModal(false)}
+          />
+        )}
 
         <div className="headset-section">
           <HeadsetList headsets={headsets} adapterStatus={adapterStatus} />

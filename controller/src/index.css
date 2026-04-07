@@ -1201,6 +1201,34 @@ body {
   padding: 0;
 }
 
+/* ── Audio Broadcast Modal ───────────────────────────── */
+.audio-broadcast-btn {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: none;
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: opacity 80ms, transform 80ms;
+}
+
+.audio-broadcast-btn .ms {
+  font-size: 48px;
+}
+
+.audio-broadcast-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  animation: pulse 1s ease infinite;
+}
+
+.audio-broadcast-btn:not(:disabled):hover {
+  transform: scale(1.05);
+}
+
 /* ── Animations ──────────────────────────────────────── */
 @keyframes pulse {
   0%, 100% { opacity: 1; }

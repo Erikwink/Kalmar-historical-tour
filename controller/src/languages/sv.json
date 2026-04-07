@@ -28,8 +28,19 @@
     "headsets": "Headsets",
     "sessionId": "Session-ID",
     "showQR": "Visa QR-kod",
+    "broadcastAudio": "Sänd session-ID som ljud",
     "cancel": "Avbryt",
     "startTour": "Starta tour"
+  },
+  "audioBroadcastModal": {
+    "title": "Sänd session-ID",
+    "close": "Stäng",
+    "status": {
+      "idle": "Håll telefonen nära headsetet och tryck play.",
+      "playing": "Sänder...",
+      "done": "Klart! Headsetet bör ha tagit emot session-ID.",
+      "error": "Något gick fel. Försök igen eller ange ID manuellt."
+    }
   },
   "overviewPage": {
     "activeScene": "Aktiv scen",
