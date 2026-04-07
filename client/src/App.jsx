@@ -1,6 +1,7 @@
 // client/src/App.jsx
 import { useState, useEffect } from "react";
 import { loginClient, join, leave, onSceneChange, ready } from "../../saas-adapter/src/index"
+import AudioSessionListener from './components/AudioSessionListener';
 /**
  * Root application component for the VR headset client.
  * Handles joining/leaving sessions and subscribing to scene changes.
@@ -211,6 +212,7 @@ function App() {
               <button onClick={handleRemoveHeadset} disabled={!activeSessionId}>
                 Ta bort headset
               </button>
+              <AudioSessionListener onSessionIdReceived={(id) => setSessionId(id)} />
             </div>
             <button onClick={handleToggleReady} disabled={!activeSessionId} style={{ marginTop: '8px', width: '100%' }}>
               {isReady ? "Inte redo" : "Jag är redo"}

@@ -35,6 +35,7 @@ export async function playSessionId(sessionId) {
   const ggWaveModule = await getModule()
   // Instanciate audicontex, web motor for audio
   const audioCtx = new AudioContext()
+  console.log('[ggwave] controller sampleRate:', audioCtx.sampleRate)
 
   // Instantiate ggwave instance once 
   // sampleRate must match/be fetched from AudioContext for audio encoding to work
