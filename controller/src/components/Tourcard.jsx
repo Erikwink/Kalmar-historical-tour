@@ -9,7 +9,7 @@ export default function TourCard({ tour, onClick }) {
   const title = t(`tours.${tour.id}.title`, tour.title)
 
   return (
-    <button className={`tour-card ${tour.image ? 'tour-card--gradient' : ''}`} onClick={onClick}>
+    <button className={`tour-card card--elevated ${tour.image ? 'tour-card--gradient' : ''}`} onClick={onClick}>
       <div className="tour-card__image">
         {tour.image
           ? <img src={tour.image} alt={title} className="tour-card__img" />

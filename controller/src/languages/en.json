@@ -1,7 +1,7 @@
 {
   "loginPage": {
     "title": "Sign in",
-    "guidesIn": "WR Tour",
+    "guidesIn": "VR Tour",
     "email": "Email",
     "city": "Kalmar",
     "emailPlaceholder": "name@mail.com",
@@ -23,13 +23,18 @@
     "selectTour": "Select tour"
   },
   "sessionPage": {
-    "fallbackTitle": "Session overview",
+    "fallbackTitle": "Welcome back, NAME",
     "fallbackDescription": "Experience this immersive tour",
+    "connectDevice": "Connect device",
+    "connectedDevices": "Connected devices",
+    "sessionCode": "Session code",
+    "playSound": "Play sound",
     "sessionId": "Session ID",
     "headsets": "Headsets",
     "showQR": "Show QR code",
     "cancel": "Cancel",
-    "startTour": "Start tour"
+    "startTour": "Start tour",
+    "selectTour": "Select tour" 
   },
   "overviewPage": {
     "activeScene": "Active scene",

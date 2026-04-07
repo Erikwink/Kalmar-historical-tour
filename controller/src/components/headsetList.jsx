@@ -5,28 +5,24 @@ import { HEADSET_STATUS } from "../utils/status_maps";
 
 const STALE_MS = 30_000
 
+const STATUS_LABEL_KEY = {
+  [HEADSET_STATUS.ONLINE]:     'overviewPage.headsetOnline',
+  [HEADSET_STATUS.NOT_READY]:  'overviewPage.headsetNotReady',
+  [HEADSET_STATUS.CONNECTING]: 'overviewPage.headsetConnecting',
+  [HEADSET_STATUS.OFFLINE]:    'overviewPage.headsetOffline',
+  [HEADSET_STATUS.ERROR]:      'overviewPage.headsetError',
+}
 
 /**
  * Maps a headset's raw status to a display status.
- * A headset that is online but not yet ready gets a distinct 'not-ready' style.
  * @param {{ status: string, ready: boolean }} headset
  * @returns {string} display status key
  */
 function displayStatus(headset) {
-  // check headset status
-  if (headset.status === HEADSET_STATUS.OFFLINE) {
-    return HEADSET_STATUS.OFFLINE;
-  }
-  // check headset heartbeat status
-
+  if (headset.status === HEADSET_STATUS.OFFLINE) return HEADSET_STATUS.OFFLINE;
   // -------- TODO: RM comments when heartbeat is ready on client --------------------
-
-  //if (Date.now() - headset.lastSeenAt > STALE_MS){
-  //  return HEADSET_STATUS.ERROR;}
-  // check if headset is ready
-  if (!headset.ready) {
-    return HEADSET_STATUS.NOT_READY;
-  }
+  //if (Date.now() - headset.lastSeenAt > STALE_MS) return HEADSET_STATUS.ERROR;
+  if (!headset.ready) return HEADSET_STATUS.NOT_READY;
   return headset.status;
 }
 
@@ -36,47 +32,45 @@ function displayStatus(headset) {
  */
 export default function HeadsetList({ headsets, adapterStatus }) {
   const { t } = useTranslation();
-  const [, setTick] = useState(0); // bara för att trigga re-render
+  const [, setTick] = useState(0);
 
   useEffect(() => {
     const interval = setInterval(() => setTick((t) => t + 1), 10_000);
     return () => clearInterval(interval);
   }, []);
 
-  const connectedCount = headsets.filter((h) => h.status === "online").length;
-  // null before first connection → default to disconnected style
   const dotClass = adapterStatus ?? "offline";
 
   return (
-    <div>
-      <div className="section-header">
-        <span className="section-header__title">{t("headsetList.title")}</span>
-        <span className="section-header__badge">
-          {connectedCount} / {headsets.length}
-        </span>
+    <div className="headset-list">
+      <div className="headset-list__header">
+        <span className="headset-list__title">{t("sessionPage.connectedDevices")}</span>
+        <span className="ms headset-list__icon"><span class="material-symbols-outlined">head_mounted_device</span>
+</span>
       </div>
 
       <div className="card">
-        <div className="saas-row" style={{ padding: "8px 16px 8px" }}>
-          <span className={`saas-dot saas-dot--${dotClass}`} />
-          <span className="saas-label">Firebase</span>
-          <span className="saas-status">{adapterStatus ?? "—"}</span>
-        </div>
-
         <ul className="headset-items" style={{ padding: "0 16px" }}>
-          {headsets.map((h) => (
-            <li key={h.id} className="headset-item">
-              <div
-                className={`headset-item__avatar headset-item__avatar--${displayStatus(h)}`}
-              >
-                <span className="ms" style={{ fontSize: "16px" }}>
-                  headset_mic
+          <li className="headset-item">
+            <span className="headset-item__label">Firebase</span>
+            <span className="headset-item__status">
+              {adapterStatus ?? "—"}
+              <span className={`headset-item__dot saas-dot--${dotClass}`} />
+            </span>
+          </li>
+
+          {headsets.map((h) => {
+            const status = displayStatus(h);
+            return (
+              <li key={h.id} className="headset-item">
+                <span className="headset-item__label">{h.label}</span>
+                <span className="headset-item__status">
+                  {t(STATUS_LABEL_KEY[status] ?? STATUS_LABEL_KEY[HEADSET_STATUS.ONLINE])}
+                  <span className={`headset-item__dot headset-item__dot--${status}`} />
                 </span>
-              </div>
-              <span className="headset-item__label">{h.label}</span>
-              <span className="headset-item__status">{displayStatus(h)}</span>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       </div>
     </div>

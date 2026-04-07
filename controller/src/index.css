@@ -8,36 +8,49 @@
 /* ── MD3 Dark Theme Tokens ───────────────────────────── */
 :root {
   /* Primary (teal seed #006874) */
-  --md-primary:              #4FD8EB;
+  /* --md-primary:              #4FD8EB;
   --md-on-primary:           #00363D;
   --md-primary-container:    #004F58;
-  --md-on-primary-container: #97F0FF;
+  --md-on-primary-container: #97F0FF; */
 
   /* Error */
-  --md-error:           #FFB4AB;
-  --md-error-container: #93000A;
+  /* --md-error:           #FFB4AB;
+  --md-error-container: #93000A; */
 
   /* Background / Surface */
-  --md-background:      #0E1415;
+  /* --md-background:      #0E1415;
   --md-on-background:   #DDE4E6;
   --md-surface:         #0E1415;
-  --md-on-surface:      #DDE4E6;
+  --md-on-surface:      #DDE4E6; */
 
-  --md-surface-variant:    #3F484A;
-  --md-on-surface-variant: #BFC8CA;
+  /* --md-surface-variant:    #3F484A;
+  --md-on-surface-variant: #BFC8CA; */
 
-  --md-outline:         #899294;
-  --md-outline-variant: #3F484A;
+  /* --md-outline:         #899294;
+  --md-outline-variant: #3F484A; */
 
   /* Surface containers */
-  --md-surface-container-low:     #161D1F;
+  /* --md-surface-container-low:     #161D1F;
   --md-surface-container:         #1A2224;
   --md-surface-container-high:    #252B2D;
-  --md-surface-container-highest: #2F3638;
+  --md-surface-container-highest: #2F3638; */
 
   /* Typography */
   --font-display: 'Playfair Display', Georgia, serif;
   --font-ui:      'Outfit', system-ui, sans-serif;
+
+  /* UX color tokens — dark mode (default) */
+  --color-background:      #252C35;
+  --color-list:            #353A43;
+  --color-button:          #43A3C6;
+  --color-sign-in-box:     #D7DFEF;
+  --color-connected-ready: #2C9934;
+  --color-not-ready:       #FFA508;
+  --color-warning:         #FF6464;
+
+  --color-button-text:     black;
+  --text-color:            #efefef;
+  --line-color:            #7f7d7d; 
 }
 
 /* ── Font Size (sets rem base on html element) ───────── */
@@ -47,7 +60,22 @@
 
 /* ── MD3 Light Theme Tokens ──────────────────────────── */
 [data-theme="light"] {
-  --md-primary:              #30364F;
+   /* UX color tokens — light mode */
+  --color-background:      #EFEFEF;
+  --color-list:            #EBEBEB;
+  --color-button:          #30364F;
+ 
+  --color-sign-in-box:     #D7DFEF;
+  --color-connected-ready: #209934;
+  --color-not-ready:       #D16900;
+  --color-warning:         #FF3333;
+
+  --color-button-text:     #efefef;
+  --text-color:            black;
+  --line-color:            #7f7d7d;
+
+
+  /* --md-primary:              #30364F;
   --md-on-primary:           #F5F3F1;
   --md-primary-container:    #ACBAC4;
   --md-on-primary-container: #001F24;
@@ -69,13 +97,15 @@
   --md-surface-container-low:     #F2FAFB;
   --md-surface-container:         #ECF4F5;
   --md-surface-container-high:    #E6EEF0;
-  --md-surface-container-highest: #E0E8EA;
+  --md-surface-container-highest: #E0E8EA; */
+
+ 
 }
 
 /* ── Base ────────────────────────────────────────────── */
 body {
-  background: var(--md-background);
-  color: var(--md-on-background);
+  background: var(--color-background);
+  color: var(--text-color);
   font-family: var(--font-ui);
   font-size: 1rem;
   line-height: 1.5;
@@ -133,7 +163,7 @@ body {
 }
 
 .top-app-bar--medium .top-app-bar__title {
-  font-family: var(--font-display);
+  font-family: var();
   font-size: 2rem;
   font-weight: 600;
   line-height: 1.2;
@@ -179,19 +209,23 @@ body {
   display: inline-block;
   white-space: nowrap;
   direction: ltr;
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: 
+  'FILL' 0, 
+  'wght' 350, 
+  'GRAD' 0, 
+  'opsz' 50;
   user-select: none;
 }
 
 /* ── Cards ───────────────────────────────────────────── */
 .card {
-  background: var(--md-surface-container);
+  background: var(--color-list);
   border-radius: 12px;
   overflow: hidden;
 }
 
 .card--elevated {
-  background: var(--md-surface-container-low);
+  background: var(--color-list);
   box-shadow:
     0 1px 2px rgba(0, 0, 0, .3),
     0 2px 6px rgba(0, 0, 0, .15);
@@ -213,50 +247,6 @@ body {
   padding: 16px;
 }
 
-/* ── Session Card ────────────────────────────────────── */
-.session-card {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 16px 20px;
-}
-
-.session-card__qr {
-  flex-shrink: 0;
-  padding: 8px;
-  background: #fff;
-  border-radius: 8px;
-}
-
-.session-card__info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.session-card__label {
-  font-size: 0.786rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--md-on-surface-variant);
-}
-
-.session-card__code {
-  font-family: 'Courier New', monospace;
-  font-size: 2.857rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--md-primary);
-  font-variant-numeric: tabular-nums;
-  margin-top: 4px;
-}
-
-.session-card__tagline {
-  font-size: 0.857rem;
-  color: var(--md-on-surface-variant);
-  margin-top: 2px;
-}
 
 /* ── Tour Summary (stops + headset info combined) ───── */
 .tour-summary {
@@ -388,7 +378,7 @@ body {
 }
 
 .section-header__title {
-  font-size: 1rem;
+  font-size: 1.2rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--md-on-surface);
@@ -405,40 +395,40 @@ body {
 }
 
 /* ── SaaS Status Row ─────────────────────────────────── */
-.saas-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 0 8px;
-}
 
 .saas-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   flex-shrink: 0;
-  background: var(--md-outline);
 }
 
-.saas-dot--connected    { background: #4ade80; }
-.saas-dot--connecting   { background: #facc15; animation: pulse 1.2s ease infinite; }
-.saas-dot--error        { background: var(--md-error); }
-.saas-dot--disconnected { background: var(--md-outline); }
+.saas-dot--connected    {background-color: var(--color-connected-ready);}
+.saas-dot--connecting   {background-color: var(--color-not-ready);}
+.saas-dot--error        { background: var(--color-warning); }
+.saas-dot--disconnected { background: grey; }
 
-.saas-label {
-  font-size: 0.857rem;
-  color: var(--md-on-surface-variant);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-}
-
-.saas-status {
-  font-size: 0.857rem;
-  color: var(--md-on-surface-variant);
-  margin-left: auto;
-}
 
 /* ── Headset List ────────────────────────────────────── */
+
+.headset-list__header {
+  display: flex;
+  align-items: center;
+  padding: 8px 0 8px;
+}
+
+.headset-list__title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.headset-list__icon {
+  padding-left: 8px;
+  font-size: 3rem;
+  color: var(--text-color);
+}
+
 .headset-items {
   list-style: none;
   display: flex;
@@ -449,42 +439,42 @@ body {
 .headset-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-height: 44px;
-  border-bottom: 1px solid var(--md-outline-variant);
+  min-height: 48px;
+  border-bottom: 1px solid var(--line-color);
 }
 
 .headset-item:last-child {
   border-bottom: none;
 }
 
-.headset-item__avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-}
-
-.headset-item__avatar--connected,
-.headset-item__avatar--online       { background: color-mix(in srgb, #4ade80 20%, transparent); color: #4ade80; }
-.headset-item__avatar--not-ready    { background: color-mix(in srgb, #fb923c 20%, transparent); color: #fb923c; }
-.headset-item__avatar--connecting   { background: color-mix(in srgb, #facc15 20%, transparent); color: #facc15; }
-.headset-item__avatar--error        { background: color-mix(in srgb, var(--md-error) 20%, transparent); color: var(--md-error); }
-.headset-item__avatar--disconnected,
-.headset-item__avatar--offline      { background: var(--md-surface-container-highest); color: var(--md-on-surface-variant); }
-
 .headset-item__label {
   flex: 1;
   font-size: 1rem;
-  color: var(--md-on-surface);
+  color: var(--text-color);
 }
 
 .headset-item__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.857rem;
-  color: var(--md-on-surface-variant);
+  color: var(--text-color);
 }
+
+.headset-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.headset-item__dot--online {background-color: var(--color-connected-ready);}
+.headset-item__dot--connected  {background-color: var(--color-connected-ready);}
+.headset-item__dot--not-ready {background-color: var(--color-not-ready);}
+.headset-item__dot--connecting {background-color: var(--color-not-ready);}
+.headset-item__dot--error      { background: var(--color-warning); }
+.headset-item__dot--offline { background-color: grey;}
+.headset-item__dot--disconnected { background-color: grey;}
 
 /* ── Active Scene Chip ───────────────────────────────── */
 .active-scene-chip {
@@ -677,9 +667,9 @@ body {
   width: 100%;
   height: 56px;
   border: none;
-  border-radius: 16px;
-  background: var(--md-primary);
-  color: var(--md-on-primary);
+  border-radius: 24px;
+  background: var(--color-button);
+  color: var(--color-button-text);
   font-family: var(--font-ui);
   font-size: 1.071rem;
   font-weight: 600;
@@ -839,13 +829,60 @@ body {
 
 /* ── Session Info Card ───────────────────────────────── */
 .session-info-card {
-  padding: 16px 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1rem;
 }
 
-.session-info-card__code-row {
+.session-info-card__code-block {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 6px 20px;
+  background-color: var(--color-list);
+  border-radius: 12px;
+  flex: 1 1;
+  min-width: 120px;
+  max-width: 180px;
+}
+.session-card__label {
+  font-size: 0.786rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-color);
+}
+
+.session-card__sessionId {
+  font-size: 2rem;
+  color: var(--text-color);
+  margin-top: 4px;
+}
+
+.session-info-card__sound-btn {
+  background: none;
+  cursor: pointer;
+  color: var(--text-color);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  margin-top: 4px;
+  border: none;
+}
+
+/* overwrite ms class to increase size of icon */
+.session-info-card__sound-btn .ms {
+  font-size: 4rem;
+  
+}
+
+.session-info-card__sound-btn:disabled {
+  opacity: 0.38;
+  cursor: default;
 }
 
 /* ── Tour Info Section ───────────────────────────────── */
@@ -866,6 +903,7 @@ body {
   flex-direction: column;
   gap: 8px;
   margin-top: 12px;
+  background-color: var(--color-list);
 }
 
 .headset-section .card {
@@ -899,14 +937,28 @@ body {
   min-height: 52px;
   padding: 0 16px;
   border: none;
-  border-bottom: 1px solid var(--md-outline-variant);
   background: transparent;
-  color: var(--md-on-surface);
+  color: var(--text-color);
   font-family: var(--font-ui);
   font-size: 1.071rem;
   text-align: left;
   cursor: pointer;
   width: 100%;
+  position: relative;
+}
+
+.settings-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  width: 90%;
+  height: 1px;
+  background: var(--line-color);
+}
+
+.settings-item:last-child::after {
+  display: none;
 }
 
 .settings-item:last-child {
@@ -914,7 +966,7 @@ body {
 }
 
 .settings-item--danger {
-  color: var(--md-error);
+  color: var(--color-warning);
 }
 
 .settings-item__label {
@@ -922,7 +974,7 @@ body {
 }
 
 .settings-item__arrow {
-  color: var(--md-on-surface-variant);
+  color: var(--text-color);
   font-size: 20px;
 }
 
@@ -931,9 +983,9 @@ body {
 }
 
 .settings-select {
-  background: var(--md-surface-container-high);
-  color: var(--md-on-surface);
-  border: 1px solid var(--md-outline-variant);
+  background: var(--color-list);
+  color: var(--text-color);
+  border: 1px solid var(--line-color);
   border-radius: 8px;
   padding: 4px 8px;
   font-family: var(--font-ui);
@@ -947,18 +999,18 @@ body {
   gap: 6px;
   padding: 4px 12px;
   border-radius: 999px;
-  border: 1px solid var(--md-outline-variant);
+  border: 1px solid var(--line-color);
   background: transparent;
-  color: var(--md-on-surface-variant);
+  color: var(--text-color);
   font-family: var(--font-ui);
   font-size: 0.929rem;
   cursor: pointer;
 }
 
 .settings-toggle--active {
-  background: var(--md-primary-container);
-  color: var(--md-on-primary-container);
-  border-color: transparent;
+  background: var(--color-background);
+  color: var(--text-color);
+  border-color: var(--line-color)
 }
 
 /* ── QR Modal ────────────────────────────────────────── */
@@ -1035,7 +1087,7 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1;
-  background: #F1F3F8;
+  background: var(--color-background);
 }
 
 .login-top {
@@ -1044,7 +1096,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 56px 24px 0;
-  background: #30364F;
+  background: var(--color-button);
 }
 
 .login-logo {
@@ -1120,7 +1172,7 @@ body {
   padding: 0 16px;
   border: none;
   border-radius: 12px;
-  background: #DDE3F0;
+  background: var(--color-sign-in-box);
   color: #1E2235;
   font-family: var(--font-ui);
   font-size: 1rem;
@@ -1130,8 +1182,8 @@ body {
 }
 
 .login-field__input:focus {
-  background: #D3DAF0;
-  box-shadow: 0 0 0 2px #30364F40;
+  background: var(--color-sign-in-box);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-button) 25%, transparent);
 }
 
 .login-field__password-wrap {
@@ -1159,7 +1211,7 @@ body {
 }
 
 .login-field__eye:hover {
-  background: rgba(48, 54, 79, 0.08);
+  background: color-mix(in srgb, var(--color-button) 8%, transparent);
 }
 
 .login-forgot {
@@ -1174,13 +1226,13 @@ body {
 }
 
 .login-submit {
-  background: #30364F;
+  background: var(--color-button);
   color: #fff;
   margin-top: 4px;
 }
 
 .login-submit:hover {
-  box-shadow: 0 4px 12px rgba(48, 54, 79, 0.35);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-button) 35%, transparent);
 }
 
 .login-signup {
@@ -1193,7 +1245,7 @@ body {
 .login-signup__link {
   background: none;
   border: none;
-  color: #30364F;
+  color: var(--color-button);
   font-family: var(--font-ui);
   font-size: inherit;
   font-weight: 600;

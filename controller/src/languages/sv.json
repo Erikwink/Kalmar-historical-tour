@@ -1,7 +1,7 @@
 {
   "loginPage": {
     "title": "Logga in",
-    "guidesIn": "WR turer",
+    "guidesIn": "VR turer",
     "email": "E-post",
     "city": "Kalmar",
     "emailPlaceholder": "namn@mail.com",
@@ -23,13 +23,18 @@
     "selectTour": "Välj tour"
   },
   "sessionPage": {
-    "fallbackTitle": "Översikt session",
+    "fallbackTitle": "Välkommen tillbaka, NAMN",
     "fallbackDescription": "Upplev denna fantastiska tour",
+    "connectDevice": "Anslut enhet",
+    "connectedDevices": "Anslutna enheter",
+    "sessionCode": "Sessionskod",
+    "playSound": "Spela ljud",
     "headsets": "Headsets",
     "sessionId": "Session-ID",
     "showQR": "Visa QR-kod",
     "cancel": "Avbryt",
-    "startTour": "Starta tour"
+    "startTour": "Starta tour",
+    "selectTour": "Välj tour" 
   },
   "overviewPage": {
     "activeScene": "Aktiv scen",
