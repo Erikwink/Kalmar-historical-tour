@@ -155,6 +155,9 @@ function applyTourId(rawTourId) {
 function applyActiveControls(rawActiveControls) {
   activeControlsState = resolveActiveControls(activeSceneState, rawActiveControls);
   setControlsIndicator(activeControlsState);
+  if (scene) {
+    applySceneTheme();
+  }
 }
 
 function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {
@@ -423,7 +426,13 @@ function applySceneTheme() {
   }
 
   const mode = appMode === "xr-ar" ? "xr-ar" : appMode === "xr-vr" ? "xr-vr" : "simulation";
-  const renderState = manager.setScene(activeSceneState.scene || { id: activeSceneId }, mode);
+  const renderState = manager.setScene(
+    {
+      ...(activeSceneState.scene || { id: activeSceneId }),
+      activeControls: activeControlsState.activeControls,
+    },
+    mode,
+  );
   applyLocomotionState(renderState);
   syncPreviewCamera();
 

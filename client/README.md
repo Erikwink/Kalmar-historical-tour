@@ -17,6 +17,21 @@ Open `webxr.html` through Vite and use `?session=123456` to auto-connect a scene
 The client now also reads `tourId` from the Firebase session and falls back to `kalmar-medeltid` during development until the controller has written the field.
 Active scene lookup is now resolved from the selected tour in `tours.js`, with `waiting` as the shared fallback state when a scene ID is unknown.
 The client also subscribes to `activeControls` from Firebase and resolves them against the currently active scene.
+Active `360-photo` controls are now rendered as Babylon `PhotoDome` panoramas in the sandbox and headset client.
+
+## Panorama Assets
+
+Place panorama images under `client/public/assets/<scene-id>/...` so Vite can serve them as static runtime files.
+
+Examples:
+
+- `client/public/assets/castle/image.jpg`
+- `client/public/assets/church/image.jpg`
+
+Then reference them in `tours.js` with relative `src` values such as:
+
+- `castle/image.jpg`
+- `church/image.jpg`
 
 The sandbox now includes a dedicated `locomotion-test` scene with:
 

@@ -6,6 +6,8 @@ import {
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
+import { PhotoDome } from "@babylonjs/core/Helpers/photoDome";
+import { resolveMediaAssetUrl, resolvePrimaryPanoramaControl } from "../../toursClient.js";
 
 const DEFAULT_SCENE_ID = "waiting";
 const SCENE_ALIAS = {
@@ -77,6 +79,7 @@ function normalizeSceneRef(sceneRef) {
   return {
     ...sceneRef,
     id: sceneId,
+    activeControls: Array.isArray(sceneRef.activeControls) ? sceneRef.activeControls : [],
   };
 }
 
@@ -315,6 +318,62 @@ function createMediaPlaceholder(scene, root, theme, sceneRef) {
   };
 }
 
+/**
+ * Creates a Babylon PhotoDome when the active scene exposes an active 360-photo control.
+ */
+function createPanoramaDome(scene, root, sceneRef) {
+  const panoramaControl = resolvePrimaryPanoramaControl({ activeControls: sceneRef.activeControls });
+  if (!panoramaControl) {
+    return null;
+  }
+
+  const panoramaUrl = resolveMediaAssetUrl(panoramaControl.src);
+  if (!panoramaUrl) {
+    emitSceneDebug({
+      sceneId: sceneRef.id,
+      status: "error",
+      message: `Active 360-photo control '${panoramaControl.id}' is missing a usable src value.`,
+    });
+    return null;
+  }
+
+  const dome = new PhotoDome(
+    `photo-dome-${sceneRef.id}`,
+    panoramaUrl,
+    {
+      resolution: 32,
+      size: 1000,
+      useDirectMapping: false,
+    },
+    scene,
+    (message, exception) => {
+      console.error(`[sceneCatalog] Failed to load panorama '${panoramaUrl}':`, exception || message);
+      emitSceneDebug({
+        sceneId: sceneRef.id,
+        status: "error",
+        message: `Failed to load panorama '${panoramaControl.id}'.`,
+        error: typeof message === "string" && message ? message : String(exception || "Unknown panorama load error"),
+      });
+    },
+  );
+
+  dome.parent = root;
+  dome.onLoadObservable.add(() => {
+    emitSceneDebug({
+      sceneId: sceneRef.id,
+      status: "loaded",
+      message: `Panorama loaded from active control '${panoramaControl.id}'.`,
+    });
+  });
+
+  return {
+    applyMode() {},
+    dispose() {
+      dome.dispose(false, true);
+    },
+  };
+}
+
 function buildLocomotionTestScene(scene, theme = SCENE_LIBRARY["locomotion-test"]) {
   const root = new TransformNode("scene-locomotion-test-root", scene);
   const meshes = [];
@@ -414,6 +473,7 @@ function composeScreen(scene, theme, rendererId, mode) {
   const sceneRef = {
     id: rendererId,
     label: theme.displayName,
+    activeControls: [],
   };
 
   const accent = makeColor(theme.accent);
@@ -482,7 +542,24 @@ function buildSceneHandle(scene, sceneRef, mode) {
   if (rendererId === "locomotion-test") {
     return buildLocomotionTestScene(scene, theme, mode);
   }
-  return composeScreen(scene, theme, rendererId, mode);
+  const normalizedScene = normalizeSceneRef(sceneRef);
+  const handle = composeScreen(scene, theme, rendererId, mode);
+  const panoramaHandle = createPanoramaDome(scene, handle.root, normalizedScene);
+  if (!panoramaHandle) {
+    return handle;
+  }
+
+  return {
+    ...handle,
+    applyMode(nextMode) {
+      handle.applyMode(nextMode);
+      panoramaHandle.applyMode(nextMode);
+    },
+    dispose() {
+      panoramaHandle.dispose();
+      handle.dispose();
+    },
+  };
 }
 
 export function createSceneManager(scene) {
@@ -499,6 +576,11 @@ export function createSceneManager(scene) {
       id: normalizedScene.id,
       label: normalizedScene.label || "",
       color: normalizedScene.color || "",
+      activeControls: (normalizedScene.activeControls || []).map((control) => ({
+        id: control.id || "",
+        type: control.type || "",
+        src: control.src || "",
+      })),
     });
 
     if (nextId === activeSceneId && handle && nextMode === activeMode && nextSceneSignature === activeSceneSignature) {

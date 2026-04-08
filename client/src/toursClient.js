@@ -113,3 +113,40 @@ export function resolveActiveControls(sceneState, rawActiveControls) {
     activeControls,
   };
 }
+
+/**
+ * Resolves a control src string to a browser URL.
+ * Project convention: media files should live under client/public/assets/<src>.
+ */
+export function resolveMediaAssetUrl(rawSrc) {
+  if (typeof rawSrc !== "string") {
+    return "";
+  }
+
+  const normalizedSrc = rawSrc.trim();
+  if (!normalizedSrc) {
+    return "";
+  }
+  if (/^https?:\/\//i.test(normalizedSrc) || normalizedSrc.startsWith("/")) {
+    return normalizedSrc;
+  }
+  if (normalizedSrc.startsWith("client/assets/")) {
+    return `/${normalizedSrc.replace(/^client\//, "")}`;
+  }
+  return `/assets/${normalizedSrc.replace(/^assets\//, "")}`;
+}
+
+/**
+ * Resolves the primary panorama control from the currently active controls.
+ * Until the session model tracks activation order, the last 360-photo in scene control order wins.
+ */
+export function resolvePrimaryPanoramaControl(controlsState) {
+  const panoramaControls = Array.isArray(controlsState?.activeControls)
+    ? controlsState.activeControls.filter((control) => control.type === "360-photo" && typeof control.src === "string")
+    : [];
+
+  if (!panoramaControls.length) {
+    return null;
+  }
+  return panoramaControls[panoramaControls.length - 1];
+}
