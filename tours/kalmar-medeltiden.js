@@ -17,7 +17,7 @@ export default {
           id: "castle-360",
           type: "360-photo",
           label: "Visa slottet",
-          src: "castle/image.jpg" 
+          src: "castle/castle.jpg" 
         },
         { 
           id: "castle-amb",
