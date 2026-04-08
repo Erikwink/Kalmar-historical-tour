@@ -395,7 +395,7 @@ body {
 .headset-list__icon {
   padding-left: 8px;
   font-size: 3rem;
-  color: var(--text-color);
+  color: var(--color-button);
 }
 
 .headset-items {
