@@ -10,13 +10,19 @@ import {
   WebXRDefaultExperience,
   WebXRState,
 } from "@babylonjs/core";
-import { publishMockScene, subscribeToSceneChanges, subscribeToTourIdChanges } from "./backendClient.js";
+import {
+  publishMockScene,
+  subscribeToActiveControlsChanges,
+  subscribeToSceneChanges,
+  subscribeToTourIdChanges,
+} from "./backendClient.js";
 import { createSceneManager, DEFAULT_SCENE_ID } from "./scenes/sceneCatalog.js";
-import { getSelectableScenes, resolveScene, resolveTour } from "../toursClient.js";
+import { getSelectableScenes, resolveActiveControls, resolveScene, resolveTour } from "../toursClient.js";
 
 const statusEl = document.getElementById("status");
 const tourIndicatorEl = document.getElementById("tour-indicator");
 const sceneIndicatorEl = document.getElementById("scene-indicator");
+const controlsIndicatorEl = document.getElementById("controls-indicator");
 const sessionInput = document.getElementById("session-id");
 const connectSessionButton = document.getElementById("connect-session");
 const mockSceneSelect = document.getElementById("mock-scene-select");
@@ -60,10 +66,12 @@ const support = {
 let activeTourState = resolveTour(getTourIdFromUrl());
 let activeSceneState = resolveScene(activeTourState, DEFAULT_SCENE_ID, { includeDevelopmentScenes: true });
 let activeSceneId = activeSceneState.resolvedSceneId;
+let activeControlsState = resolveActiveControls(activeSceneState, {});
 let sceneSource = "not-connected";
 let currentSessionId = "";
 let unsubscribeScene = null;
 let unsubscribeTour = null;
+let unsubscribeActiveControls = null;
 let activeLocomotion = { enabled: false, floorMeshes: [] };
 let registeredTeleportFloorMeshes = [];
 
@@ -102,6 +110,17 @@ function setSceneIndicator(sceneState) {
   sceneIndicatorEl.textContent = `Active scene: ${label} [${sceneState.resolvedSceneId}]${suffix}`;
 }
 
+function setControlsIndicator(controlsState) {
+  if (!controlsIndicatorEl) {
+    return;
+  }
+
+  const activeControlLabels = controlsState.activeControls.map((control) => control.label || control.id);
+  controlsIndicatorEl.textContent = activeControlLabels.length
+    ? `Active controls: ${activeControlLabels.join(", ")}`
+    : "Active controls: none";
+}
+
 function setSceneDebug(message, tone = "info") {
   if (!sceneDebugEl) {
     return;
@@ -121,11 +140,21 @@ function applyTourId(rawTourId) {
   populateMockSceneSelect();
 
   activeSceneState = resolveScene(activeTourState, activeSceneId, { includeDevelopmentScenes: true });
+  activeControlsState = resolveActiveControls(activeSceneState, activeControlsState.controlMap);
   activeSceneId = activeSceneState.resolvedSceneId;
   setSceneIndicator(activeSceneState);
+  setControlsIndicator(activeControlsState);
   if (scene) {
     applySceneTheme();
   }
+}
+
+/**
+ * Resolves and stores active controls for the current scene from the session control-map.
+ */
+function applyActiveControls(rawActiveControls) {
+  activeControlsState = resolveActiveControls(activeSceneState, rawActiveControls);
+  setControlsIndicator(activeControlsState);
 }
 
 function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {
@@ -405,8 +434,10 @@ function applySceneTheme() {
 
 function applySceneChange(sceneId) {
   activeSceneState = resolveScene(activeTourState, sceneId, { includeDevelopmentScenes: true });
+  activeControlsState = resolveActiveControls(activeSceneState, activeControlsState.controlMap);
   activeSceneId = activeSceneState.resolvedSceneId;
   setSceneIndicator(activeSceneState);
+  setControlsIndicator(activeControlsState);
   if (!scene) {
     const requestedSceneId = activeSceneState.requestedSceneId || activeSceneState.resolvedSceneId;
     setSceneDebug(
@@ -602,13 +633,20 @@ function connectSceneStream() {
     unsubscribeTour();
     unsubscribeTour = null;
   }
+  if (typeof unsubscribeActiveControls === "function") {
+    unsubscribeActiveControls();
+    unsubscribeActiveControls = null;
+  }
 
   const subscription = subscribeToSceneChanges(sessionId, applySceneChange);
   const tourSubscription = subscribeToTourIdChanges(sessionId, applyTourId);
+  const activeControlsSubscription = subscribeToActiveControlsChanges(sessionId, applyActiveControls);
   currentSessionId = sessionId;
   sceneSource = subscription.source;
   unsubscribeScene = typeof subscription.unsubscribe === "function" ? subscription.unsubscribe : null;
   unsubscribeTour = typeof tourSubscription.unsubscribe === "function" ? tourSubscription.unsubscribe : null;
+  unsubscribeActiveControls =
+    typeof activeControlsSubscription.unsubscribe === "function" ? activeControlsSubscription.unsubscribe : null;
   sendMockSceneButton.disabled = false;
   connectSessionButton.textContent = "Reconnect Scene Stream";
   setStatus(`Connected to onSceneChange for session ${sessionId} (${sceneSource}).`);
@@ -799,11 +837,15 @@ window.addEventListener("beforeunload", () => {
   if (typeof unsubscribeTour === "function") {
     unsubscribeTour();
   }
+  if (typeof unsubscribeActiveControls === "function") {
+    unsubscribeActiveControls();
+  }
 });
 window.addEventListener(SCENE_DEBUG_EVENT, handleSceneDebug);
 
 setTourIndicator(activeTourState);
 setSceneIndicator(activeSceneState);
+setControlsIndicator(activeControlsState);
 setSceneDebug("No scene diagnostics yet.");
 enableIdleButtons();
 initSupport();

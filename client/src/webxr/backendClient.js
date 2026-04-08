@@ -1,4 +1,4 @@
-import { onSceneChange, onTourIdChange } from "../../../saas-adapter/src/index.js"
+import { onActiveControlsChange, onSceneChange, onTourIdChange } from "../../../saas-adapter/src/index.js"
 
 const MOCK_PREFIX = "kalmar-scene"
 
@@ -112,6 +112,41 @@ export function subscribeToTourIdChanges(sessionId, callback) {
   }
 
   callback(null);
+  return {
+    source: "dev-fallback",
+    unsubscribe() {},
+  };
+}
+
+/**
+ * Returns an activeControls subscription for a session ID.
+ * Uses shared saas-adapter (Firebase) when available and falls back
+ * to an empty control-map in development mode.
+ */
+export function subscribeToActiveControlsChanges(sessionId, callback) {
+  const normalizedSessionId = normalizeSessionId(sessionId);
+  if (!normalizedSessionId) {
+    callback({});
+    return {
+      source: "invalid-session",
+      unsubscribe() {},
+    };
+  }
+
+  if (typeof onActiveControlsChange === "function") {
+    try {
+      return {
+        source: "firebase-adapter",
+        unsubscribe: onActiveControlsChange(normalizedSessionId, (activeControls) => {
+          callback(activeControls && typeof activeControls === "object" ? activeControls : {});
+        }),
+      };
+    } catch (error) {
+      console.error("[backendClient] Failed to subscribe to activeControls via Firebase adapter:", error);
+    }
+  }
+
+  callback({});
   return {
     source: "dev-fallback",
     unsubscribe() {},

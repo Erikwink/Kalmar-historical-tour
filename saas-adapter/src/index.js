@@ -26,3 +26,4 @@ export const ready = adapter.ready.bind(adapter)
 export const leave = adapter.leave.bind(adapter)           // lämna session
 export const onSceneChange = adapter.onSceneChange.bind(adapter) // lyssna på scen-kommandon
 export const onTourIdChange = adapter.onTourIdChange.bind(adapter) // lyssna på aktiv tour
+export const onActiveControlsChange = adapter.onActiveControlsChange.bind(adapter) // lyssna på aktiva controls

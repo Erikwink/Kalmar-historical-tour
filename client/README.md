@@ -16,6 +16,7 @@ npm run build
 Open `webxr.html` through Vite and use `?session=123456` to auto-connect a scene stream.
 The client now also reads `tourId` from the Firebase session and falls back to `kalmar-medeltid` during development until the controller has written the field.
 Active scene lookup is now resolved from the selected tour in `tours.js`, with `waiting` as the shared fallback state when a scene ID is unknown.
+The client also subscribes to `activeControls` from Firebase and resolves them against the currently active scene.
 
 The sandbox now includes a dedicated `locomotion-test` scene with:
 

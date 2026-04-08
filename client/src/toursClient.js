@@ -83,3 +83,33 @@ export function resolveScene(tourState, rawSceneId, { includeDevelopmentScenes =
     usedFallback: true,
   };
 }
+
+/**
+ * Normalizes the Firebase activeControls payload into a boolean map.
+ */
+export function normalizeActiveControlMap(rawActiveControls) {
+  if (!rawActiveControls || typeof rawActiveControls !== "object") {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(rawActiveControls).filter(([controlId, isActive]) => {
+      return typeof controlId === "string" && controlId.trim() && Boolean(isActive);
+    }),
+  );
+}
+
+/**
+ * Resolves the currently active controls for the given scene from the Firebase activeControls map.
+ */
+export function resolveActiveControls(sceneState, rawActiveControls) {
+  const normalizedActiveControls = normalizeActiveControlMap(rawActiveControls);
+  const availableControls = Array.isArray(sceneState?.scene?.controls) ? sceneState.scene.controls : [];
+  const activeControls = availableControls.filter((control) => normalizedActiveControls[control.id]);
+
+  return {
+    controlMap: normalizedActiveControls,
+    availableControls,
+    activeControls,
+  };
+}

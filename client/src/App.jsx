@@ -1,7 +1,7 @@
 // client/src/App.jsx
 import { useCallback, useEffect, useState } from "react";
-import { join, leave, loginClient, onSceneChange, onTourIdChange, ready } from "../../saas-adapter/src/index";
-import { resolveScene, resolveTour } from "./toursClient.js";
+import { join, leave, loginClient, onActiveControlsChange, onSceneChange, onTourIdChange, ready } from "../../saas-adapter/src/index";
+import { resolveActiveControls, resolveScene, resolveTour } from "./toursClient.js";
 /**
  * Root application component for the VR headset client.
  * Handles joining/leaving sessions and subscribing to scene changes.
@@ -41,12 +41,17 @@ function App() {
   const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
+  const [activeControlMap, setActiveControlMap] = useState({});
   const [tourState, setTourState] = useState(() => resolveTour(""));
 
   const activeTour = tourState.tour;
   const activeTourId = tourState.resolvedTourId;
   const activeTourTitle = activeTour?.title ?? activeTourId;
   const activeSceneState = resolveScene(tourState, activeSceneId);
+  const activeControlsState = resolveActiveControls(activeSceneState, activeControlMap);
+  const activeControlsDisplay = activeControlsState.activeControls.length
+    ? activeControlsState.activeControls.map((control) => control.label || control.id).join(", ")
+    : "-- none active --";
   const activeSceneDisplay = `${activeSceneState.scene?.label ?? activeSceneState.resolvedSceneId} [${activeSceneState.resolvedSceneId}]${
     activeSceneState.usedFallback ? " (fallback)" : ""
   }`;
@@ -121,6 +126,7 @@ function App() {
   useEffect(() => {
     if (!activeSessionId) {
       setTourState(resolveTour(""));
+      setActiveControlMap({});
       return;
     }
 
@@ -134,6 +140,22 @@ function App() {
       }
 
       appendLog(`Tour updated: ${resolved.resolvedTourId}`);
+    });
+
+    return unsubscribe;
+  }, [activeSessionId, appendLog]);
+
+  useEffect(() => {
+    if (!activeSessionId) {
+      setActiveControlMap({});
+      return;
+    }
+
+    const unsubscribe = onActiveControlsChange(activeSessionId, (activeControls) => {
+      const nextControlMap = activeControls && typeof activeControls === "object" ? activeControls : {};
+      setActiveControlMap(nextControlMap);
+      const nextCount = Object.keys(nextControlMap).length;
+      appendLog(`Active controls updated: ${nextCount}`);
     });
 
     return unsubscribe;
@@ -233,6 +255,14 @@ function App() {
               <input
                 type="text"
                 value={activeTourTitle}
+                readOnly
+              />
+            </div>
+            <div className="form-group">
+              <label>Aktiva controls</label>
+              <input
+                type="text"
+                value={activeControlsDisplay}
                 readOnly
               />
             </div>

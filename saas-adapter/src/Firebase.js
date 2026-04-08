@@ -125,6 +125,18 @@ export class Firebase {
   }
 
   // -----------------------------
+  // Client: lyssna på activeControls
+  // -----------------------------
+  onActiveControlsChange(sessionId, callback) {
+    const controlsRef = ref(this.db, `rooms/${sessionId}/activeControls`);
+
+    return onValue(controlsRef, (snapshot) => {
+      const value = snapshot.val();
+      callback(value && typeof value === "object" ? value : {});
+    });
+  }
+
+  // -----------------------------
   // Dev: ta bort alla rum utom 123456
   // -----------------------------
   async removeAllRooms() {
