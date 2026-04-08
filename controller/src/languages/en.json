@@ -50,7 +50,8 @@
     "waitingControls": "Waiting controls",
     "pleaseWaitForStart": "Please wait for start",
     "pleaseRemoveHeadset": "Please remove headset",
-    "endTour": "End tour"
+    "endTour": "End tour",
+    "scenesOverview": "Scenes overview"
   },
   "detailPage": {
     "title": "Detailed view",
@@ -62,6 +63,7 @@
     "tourComplete": "Tour complete",
     "backToOverview": "Back to overview",
     "lastScene": "Last scene"
+
   },
   "settingsPage": {
     "title": "Settings",

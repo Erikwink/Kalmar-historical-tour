@@ -50,7 +50,8 @@
     "waitingControls": "Väntande kontroller",
     "pleaseWaitForStart": "Vänta på start",
     "pleaseRemoveHeadset": "Ta av headset",
-    "endTour": "Avsluta tour"
+    "endTour": "Avsluta tour",
+    "scenesOverview": "Översikt scener"
   },
   "detailPage": {
     "title": "Detaljerad vy",

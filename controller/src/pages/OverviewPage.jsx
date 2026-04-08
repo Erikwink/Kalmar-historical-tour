@@ -59,7 +59,7 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
             </Section>
           )}
 
-          <Section title={t("overviewPage.scenes")}>
+          <Section title={t("overviewPage.scenesOverview")}>
             <div className="card scene-list">
               {scenes.map((scene) => (
                 <SceneBtn
@@ -88,7 +88,10 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
           </Section>
         </div>
 
-        <Fab icon="stop_circle" variant="danger" onClick={() => setShowEndModal(true)}>
+        <Fab 
+          icon="stop_circle" 
+          variant="danger" 
+          onClick={() => setShowEndModal(true)}>
           {t("overviewPage.endTour")}
         </Fab>
       </div>

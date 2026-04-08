@@ -50,9 +50,11 @@
   --color-not-ready: #FFA508;
   --color-warning: #FF6464;
 
-  --color-button-text: black;
+  --color-button-text: #FFFFFF;
   --text-color: #efefef;
   --line-color: #7f7d7d;
+  --login-wave-front: #3F4757;
+  --login-wave-back: #4A597461;
 }
 
 /* ── Font Size (sets rem base on html element) ───────── */
@@ -83,6 +85,8 @@
   --color-button-text: #efefef;
   --text-color: black;
   --line-color: #c7c5c5;
+  --login-wave-front: #EBEBEB;
+  --login-wave-back: #30364F;
 
 
   /* --md-primary:              #30364F;
@@ -468,11 +472,13 @@ body {
   gap: 8px;
   padding: 12px 16px;
   border-radius: 12px;
-  background: color-mix(in srgb, var(--scene-color, var(--md-primary)) 14%, var(--md-surface-container));
-  border: 1px solid color-mix(in srgb, var(--scene-color, var(--md-primary)) 30%, transparent);
+  background: var(--color-list);
   font-size: 1rem;
   font-weight: 500;
-  color: var(--scene-color, var(--md-primary));
+  color: var(--text-color);
+}
+.active-scene-chip-ms {
+color: var(--scene-color);
 }
 
 /* ── Scene List & Buttons ────────────────────────────── */
@@ -652,7 +658,7 @@ body {
   margin-top: auto;
 }
 
-.efab {
+.fab {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -673,11 +679,11 @@ body {
   user-select: none;
 }
 
-.efab:hover {
+.fab:hover {
   box-shadow: 0 1px 3px rgba(0, 0, 0, .3), 0 4px 8px rgba(0, 0, 0, .15);
 }
 
-.efab:disabled {
+.fab:disabled {
   opacity: 0.38;
   cursor: default;
   box-shadow: none;
@@ -689,23 +695,18 @@ body {
   gap: 12px;
 }
 
-.fab-wrap--row .efab {
+.fab-wrap--row .fab {
   flex: 1;
 }
 
-.efab--outline {
-  background: transparent;
-  color: var(--md-on-surface-variant);
-  border: 1px solid var(--md-outline-variant);
-}
 
-.efab--outline:hover {
-  background: color-mix(in srgb, var(--md-on-surface) 8%, transparent);
+.fab--danger {
+  background: var(--color-warning);
+  color: var(--text-color);
 }
-
-.efab--danger {
-  background: color-mix(in srgb, var(--md-error) 20%, var(--md-surface-container));
-  color: var(--md-error);
+.fab--seccondary {
+  background: var(--color-list);
+  color: var(--text-color);
 }
 
 /* ── Tours Page ──────────────────────────────────────── */
@@ -1071,7 +1072,7 @@ body {
   padding: 12px 16px 16px;
 }
 
-.modal__footer .efab {
+.modal__footer .fab {
   height: 44px;
   border-radius: 12px;
   font-size: 0.929rem;
@@ -1079,173 +1080,221 @@ body {
 
 /* ── Login Page ──────────────────────────────────────── */
 .login-page {
+  --wave-back: var(--login-wave-back);
+  --wave-front: var(--login-wave-front);
+
+  position: relative;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  flex: 1;
   background: var(--color-background);
+  color: var(--text-color);
 }
 
-.login-top {
-  flex: 1;
+.login-hero {
+  position: relative;
+  z-index: 1;
+  min-height: 34dvh;
+  background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 56px 24px 0;
-  background: var(--color-button);
+  padding: clamp(40px, 8vh, 72px) 24px 90px;
 }
 
 .login-logo {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  text-align: center;
 }
 
 .login-logo__sub {
-  font-size: 0.857rem;
-  color: rgba(255, 255, 255, 0.55);
-  letter-spacing: 0.06em;
+  font-size: 0.82rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  color: var(--text-color);
+  opacity: 0.95;
 }
 
 .login-logo__city {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(2.1rem, 5vw, 2.6rem);
+  line-height: 1;
   font-weight: 700;
-  color: #fff;
-  line-height: 1.1;
-}
-
-/* Berg-element mellan sektionerna */
-.login-hill-wrap {
-  padding: 0 0px;
-  margin: 16px 0 0;
+  color: var(--text-color);
 }
 
 .login-wave {
-  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
   width: 100%;
-  height: 90px;
-  flex-shrink: 0;
-  margin-top: -1px;
+  height: 70%;
+  z-index: 0;
 }
 
-.login-bottom {
+.login-wave--back {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 97%;
+  z-index: 1;
+}
+
+.login-wave--front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.login-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 28px 24px 32px;
+  background-color: transparent;
+  padding: 28px 20px 28px;
 }
 
 .login-card__heading {
+  margin: 0 0 24px;
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(2rem, 6vw, 2.4rem);
+  line-height: 1.05;
   font-weight: 700;
-  color: #1E2235;
+  color: var(--text-color);
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .login-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .login-field__label {
-  font-size: 0.929rem;
-  font-weight: 500;
-  color: #444;
-}
-
-.login-field__input {
-  height: 52px;
-  padding: 0 16px;
-  border: none;
-  border-radius: 12px;
-  background: var(--color-sign-in-box);
-  color: #1E2235;
-  font-family: var(--font-ui);
-  font-size: 1rem;
-  outline: none;
-  width: 100%;
-  transition: background 120ms, box-shadow 120ms;
-}
-
-.login-field__input:focus {
-  background: var(--color-sign-in-box);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-button) 25%, transparent);
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-color);
 }
 
 .login-field__password-wrap {
   position: relative;
 }
 
+.login-field__input {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 8px;
+  padding: 0 14px;
+  background: var(--color-sign-in-box);
+  color: #1e2235;
+  font-family: var(--font-ui);
+  font-size: 1.2rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.login-field__input::placeholder {
+  color: #7a8197;
+  opacity: 1;
+}
+
+.login-field__input:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-button) 22%, transparent);
+}
+
 .login-field__password-wrap .login-field__input {
-  padding-right: 52px;
+  padding-right: 48px;
 }
 
 .login-field__eye {
   position: absolute;
-  right: 4px;
   top: 50%;
+  right: 4px;
   transform: translateY(-50%);
-  width: 44px;
-  height: 44px;
-  border: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
   background: transparent;
-  color: #6670A0;
-  cursor: pointer;
+  color: #66708f;
   display: grid;
   place-items: center;
-  border-radius: 50%;
+  cursor: pointer;
+  border-radius: 999px;
 }
 
 .login-field__eye:hover {
-  background: color-mix(in srgb, var(--color-button) 8%, transparent);
+  background: color-mix(in srgb, var(--color-button) 10%, transparent);
 }
 
 .login-forgot {
   align-self: flex-end;
-  font-size: 0.857rem;
-  color: #6670A0;
-  background: none;
-  border: none;
-  cursor: pointer;
+  margin-top: -2px;
   padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-color);
+  opacity: 0.9;
   font-family: var(--font-ui);
+  font-size: 0.9rem;
+  line-height: 1.2;
+  cursor: pointer;
 }
 
 .login-submit {
-  background: var(--color-button);
-  color: #fff;
-  margin-top: 4px;
-}
-
-.login-submit:hover {
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--color-button) 35%, transparent);
+  margin-top: 100px;
 }
 
 .login-signup {
-  font-size: 0.929rem;
-  color: #6670A0;
+  margin-top: 12px;
+  padding-top: 24px;
   text-align: center;
-  margin-top: auto;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--text-color);
 }
 
 .login-signup__link {
+  border: 0;
+  padding: 0;
   background: none;
-  border: none;
-  color: var(--color-button);
-  font-family: var(--font-ui);
-  font-size: inherit;
+  color: var(--text-color);
+  font: inherit;
   font-weight: 600;
   cursor: pointer;
-  padding: 0;
+  text-decoration: none;
+}
+
+@media (max-width: 430px) {
+  .login-hero {
+    min-height: 200px;
+    padding: 32px 20px 58px;
+  }
+
+  .login-panel {
+    padding: 24px 20px 28px;
+  }
 }
 
 /* ── Animations ──────────────────────────────────────── */

@@ -8,12 +8,13 @@ export default function Fab({ icon, variant, disabled, onClick, children }) {
   return (
     <div className="fab-wrap">
       <button
-        className={`efab${variant ? ` efab--${variant}` : ""}`}
+        className={`fab${variant ? ` fab--${variant}` : ""}`}
         disabled={disabled}
         onClick={onClick}
       >
-        {icon && <span className="ms" style={MS_FILL}>{icon}</span>}
+        
         {children}
+        {icon && <span className="ms" style={MS_FILL}>{icon}</span>}
       </button>
     </div>
   );
