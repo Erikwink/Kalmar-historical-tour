@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSettings } from '../context/SettingsContext'
 import TopAppBar from '../components/TopAppBar'
-import { MS_FILL, MS_FILL_SM } from '../utils/iconStyles'
 
 const LANGUAGES = [
   { value: 'sv', label: 'Svenska' },
@@ -17,7 +16,7 @@ const FONT_SIZE_VALUES = ['small', 'medium', 'large']
  * Switches to an inline headset management view when the user clicks "Hantera enheter".
  * @param {{ onLogout: Function, headsets: Array, onRemoveHeadset: Function }} props
  */
-export default function SettingsPage({ onLogout, headsets = [], onRemoveHeadset }) {
+export default function SettingsPage({ onLogout, headsets = [], onRemoveHeadset, adapterStatus }) {
   const [view, setView] = useState('settings')
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -32,23 +31,21 @@ export default function SettingsPage({ onLogout, headsets = [], onRemoveHeadset 
             {headsets.length === 0 ? (
               <p className="settings-item">{t('manageHeadsetsModal.empty')}</p>
             ) : (
-              <ul className="headset-items">
+              <ul className="headset-items" style={{ padding: '0 16px' }}>
                 {headsets.map((h) => (
                   <li key={h.id} className="headset-item">
-                    <div className={`headset-item__avatar headset-item__avatar--${h.status}`}>
-                      <span className="ms" style={MS_FILL_SM}>headset_mic</span>
-                    </div>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ fontSize: '1rem', color: 'var(--md-on-surface)' }}>{h.label}</span>
-                      <span style={{ fontSize: '0.857rem', color: 'var(--md-on-surface-variant)' }}>{h.status}</span>
-                    </div>
+                    <span className="headset-item__label">{h.label}</span>
+                    <span className="headset-item__status">
+                      {h.status}
+                      <span className={`headset-item__dot headset-item__dot--${h.status}`} />
+                    </span>
                     <button
                       className="icon-btn"
-                      style={{ color: 'var(--md-error)' }}
+                      style={{ color: 'var(--color-warning)', marginLeft: '8px' }}
                       aria-label={t('manageHeadsetsModal.remove')}
                       onClick={() => onRemoveHeadset(h.id)}
                     >
-                      <span className="ms" style={MS_FILL}>delete</span>
+                      <span className="ms">delete</span>
                     </button>
                   </li>
                 ))}
@@ -121,6 +118,19 @@ export default function SettingsPage({ onLogout, headsets = [], onRemoveHeadset 
               </span>
               {theme === 'dark' ? t('settingsPage.dark') : t('settingsPage.light')}
             </button>
+          </div>
+        </div>
+
+        <div className="section-header">
+          <span className="section-header__title">System</span>
+        </div>
+        <div className="card settings-list">
+          <div className="settings-item">
+            <span className="settings-item__label">Firebase</span>
+            <span className="headset-item" style={{ gap: '6px' }}>
+              <span className="headset-status">{adapterStatus ?? '—'}</span>
+              <span className={`saas-dot saas-dot--${adapterStatus ?? 'disconnected'}`} />
+            </span>
           </div>
         </div>
 

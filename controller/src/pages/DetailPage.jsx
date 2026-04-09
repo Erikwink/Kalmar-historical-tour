@@ -5,7 +5,8 @@ import TopAppBar from "../components/TopAppBar";
 import ActiveSceneChip from "../components/ActiveSceneChip";
 import Section from "../components/Section";
 import Fab from "../components/Fab";
-import { tours } from "../../../tours/index";
+import { tours, WAITING_CONTROLS } from "../../../tours/index";
+import SceneBtn from "../components/sceneBtn";
 
 const CONTROL_ICONS = {
   "360-photo":  "panorama",
@@ -60,7 +61,7 @@ export default function DetailPage({ activeScene, activeControls, onScenePress, 
       <div className="page-content">
         <ActiveSceneChip scene={scene} label={t(`scenes.${scene.id}`, scene.label)} />
 
-        <Section title={t("detailPage.controls", "Kontroller")}>
+        <Section title={t("detailPage.views")}>
           <div className="card scene-list">
             {scene.controls.map((control) => {
               const isActive = !!activeControls[control.id];
@@ -86,6 +87,19 @@ export default function DetailPage({ activeScene, activeControls, onScenePress, 
             })}
           </div>
         </Section>
+        <Section title={t("overviewPage.waitingControls")}>
+                    <div className="card scene-list">
+                      {WAITING_CONTROLS.map((scene) => (
+                        <SceneBtn
+                          key={scene.id}
+                          scene={scene}
+                          label={t(`scenes.${scene.id}`, scene.label)}
+                          isActive={scene.id === activeScene}
+                          onClick={() => onScenePress(scene.id)}
+                        />
+                      ))}
+                    </div>
+                  </Section>
       </div>
 
       <Fab
@@ -97,6 +111,12 @@ export default function DetailPage({ activeScene, activeControls, onScenePress, 
         }}
       >
         {nextScene ? t(`scenes.${nextScene.id}`, nextScene.label) : t("detailPage.lastScene")}
+      </Fab>
+      <Fab 
+      onClick={() => navigate(`/tour?tourId=${tourId}`)}
+      variant="seccondary"
+      >
+        {t('detailPage.backToOverview')}
       </Fab>
     </div>
   );

@@ -18,10 +18,10 @@ export default function EndSessionModal({ onConfirm, onCancel }) {
         <p className="modal__message">{t("endSessionModal.message")}</p>
       </div>
       <div className="modal__footer">
-        <button className="efab efab--outline" onClick={onCancel}>
+        <button className="fab fab--outline" onClick={onCancel}>
           {t("endSessionModal.cancel")}
         </button>
-        <button className="efab efab--danger" onClick={onConfirm}>
+        <button className="fab fab--danger" onClick={onConfirm}>
           <span className="ms" style={MS_FILL}>stop_circle</span>
           {t("endSessionModal.confirm")}
         </button>
