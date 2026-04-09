@@ -29,7 +29,7 @@ export default {
          id: "castle-nar",
          type: "narration",
          label: "Berättarröst",
-         src: "client/assets/kalmar/castle/narration.mp3" 
+         src: "castle/narration.mp3" 
         },
       ],
     },
