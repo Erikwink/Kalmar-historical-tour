@@ -1,72 +1,74 @@
 /**
- * Form for entering session ID and headset label
+ * Session and headset controls card for the headset client.
  */
-function HeadsetForm({
+export default function HeadsetForm({
   sessionId,
   setSessionId,
   headsetLabel,
   setHeadsetLabel,
-  activeSceneId,
   onAddHeadset,
   onRemoveHeadset,
   onToggleReady,
   isReady,
-  activeSessionId
+  activeSessionId,
+  xrSceneUrl,
 }) {
   return (
-    <div className="card">
-      <div style={{ padding: '20px' }}>
+    <div className="card card--elevated form-card">
+      <div className="form-grid">
         <div className="form-group">
-          <label>Sessionskod (6 siffror)</label>
+          <label>Session code</label>
           <input
             type="text"
             value={sessionId}
             maxLength={6}
             inputMode="numeric"
             pattern="\d*"
-            onChange={(e) =>
-              setSessionId(e.target.value.replace(/\D/g, "").slice(0, 6))
-            }
+            placeholder="123456"
+            onChange={(event) => setSessionId(event.target.value.replace(/\D/g, "").slice(0, 6))}
           />
         </div>
 
         <div className="form-group">
-          <label>Aktiv scen</label>
-          <input type="text" value={activeSceneId} readOnly />
-        </div>
-
-        <div className="form-group">
-          <label>Headset‑id/namn</label>
+          <label>Headset label</label>
           <input
             type="text"
             value={headsetLabel}
             maxLength={20}
-            onChange={(e) => setHeadsetLabel(e.target.value)}
+            placeholder="Quest Pro"
+            onChange={(event) => setHeadsetLabel(event.target.value)}
           />
         </div>
+      </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-          <button
-            onClick={onAddHeadset}
-            disabled={!sessionId || sessionId.length < 6}
-          >
-            Lägg till headset
-          </button>
-          <button onClick={onRemoveHeadset} disabled={!activeSessionId}>
-            Ta bort headset
-          </button>
-        </div>
-
-        <button
-          onClick={onToggleReady}
-          disabled={!activeSessionId}
-          style={{ marginTop: '8px', width: '100%' }}
-        >
-          {isReady ? "Inte redo" : "Jag är redo"}
+      <div className="button-row">
+        <button onClick={onAddHeadset} disabled={!sessionId || sessionId.length < 6}>
+          Connect headset
         </button>
+        <button className="button--secondary" onClick={onRemoveHeadset} disabled={!activeSessionId}>
+          Remove headset
+        </button>
+      </div>
+
+      <div className="button-stack">
+        <button onClick={onToggleReady} disabled={!activeSessionId}>
+          {isReady ? "Mark as not ready" : "I am ready"}
+        </button>
+        <a
+          className={`action-link${activeSessionId ? "" : " action-link--disabled"}`}
+          href={activeSessionId ? xrSceneUrl : undefined}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-disabled={!activeSessionId}
+          onClick={(event) => {
+            if (!activeSessionId) {
+              event.preventDefault();
+            }
+          }}
+        >
+          Open WebXR scene
+        </a>
       </div>
     </div>
   );
 }
-
-export default HeadsetForm;

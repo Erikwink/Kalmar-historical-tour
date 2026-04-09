@@ -1,21 +1,16 @@
 /**
- * Activity log component showing headset actions and status updates, only for development and debugging purposes.
+ * Development log for local session and headset events.
  */
-function ActivityLog({ log }) {
+export default function ActivityLog({ log }) {
   return (
-    <div>
-      <div className="section-header">
-        <span className="section-header__title">Aktivitet</span>
-      </div>
+    <div className="card card--elevated log-card">
       <div className="log-section">
         {log.length === 0 ? (
-          <div className="log-line" style={{ opacity: 0.5 }}>
-            -- ingen aktivitet --
-          </div>
+          <div className="log-line log-line--empty">No activity yet.</div>
         ) : (
-          log.map((l, i) => (
-            <div key={i} className="log-line">
-              {l}
+          log.map((entry, index) => (
+            <div key={index} className="log-line">
+              {entry}
             </div>
           ))
         )}
@@ -23,5 +18,3 @@ function ActivityLog({ log }) {
     </div>
   );
 }
-
-export default ActivityLog;
