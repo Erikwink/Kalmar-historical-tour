@@ -314,6 +314,69 @@ input:focus {
   border-color: var(--color-button);
 }
 
+.headset-form__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.headset-form__button {
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  font-family: var(--font-ui);
+  font-size: 0.938rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.headset-form__button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.16);
+}
+
+.headset-form__button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.headset-form__button:disabled {
+  opacity: 0.38;
+  cursor: default;
+  box-shadow: none;
+  transform: none;
+}
+
+.headset-form__button--primary {
+  background: linear-gradient(180deg, #5bb9d8 0%, var(--color-button) 100%);
+  color: var(--color-button-text);
+}
+
+.headset-form__button--secondary {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--md-on-surface);
+  border-color: var(--md-outline-variant);
+}
+
+.headset-form__button--secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.headset-form__button--ready {
+  width: 100%;
+  margin-top: 10px;
+  background: linear-gradient(180deg, #38b963 0%, var(--color-connected-ready) 100%);
+  color: #f7fff9;
+  box-shadow: 0 8px 18px rgba(44, 153, 52, 0.18);
+}
+
 .fab-wrap {
   padding: 16px 0 0;
 }
@@ -405,6 +468,10 @@ input:focus {
 
   .session-info-card__code-block {
     max-width: none;
+  }
+
+  .headset-form__actions {
+    grid-template-columns: 1fr;
   }
 
   .client-action-row {

@@ -1,12 +1,17 @@
 /**
- * Development log for local session and headset events.
+ * Activity log for development and debugging.
  */
 export default function ActivityLog({ log }) {
   return (
-    <div className="card log-card">
+    <div>
+      <div className="section-header">
+        <span className="section-header__title">Aktivitet</span>
+      </div>
       <div className="log-section">
         {log.length === 0 ? (
-          <div className="log-line log-line--empty">No activity yet.</div>
+          <div className="log-line" style={{ opacity: 0.5 }}>
+            -- ingen aktivitet --
+          </div>
         ) : (
           log.map((entry, index) => (
             <div key={index} className="log-line">

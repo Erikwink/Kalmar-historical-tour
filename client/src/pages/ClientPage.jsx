@@ -18,11 +18,7 @@ import {
 } from "../utils/sessionStorage";
 import { resolveActiveControls, resolveScene, resolveTour } from "../toursClient.js";
 import ActivityLog from "../components/ActivityLog";
-import ActiveSceneChip from "../components/ActiveSceneChip";
-import ClientStatusBar from "../components/ClientStatusBar";
 import HeadsetForm from "../components/HeadsetForm";
-import Section from "../components/Section";
-import SessionSummaryCard from "../components/SessionSummaryCard";
 import TopAppBar from "../components/TopAppBar";
 
 /**
@@ -46,14 +42,10 @@ export default function ClientPage() {
   const activeControlsState = resolveActiveControls(activeSceneState, activeControlMap);
   const activeTour = tourState.tour;
   const activeTourId = tourState.resolvedTourId;
-  const activeTourTitle = activeTour?.title ?? activeTourId;
   const activeSceneLabel = activeSceneState.scene?.label ?? activeSceneState.resolvedSceneId;
   const activeSceneDisplay = `${activeSceneLabel} [${activeSceneState.resolvedSceneId}]${
     activeSceneState.usedFallback ? " (fallback)" : ""
   }`;
-  const activeControlsDisplay = activeControlsState.activeControls.length
-    ? activeControlsState.activeControls.map((control) => control.label || control.id).join(", ")
-    : "No active controls";
   const xrSceneUrl = activeSessionId
     ? `${window.location.origin}/webxr.html?session=${activeSessionId}&tourId=${encodeURIComponent(activeTourId)}`
     : "";
@@ -112,6 +104,7 @@ export default function ClientPage() {
         setActiveSceneId(DEFAULT_SCENE_ID);
         setActiveControlMap({});
         setTourState(resolveTour(""));
+        appendLog("Rensade aktiv tour och controls.");
         return;
       }
 
@@ -149,7 +142,8 @@ export default function ClientPage() {
     const unsubscribe = onActiveControlsChange(activeSessionId, (activeControls) => {
       const nextControlMap = activeControls && typeof activeControls === "object" ? activeControls : {};
       setActiveControlMap(nextControlMap);
-      appendLog(`Active controls updated: ${Object.keys(nextControlMap).length}`);
+      const activeCount = Object.keys(nextControlMap).length;
+      appendLog(`Aktiva controls uppdaterade: ${activeCount}`);
     });
 
     return unsubscribe;
@@ -173,9 +167,10 @@ export default function ClientPage() {
       setSessionEnded(false);
       setActiveSceneId(DEFAULT_SCENE_ID);
       setActiveControlMap({});
-      appendLog(`Headset connected to session ${normalizedSession}.`);
+      setTourState(resolveTour(""));
+      appendLog(`Headset ansluten till session ${normalizedSession}.`);
     } catch (error) {
-      appendLog(`Join failed: ${error.message}`);
+      appendLog(`Fel vid headset: ${error.message}`);
     }
   };
 
@@ -186,9 +181,12 @@ export default function ClientPage() {
     try {
       await ready(activeSessionId, headsetId, !isReady);
       setIsReady(!isReady);
-      appendLog(!isReady ? "Headset marked as ready." : "Headset marked as not ready.");
+      if (!isReady && xrSceneUrl) {
+        window.open(xrSceneUrl, "_blank");
+      }
+      appendLog(!isReady ? "Headset är nu redo." : "Headset är inte längre redo.");
     } catch (error) {
-      appendLog(`Ready update failed: ${error.message}`);
+      appendLog(`Fel vid ready: ${error.message}`);
     }
   };
 
@@ -211,54 +209,44 @@ export default function ClientPage() {
       setActiveSceneId(DEFAULT_SCENE_ID);
       setActiveControlMap({});
       setTourState(resolveTour(""));
-      appendLog("Headset removed from the session.");
+      appendLog("Headset har lämnat sessionen.");
     } catch (error) {
-      appendLog(`Leave failed: ${error.message}`);
+      appendLog(`Fel vid headset: ${error.message}`);
     }
   };
 
   return (
     <div className="page">
-      <TopAppBar
-        title="Kalmar Historical Tour"
-        subtitle="Join a guide session, mark the headset as ready, and open the WebXR runtime on the connected device."
-      />
+      <TopAppBar title="Kalmar Historical Tour" />
 
       <div className="page-content">
-        <Section title="Current context">
-          <SessionSummaryCard
-            sessionId={activeSessionId}
-            headsetId={headsetId}
-            activeTourTitle={activeTourTitle}
-            activeSceneDisplay={activeSceneDisplay}
-            activeControlsDisplay={activeControlsDisplay}
-          />
-        </Section>
+        <HeadsetForm
+          sessionId={sessionId}
+          setSessionId={setSessionId}
+          headsetLabel={headsetLabel}
+          setHeadsetLabel={setHeadsetLabel}
+          activeSceneId={activeSceneDisplay}
+          onAddHeadset={handleAddHeadset}
+          onRemoveHeadset={handleRemoveHeadset}
+          onToggleReady={handleToggleReady}
+          isReady={isReady}
+          activeSessionId={activeSessionId}
+        />
 
-        <ClientStatusBar activeSessionId={activeSessionId} isReady={isReady} sessionEnded={sessionEnded} />
-
-        <Section title="Active scene" action={activeSessionId ? <span className="section-header__badge">Connected</span> : null}>
-          <ActiveSceneChip label={activeSceneDisplay} color={activeSceneState.scene?.color || "#4FD8EB"} />
-        </Section>
-
-        <Section title="Headset controls" action={<span className="section-header__badge">{activeSessionId ? "Connected" : "Idle"}</span>}>
-          <HeadsetForm
-            sessionId={sessionId}
-            setSessionId={setSessionId}
-            headsetLabel={headsetLabel}
-            setHeadsetLabel={setHeadsetLabel}
-            onAddHeadset={handleAddHeadset}
-            onRemoveHeadset={handleRemoveHeadset}
-            onToggleReady={handleToggleReady}
-            isReady={isReady}
-            activeSessionId={activeSessionId}
-            xrSceneUrl={xrSceneUrl}
-          />
-        </Section>
-
-        <Section title="Activity log" action={<span className="section-header__badge">{log.length} events</span>}>
-          <ActivityLog log={log} />
-        </Section>
+        <ActivityLog
+          log={[
+            ...log,
+            ...(sessionEnded ? ["Sessionen avslutades av guide."] : []),
+            ...(activeTour ? [`Aktiv tour: ${activeTour.title} [${activeTourId}]`] : []),
+            ...(activeControlsState.activeControls.length
+              ? [
+                  `Aktiva controls: ${activeControlsState.activeControls
+                    .map((control) => control.label || control.id)
+                    .join(", ")}`,
+                ]
+              : []),
+          ]}
+        />
       </div>
     </div>
   );

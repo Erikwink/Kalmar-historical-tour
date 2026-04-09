@@ -1,25 +1,23 @@
-import Fab from "./Fab";
-import SessionCard from "./SessionCard";
-
 /**
- * Session and headset controls using the controller-style card and action layout.
+ * Form for entering session ID and headset label.
  */
 export default function HeadsetForm({
   sessionId,
   setSessionId,
   headsetLabel,
   setHeadsetLabel,
+  activeSceneId,
   onAddHeadset,
   onRemoveHeadset,
   onToggleReady,
   isReady,
   activeSessionId,
-  xrSceneUrl,
 }) {
   return (
-    <div className="client-control-panel">
-      <div className="session-info-card">
-        <SessionCard label="Session code">
+    <div className="card">
+      <div style={{ padding: "20px" }}>
+        <div className="form-group">
+          <label>Sessionskod (6 siffror)</label>
           <input
             type="text"
             value={sessionId}
@@ -29,9 +27,15 @@ export default function HeadsetForm({
             placeholder="123456"
             onChange={(event) => setSessionId(event.target.value.replace(/\D/g, "").slice(0, 6))}
           />
-        </SessionCard>
+        </div>
 
-        <SessionCard label="Headset label">
+        <div className="form-group">
+          <label>Aktiv scen</label>
+          <input type="text" value={activeSceneId} readOnly />
+        </div>
+
+        <div className="form-group">
+          <label>Headset-id/namn</label>
           <input
             type="text"
             value={headsetLabel}
@@ -39,30 +43,25 @@ export default function HeadsetForm({
             placeholder="Quest Pro"
             onChange={(event) => setHeadsetLabel(event.target.value)}
           />
-        </SessionCard>
-      </div>
+        </div>
 
-      <div className="client-action-row">
-        <Fab onClick={onAddHeadset} disabled={!sessionId || sessionId.length < 6}>
-          Connect headset
-        </Fab>
-        <Fab variant="seccondary" onClick={onRemoveHeadset} disabled={!activeSessionId}>
-          Remove headset
-        </Fab>
-      </div>
+        <div className="headset-form__actions">
+          <button className="headset-form__button headset-form__button--primary" onClick={onAddHeadset} disabled={!sessionId || sessionId.length < 6}>
+            Lägg till headset
+          </button>
+          <button className="headset-form__button headset-form__button--secondary" onClick={onRemoveHeadset} disabled={!activeSessionId}>
+            Ta bort headset
+          </button>
+        </div>
 
-      <Fab onClick={onToggleReady} disabled={!activeSessionId}>
-          {isReady ? "Mark as not ready" : "I am ready"}
-      </Fab>
-      <Fab
-          variant="seccondary"
-          href={activeSessionId ? xrSceneUrl : undefined}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          className="headset-form__button headset-form__button--ready"
+          onClick={onToggleReady}
           disabled={!activeSessionId}
         >
-          Open WebXR scene
-      </Fab>
+          {isReady ? "Inte redo" : "Jag är redo"}
+        </button>
+      </div>
     </div>
   );
 }
