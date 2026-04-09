@@ -150,3 +150,27 @@ export function resolvePrimaryPanoramaControl(controlsState) {
   }
   return panoramaControls[panoramaControls.length - 1];
 }
+
+/**
+ * Returns only the active controls that affect scene rendering.
+ * Audio and narration are handled separately and should not force a panorama rebuild.
+ */
+export function getRenderableSceneControls(activeControls) {
+  const controls = Array.isArray(activeControls) ? activeControls : [];
+  return controls.filter((control) => {
+    return control?.type === "360-photo" || control?.type === "360-video" || control?.type === "flat-video";
+  });
+}
+
+/**
+ * Creates a stable signature for the active controls that affect visual scene rendering.
+ */
+export function getRenderableSceneControlSignature(activeControls) {
+  return JSON.stringify(
+    getRenderableSceneControls(activeControls).map((control) => ({
+      id: control.id || "",
+      type: control.type || "",
+      src: control.src || "",
+    })),
+  );
+}

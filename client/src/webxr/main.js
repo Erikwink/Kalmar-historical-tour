@@ -18,7 +18,13 @@ import {
 } from "./backendClient.js";
 import { createAudioPlaybackManager } from "./audioPlayback.js";
 import { createSceneManager, DEFAULT_SCENE_ID } from "./scenes/sceneCatalog.js";
-import { getSelectableScenes, resolveActiveControls, resolveScene, resolveTour } from "../toursClient.js";
+import {
+  getRenderableSceneControlSignature,
+  getSelectableScenes,
+  resolveActiveControls,
+  resolveScene,
+  resolveTour,
+} from "../toursClient.js";
 
 const statusEl = document.getElementById("status");
 const tourIndicatorEl = document.getElementById("tour-indicator");
@@ -237,11 +243,16 @@ function applyTourId(rawTourId) {
  * Resolves and stores active controls for the current scene from the session control-map.
  */
 function applyActiveControls(rawActiveControls) {
+  const previousRenderableSignature = getRenderableSceneControlSignature(activeControlsState.activeControls);
   activeControlsState = resolveActiveControls(activeSceneState, rawActiveControls);
   setControlsIndicator(activeControlsState);
-  if (scene) {
+  const nextRenderableSignature = getRenderableSceneControlSignature(activeControlsState.activeControls);
+  if (scene && previousRenderableSignature !== nextRenderableSignature) {
     applySceneTheme();
+    return;
   }
+
+  syncActiveMediaPlayback();
 }
 
 function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {

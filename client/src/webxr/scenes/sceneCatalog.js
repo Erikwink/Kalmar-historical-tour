@@ -7,7 +7,11 @@ import {
   Vector3,
 } from "@babylonjs/core";
 import { PhotoDome } from "@babylonjs/core/Helpers/photoDome";
-import { resolveMediaAssetUrl, resolvePrimaryPanoramaControl } from "../../toursClient.js";
+import {
+  getRenderableSceneControls,
+  resolveMediaAssetUrl,
+  resolvePrimaryPanoramaControl,
+} from "../../toursClient.js";
 
 const DEFAULT_SCENE_ID = "waiting";
 const SCENE_ALIAS = {
@@ -576,7 +580,7 @@ export function createSceneManager(scene) {
       id: normalizedScene.id,
       label: normalizedScene.label || "",
       color: normalizedScene.color || "",
-      activeControls: (normalizedScene.activeControls || []).map((control) => ({
+      activeControls: getRenderableSceneControls(normalizedScene.activeControls || []).map((control) => ({
         id: control.id || "",
         type: control.type || "",
         src: control.src || "",
