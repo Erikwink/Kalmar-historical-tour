@@ -37,7 +37,8 @@ cd controller && npm install && cd ..
 cd saas-adapter && npm install && cd ..
 ```
 
-Copy `saas-adapter/example.env` to `controller/.env` and `client/.env` and fill in your Firebase credentials.
+Copy `saas-adapter/example.env` to `controller/.env` and `client/.env` and fill in your Firebase credentials. In `controller/.env` you also need to add `VITE_FIREBASE_EMAIL` and
+`VITE_FIREBASE_PASSWORD`.
 
 Start both apps:
 

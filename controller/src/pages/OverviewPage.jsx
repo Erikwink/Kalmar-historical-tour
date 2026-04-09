@@ -3,13 +3,14 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SceneBtn from "../components/sceneBtn";
 import EndSessionModal from "../components/endSessionModal";
-import HeadsetSummary from "../components/HeadsetSummary";
+import HeadsetStatusBar from "../components/HeadsetStatusBar";
 import TopAppBar from "../components/TopAppBar";
 import ActiveSceneChip from "../components/ActiveSceneChip";
 import Section from "../components/Section";
 import Fab from "../components/Fab";
 import { tours, WAITING_CONTROLS } from "../../../tours/index";
 import { setTourId } from "../../../saas-adapter/src/index";
+import TourSummaryCard from './../components/TourSummaryCard';
 
 /**
  * Active tour control page — lets the guide select which scene headsets should display.
@@ -35,39 +36,22 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
   // Search both scenes and waiting controls to find the currently active one
   const currentScene = [...scenes, ...WAITING_CONTROLS].find((scene) => scene.id === activeScene);
 
-  /** Formats the duration of the tour. 
-   *  
-   * @param {number} minutes 
-   * @returns {string} e.g. "90min", "2h", "2h 30min" 
-   */
-  function formatDuration(minutes) {
-    if (minutes < 60) return `${minutes}min`;
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m ? `${h}h ${m}min` : `${h}h`;
-  }
-
   return (
     <>
       <div className="page">
         <TopAppBar
           title={t(`tours.${tour.id}.title`)}
-          onBack={() => navigate('/tours')}
+          onBack={() => navigate(`/tour/ready?tourId=${tourId}`)}
         />
 
         <div className="page-content">
-          <div className="card tour-summary">
-            <div className="tour-summary__meta">
-              <span>{scenes.length} {t("overviewPage.stops")}</span>
-              {tour?.durationMinutes && (
-                <span> · {formatDuration(tour.durationMinutes)}</span>
-              )}
-            </div>
-            <hr className="tour-summary__divider" />
-            <div className="headset-info__meta">
-              <HeadsetSummary headsets={headsets} />
-            </div>
-          </div>
+            <TourSummaryCard 
+              tour={tour} 
+              scenes={scenes} 
+            />
+            
+            <HeadsetStatusBar headsets={headsets} />
+
 
           {currentScene && (
             <Section title={t("overviewPage.activeScene")}>
@@ -75,7 +59,7 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
             </Section>
           )}
 
-          <Section title={t("overviewPage.scenes")}>
+          <Section title={t("overviewPage.scenesOverview")}>
             <div className="card scene-list">
               {scenes.map((scene) => (
                 <SceneBtn
@@ -104,7 +88,10 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
           </Section>
         </div>
 
-        <Fab icon="stop_circle" variant="danger" onClick={() => setShowEndModal(true)}>
+        <Fab 
+          icon="stop_circle" 
+          variant="danger" 
+          onClick={() => setShowEndModal(true)}>
           {t("overviewPage.endTour")}
         </Fab>
       </div>

@@ -12,21 +12,20 @@ export default function ToursPage() {
 
   return (
     <div className="page">
-      <TopAppBar title="" onBack={() => navigate('/')} />
+      <TopAppBar title={t("toursPage.selectTour")} onBack={() => navigate('/')} />
 
       <div className="page-content">
         <div className="tours-header">
-          <span className="tours-header__sub">{t('toursPage.guidesIn')}</span>
           <h2 className="tours-header__city">{t('toursPage.city')}</h2>
         </div>
 
-        <Section title={t('toursPage.selectTour')}>
+        <Section title="">
           <div className="tour-grid">
             {tours.map(tour => (
               <TourCard
                 key={tour.id}
                 tour={tour}
-                onClick={() => navigate(`/tour?tourId=${tour.id}`)}
+                onClick={() => navigate(`/tour/ready?tourId=${tour.id}`)}
               />
             ))}
           </div>
