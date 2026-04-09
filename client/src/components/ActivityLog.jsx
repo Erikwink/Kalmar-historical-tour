@@ -3,7 +3,7 @@
  */
 export default function ActivityLog({ log }) {
   return (
-    <div className="card card--elevated log-card">
+    <div className="card log-card">
       <div className="log-section">
         {log.length === 0 ? (
           <div className="log-line log-line--empty">No activity yet.</div>

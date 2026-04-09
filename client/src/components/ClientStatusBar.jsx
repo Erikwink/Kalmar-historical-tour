@@ -17,13 +17,18 @@ export default function ClientStatusBar({ activeSessionId, isReady, sessionEnded
   return (
     <div className="card headset-status-bar-wrapper">
       <div className={`headset-status-bar headset-status-bar--${variant}`}>
-        <span className="headset-status-bar__icon" aria-hidden="true">
-          {variant === "warning" ? "!" : "●"}
+        <span className="ms headset-status-bar__icon" aria-hidden="true">
+          headset_mic
         </span>
         <span className="headset-status-bar__text">
           <strong>{title}</strong>
           <span className="headset-status-bar__detail">{detail}</span>
         </span>
+        {variant === "warning" ? (
+          <span className="ms headset-status-bar__warning" aria-hidden="true">
+            warning
+          </span>
+        ) : null}
       </div>
     </div>
   );

@@ -221,25 +221,27 @@ export default function ClientPage() {
     <div className="page">
       <TopAppBar
         title="Kalmar Historical Tour"
-        subtitle="Join a guide session, inspect the current XR state, and open the WebXR runtime on the connected device."
+        subtitle="Join a guide session, mark the headset as ready, and open the WebXR runtime on the connected device."
       />
 
       <div className="page-content">
-        <SessionSummaryCard
-          sessionId={activeSessionId}
-          headsetId={headsetId}
-          activeTourTitle={activeTourTitle}
-          activeSceneDisplay={activeSceneDisplay}
-          activeControlsDisplay={activeControlsDisplay}
-        />
+        <Section title="Current context">
+          <SessionSummaryCard
+            sessionId={activeSessionId}
+            headsetId={headsetId}
+            activeTourTitle={activeTourTitle}
+            activeSceneDisplay={activeSceneDisplay}
+            activeControlsDisplay={activeControlsDisplay}
+          />
+        </Section>
 
         <ClientStatusBar activeSessionId={activeSessionId} isReady={isReady} sessionEnded={sessionEnded} />
 
-        <Section title="Active scene">
+        <Section title="Active scene" action={activeSessionId ? <span className="section-header__badge">Connected</span> : null}>
           <ActiveSceneChip label={activeSceneDisplay} color={activeSceneState.scene?.color || "#4FD8EB"} />
         </Section>
 
-        <Section title="Headset controls" badge={activeSessionId ? "Connected" : "Idle"}>
+        <Section title="Headset controls" action={<span className="section-header__badge">{activeSessionId ? "Connected" : "Idle"}</span>}>
           <HeadsetForm
             sessionId={sessionId}
             setSessionId={setSessionId}
@@ -254,7 +256,7 @@ export default function ClientPage() {
           />
         </Section>
 
-        <Section title="Activity log" badge={`${log.length} events`}>
+        <Section title="Activity log" action={<span className="section-header__badge">{log.length} events</span>}>
           <ActivityLog log={log} />
         </Section>
       </div>

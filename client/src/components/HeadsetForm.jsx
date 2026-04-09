@@ -1,5 +1,8 @@
+import Fab from "./Fab";
+import SessionCard from "./SessionCard";
+
 /**
- * Session and headset controls card for the headset client.
+ * Session and headset controls using the controller-style card and action layout.
  */
 export default function HeadsetForm({
   sessionId,
@@ -14,10 +17,9 @@ export default function HeadsetForm({
   xrSceneUrl,
 }) {
   return (
-    <div className="card card--elevated form-card">
-      <div className="form-grid">
-        <div className="form-group">
-          <label>Session code</label>
+    <div className="client-control-panel">
+      <div className="session-info-card">
+        <SessionCard label="Session code">
           <input
             type="text"
             value={sessionId}
@@ -27,10 +29,9 @@ export default function HeadsetForm({
             placeholder="123456"
             onChange={(event) => setSessionId(event.target.value.replace(/\D/g, "").slice(0, 6))}
           />
-        </div>
+        </SessionCard>
 
-        <div className="form-group">
-          <label>Headset label</label>
+        <SessionCard label="Headset label">
           <input
             type="text"
             value={headsetLabel}
@@ -38,37 +39,30 @@ export default function HeadsetForm({
             placeholder="Quest Pro"
             onChange={(event) => setHeadsetLabel(event.target.value)}
           />
-        </div>
+        </SessionCard>
       </div>
 
-      <div className="button-row">
-        <button onClick={onAddHeadset} disabled={!sessionId || sessionId.length < 6}>
+      <div className="client-action-row">
+        <Fab onClick={onAddHeadset} disabled={!sessionId || sessionId.length < 6}>
           Connect headset
-        </button>
-        <button className="button--secondary" onClick={onRemoveHeadset} disabled={!activeSessionId}>
+        </Fab>
+        <Fab variant="seccondary" onClick={onRemoveHeadset} disabled={!activeSessionId}>
           Remove headset
-        </button>
+        </Fab>
       </div>
 
-      <div className="button-stack">
-        <button onClick={onToggleReady} disabled={!activeSessionId}>
+      <Fab onClick={onToggleReady} disabled={!activeSessionId}>
           {isReady ? "Mark as not ready" : "I am ready"}
-        </button>
-        <a
-          className={`action-link${activeSessionId ? "" : " action-link--disabled"}`}
+      </Fab>
+      <Fab
+          variant="seccondary"
           href={activeSessionId ? xrSceneUrl : undefined}
           target="_blank"
           rel="noopener noreferrer"
-          aria-disabled={!activeSessionId}
-          onClick={(event) => {
-            if (!activeSessionId) {
-              event.preventDefault();
-            }
-          }}
+          disabled={!activeSessionId}
         >
           Open WebXR scene
-        </a>
-      </div>
+      </Fab>
     </div>
   );
 }

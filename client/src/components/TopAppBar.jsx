@@ -1,5 +1,5 @@
 /**
- * Lightweight top app bar for the headset client.
+ * Medium top app bar used by the headset client.
  */
 export default function TopAppBar({ title, subtitle }) {
   return (
