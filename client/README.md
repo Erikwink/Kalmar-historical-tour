@@ -18,6 +18,7 @@ The client now also reads `tourId` from the Firebase session and falls back to `
 Active scene lookup is now resolved from the selected tour in `tours.js`, with `waiting` as the shared fallback state when a scene ID is unknown.
 The client also subscribes to `activeControls` from Firebase and resolves them against the currently active scene.
 Active `360-photo` controls are now rendered as Babylon `PhotoDome` panoramas in the sandbox and headset client.
+Active `audio` controls loop in the browser audio layer, while `narration` controls play once and temporarily duck ambient audio volume.
 
 ## Panorama Assets
 
@@ -32,6 +33,18 @@ Then reference them in `tours.js` with relative `src` values such as:
 
 - `castle/image.jpg`
 - `church/image.jpg`
+
+Place audio files under the same `client/public/assets/<scene-id>/...` tree.
+
+Examples:
+
+- `client/public/assets/castle/ambient.mp3`
+- `client/public/assets/castle/narration.mp3`
+
+Then reference them in `tours.js` with relative `src` values such as:
+
+- `castle/ambient.mp3`
+- `castle/narration.mp3`
 
 The sandbox now includes a dedicated `locomotion-test` scene with:
 

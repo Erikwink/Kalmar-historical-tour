@@ -16,6 +16,7 @@ import {
   subscribeToSceneChanges,
   subscribeToTourIdChanges,
 } from "./backendClient.js";
+import { createAudioPlaybackManager } from "./audioPlayback.js";
 import { createSceneManager, DEFAULT_SCENE_ID } from "./scenes/sceneCatalog.js";
 import { getSelectableScenes, resolveActiveControls, resolveScene, resolveTour } from "../toursClient.js";
 
@@ -89,6 +90,25 @@ let desktopLocomotionWasActive = false;
 const tmpForward = new Vector3();
 const tmpRight = new Vector3();
 const tmpMovement = new Vector3();
+const audioPlaybackManager = createAudioPlaybackManager({
+  onPlaybackEvent(detail) {
+    if (!detail?.message) {
+      return;
+    }
+
+    const tone = detail.status === "error" ? "error" : detail.status === "loaded" ? "success" : "info";
+    const errorSuffix = detail.error ? ` Error: ${detail.error}` : "";
+    const debugMessage = `[media] ${detail.message}${errorSuffix}`;
+    setSceneDebug(debugMessage, tone);
+
+    if (detail.status === "error") {
+      console.error(`[webxr] ${debugMessage}`);
+      return;
+    }
+
+    console.info(`[webxr] ${debugMessage}`);
+  },
+});
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -128,6 +148,16 @@ function setSceneDebug(message, tone = "info") {
 
   sceneDebugEl.textContent = message;
   sceneDebugEl.dataset.tone = tone;
+}
+
+/**
+ * Syncs active audio and narration controls to the browser media layer.
+ * Playback only runs while simulation or XR mode is active.
+ */
+function syncActiveMediaPlayback() {
+  audioPlaybackManager.sync(activeControlsState.activeControls, {
+    enabled: appMode === "simulation" || appMode === "xr-vr" || appMode === "xr-ar",
+  });
 }
 
 /**
@@ -435,6 +465,7 @@ function applySceneTheme() {
   );
   applyLocomotionState(renderState);
   syncPreviewCamera();
+  syncActiveMediaPlayback();
 
   if (renderState?.clearColor) {
     scene.clearColor = renderState.clearColor;
@@ -484,6 +515,7 @@ function handleSceneDebug(event) {
 
 function onModeChanged(mode) {
   if (!scene) {
+    syncActiveMediaPlayback();
     return;
   }
 
@@ -495,6 +527,7 @@ function onModeChanged(mode) {
   const renderState = manager.setMode(mode);
   applyLocomotionState(renderState);
   syncPreviewCamera();
+  syncActiveMediaPlayback();
   if (!renderState?.clearColor) {
     return;
   }
@@ -849,6 +882,7 @@ window.addEventListener("beforeunload", () => {
   if (typeof unsubscribeActiveControls === "function") {
     unsubscribeActiveControls();
   }
+  audioPlaybackManager.dispose();
 });
 window.addEventListener(SCENE_DEBUG_EVENT, handleSceneDebug);
 
