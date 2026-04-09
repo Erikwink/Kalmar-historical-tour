@@ -87,6 +87,8 @@ let renderLoopActive = false;
 let resizeHandlerRegistered = false;
 let sceneManager = null;
 let desktopLocomotionWasActive = false;
+let autoLaunchResolved = false;
+let autoVrGestureLaunchArmed = false;
 const tmpForward = new Vector3();
 const tmpRight = new Vector3();
 const tmpMovement = new Vector3();
@@ -158,6 +160,48 @@ function syncActiveMediaPlayback() {
   audioPlaybackManager.sync(activeControlsState.activeControls, {
     enabled: appMode === "simulation" || appMode === "xr-vr" || appMode === "xr-ar",
   });
+}
+
+function isImmersiveVrPreferredRuntime() {
+  return support.vr;
+}
+
+function isBrowserSimulationPreferredRuntime() {
+  return !isImmersiveVrPreferredRuntime();
+}
+
+function isUserActivationError(error) {
+  const name = typeof error?.name === "string" ? error.name : "";
+  const message = typeof error?.message === "string" ? error.message : "";
+  return (
+    name === "SecurityError" ||
+    /user activation|transient activation|gesture|requestsession/i.test(message)
+  );
+}
+
+async function handleAutoVrGestureLaunch() {
+  disarmAutoVrGestureLaunch();
+  await maybeAutoLaunchPreferredMode("gesture");
+}
+
+function armAutoVrGestureLaunch() {
+  if (autoVrGestureLaunchArmed || autoLaunchResolved || !isImmersiveVrPreferredRuntime()) {
+    return;
+  }
+
+  autoVrGestureLaunchArmed = true;
+  window.addEventListener("pointerdown", handleAutoVrGestureLaunch, { once: true, passive: true });
+  window.addEventListener("keydown", handleAutoVrGestureLaunch, { once: true });
+}
+
+function disarmAutoVrGestureLaunch() {
+  if (!autoVrGestureLaunchArmed) {
+    return;
+  }
+
+  autoVrGestureLaunchArmed = false;
+  window.removeEventListener("pointerdown", handleAutoVrGestureLaunch);
+  window.removeEventListener("keydown", handleAutoVrGestureLaunch);
 }
 
 /**
@@ -767,6 +811,7 @@ async function startXR(mode) {
     );
     syncXRTeleportationState();
     setStatus(`${mode} active. Rendering Babylon.js scene '${activeSceneId}'.`);
+    return { started: true, error: null };
   } catch (error) {
     appMode = "idle";
     onModeChanged(appMode);
@@ -776,6 +821,7 @@ async function startXR(mode) {
     applySceneTheme();
     syncXRTeleportationState();
     setStatus(`Could not start ${mode}: ${error.message}`);
+    return { started: false, error };
   }
 }
 
@@ -795,10 +841,12 @@ function startSimulation() {
 
     startRenderLoop();
     setStatus(`Simulation active. Rendering scene '${activeSceneId}'.`);
+    return { started: true, error: null };
   } catch (error) {
     appMode = "idle";
     enableIdleButtons();
     setStatus(`Could not start simulation: ${error.message}`);
+    return { started: false, error };
   }
 }
 
@@ -819,16 +867,54 @@ async function endCurrentSession() {
   }
 }
 
+/**
+ * Chooses the preferred startup mode for the current device class.
+ * VR-capable runtimes prefer immersive-vr, while laptops and AR/non-XR devices use browser simulation.
+ */
+async function maybeAutoLaunchPreferredMode(trigger = "auto") {
+  if (autoLaunchResolved || appMode !== "idle") {
+    return;
+  }
+
+  if (isBrowserSimulationPreferredRuntime()) {
+    const result = startSimulation();
+    if (result.started) {
+      autoLaunchResolved = true;
+      setStatus(`Scene browser simulation active. Rendering scene '${activeSceneId}'.`);
+    }
+    return;
+  }
+
+  const result = await startXR("immersive-vr");
+  if (result.started) {
+    autoLaunchResolved = true;
+    disarmAutoVrGestureLaunch();
+    return;
+  }
+
+  if (trigger === "auto" && isUserActivationError(result.error)) {
+    armAutoVrGestureLaunch();
+    setStatus("VR headset detected. Press anywhere once to enter immersive VR.");
+    return;
+  }
+
+  if (trigger === "gesture") {
+    setStatus("Could not enter immersive VR from the headset browser interaction. Use Start VR to retry.");
+  }
+}
+
 async function initSupport() {
   if (!window.isSecureContext) {
     setStatus("WebXR requires a secure context (HTTPS or localhost). Simulation is available.");
     enableIdleButtons();
+    await maybeAutoLaunchPreferredMode("auto");
     return;
   }
 
   if (!("xr" in navigator)) {
     setStatus("WebXR API is not available here. Use a WebXR headset/browser for VR or AR, or use simulation.");
     enableIdleButtons();
+    await maybeAutoLaunchPreferredMode("auto");
     return;
   }
 
@@ -844,21 +930,26 @@ async function initSupport() {
 
     if (vrSupported && arSupported) {
       setStatus("WebXR ready: both immersive-vr and immersive-ar are supported.");
+      await maybeAutoLaunchPreferredMode("auto");
       return;
     }
     if (vrSupported) {
       setStatus("WebXR ready: immersive-vr is supported (immersive-ar is unavailable).");
+      await maybeAutoLaunchPreferredMode("auto");
       return;
     }
     if (arSupported) {
       setStatus("WebXR ready: immersive-ar is supported (immersive-vr is unavailable).");
+      await maybeAutoLaunchPreferredMode("auto");
       return;
     }
 
     setStatus("WebXR API is present, but immersive-vr/ar is not supported here. Simulation still works.");
+    await maybeAutoLaunchPreferredMode("auto");
   } catch (error) {
     enableIdleButtons();
     setStatus(`Could not verify WebXR support: ${error.message}`);
+    await maybeAutoLaunchPreferredMode("auto");
   }
 }
 

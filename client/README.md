@@ -19,6 +19,7 @@ Active scene lookup is now resolved from the selected tour in `tours.js`, with `
 The client also subscribes to `activeControls` from Firebase and resolves them against the currently active scene.
 Active `360-photo` controls are now rendered as Babylon `PhotoDome` panoramas in the sandbox and headset client.
 Active `audio` controls loop in the browser audio layer, while `narration` controls play once and temporarily duck ambient audio volume.
+On VR-capable headset browsers, the sandbox now prefers immersive VR on startup and falls back to a one-tap entry prompt when the browser requires a user gesture. On laptops and AR/non-VR runtimes, the page starts the browser simulation automatically instead.
 
 ## Panorama Assets
 
