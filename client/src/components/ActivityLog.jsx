@@ -1,5 +1,5 @@
 /**
- * Activity log component showing headset actions and status updates
+ * Activity log component showing headset actions and status updates, only for development and debugging purposes.
  */
 function ActivityLog({ log }) {
   return (

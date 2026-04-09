@@ -132,8 +132,10 @@ function ClientPage() {
     try {
       await ready(activeSessionId, headsetId, !isReady, xrSceneUrl);
       setIsReady(!isReady);
-      // Open the XR scene in a new tab when ready
-      window.open(xrSceneUrl, "_blank");
+      // Open the XR scene in a new tab when user is ready.
+      if (!isReady) {
+        window.open(xrSceneUrl, "_blank");
+      }
       appendLog(
         !isReady ? "Headset är nu redo." : "Headset är inte längre redo."
       );
