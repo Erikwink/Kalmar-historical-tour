@@ -89,6 +89,7 @@ let sceneManager = null;
 let desktopLocomotionWasActive = false;
 let autoLaunchResolved = false;
 let autoVrGestureLaunchArmed = false;
+let xrStartInFlight = false;
 const tmpForward = new Vector3();
 const tmpRight = new Vector3();
 const tmpMovement = new Vector3();
@@ -179,8 +180,17 @@ function isUserActivationError(error) {
   );
 }
 
-async function handleAutoVrGestureLaunch() {
+function isInteractiveLaunchTarget(target) {
+  return target instanceof Element && Boolean(target.closest("button, input, select, a, textarea"));
+}
+
+async function handleAutoVrGestureLaunch(event) {
   disarmAutoVrGestureLaunch();
+  if (isInteractiveLaunchTarget(event?.target)) {
+    armAutoVrGestureLaunch();
+    return;
+  }
+
   await maybeAutoLaunchPreferredMode("gesture");
 }
 
@@ -779,6 +789,15 @@ function onSessionEnded() {
 }
 
 async function startXR(mode) {
+  if (xrStartInFlight) {
+    return { started: false, error: new Error("XR session start already in progress.") };
+  }
+
+  if (xrExperience && xrExperience.baseExperience.state !== WebXRState.NOT_IN_XR) {
+    return { started: true, error: null };
+  }
+
+  xrStartInFlight = true;
   try {
     ensureBabylonContext();
     startRenderLoop();
@@ -822,6 +841,8 @@ async function startXR(mode) {
     syncXRTeleportationState();
     setStatus(`Could not start ${mode}: ${error.message}`);
     return { started: false, error };
+  } finally {
+    xrStartInFlight = false;
   }
 }
 
@@ -955,8 +976,16 @@ async function initSupport() {
 
 populateMockSceneSelect();
 sendMockSceneButton.disabled = false;
-startVrButton.addEventListener("click", () => startXR("immersive-vr"));
-startArButton.addEventListener("click", () => startXR("immersive-ar"));
+startVrButton.addEventListener("click", () => {
+  disarmAutoVrGestureLaunch();
+  autoLaunchResolved = true;
+  startXR("immersive-vr");
+});
+startArButton.addEventListener("click", () => {
+  disarmAutoVrGestureLaunch();
+  autoLaunchResolved = true;
+  startXR("immersive-ar");
+});
 startSimButton.addEventListener("click", startSimulation);
 endButton.addEventListener("click", endCurrentSession);
 connectSessionButton.addEventListener("click", connectSceneStream);
@@ -973,6 +1002,7 @@ window.addEventListener("beforeunload", () => {
   if (typeof unsubscribeActiveControls === "function") {
     unsubscribeActiveControls();
   }
+  disarmAutoVrGestureLaunch();
   audioPlaybackManager.dispose();
 });
 window.addEventListener(SCENE_DEBUG_EVENT, handleSceneDebug);
