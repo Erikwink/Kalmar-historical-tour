@@ -9,15 +9,13 @@ import {
   WebXRDefaultExperience,
   WebXRState,
 } from "@babylonjs/core";
-import { publishMockScene, subscribeToSceneChanges } from "./backendClient.js";
+import { subscribeToSceneChanges } from "./backendClient.js";
 import { createSceneManager, DEFAULT_SCENE_ID, SCENE_SEQUENCE } from "./scenes/sceneCatalog.js";
 
 const statusEl = document.getElementById("status");
 const sceneIndicatorEl = document.getElementById("scene-indicator");
 const sessionInput = document.getElementById("session-id");
 const connectSessionButton = document.getElementById("connect-session");
-const mockSceneSelect = document.getElementById("mock-scene-select");
-const sendMockSceneButton = document.getElementById("send-mock-scene");
 const startVrButton = document.getElementById("start-vr");
 const startArButton = document.getElementById("start-ar");
 const startSimButton = document.getElementById("start-sim");
@@ -40,7 +38,6 @@ const support = {
 
 let activeSceneId = DEFAULT_SCENE_ID;
 let sceneSource = "not-connected";
-let currentSessionId = "";
 let unsubscribeScene = null;
 
 let appMode = "idle";
@@ -153,21 +150,6 @@ function onModeChanged(mode) {
   scene.clearColor = nextColor;
 }
 
-function populateMockSceneSelect() {
-  if (!mockSceneSelect) {
-    return;
-  }
-
-  mockSceneSelect.innerHTML = "";
-  SCENE_SEQUENCE.forEach((sceneId) => {
-    const option = document.createElement("option");
-    option.value = sceneId;
-    option.textContent = sceneId;
-    mockSceneSelect.appendChild(option);
-  });
-  mockSceneSelect.value = activeSceneId;
-}
-
 function ensureSceneManager() {
   getSceneManager();
 }
@@ -266,10 +248,8 @@ function connectSceneStream() {
   }
 
   const subscription = subscribeToSceneChanges(sessionId, applySceneChange);
-  currentSessionId = sessionId;
   sceneSource = subscription.source;
   unsubscribeScene = typeof subscription.unsubscribe === "function" ? subscription.unsubscribe : null;
-  sendMockSceneButton.disabled = sceneSource !== "mock-broadcast-channel";
   connectSessionButton.textContent = "Reconnect Scene Stream";
   setStatus(`Connected to onSceneChange for session ${sessionId} (${sceneSource}).`);
 }
@@ -283,22 +263,6 @@ function bootstrapFromQuery() {
   sessionInput.value = sessionFromUrl;
   setStatus(`Auto-connecting to session ${sessionFromUrl} from URL...`);
   connectSceneStream();
-}
-
-function sendMockScene() {
-  if (!currentSessionId) {
-    setStatus("Connect a session before sending a mock scene.");
-    return;
-  }
-
-  if (sceneSource !== "mock-broadcast-channel") {
-    setStatus("Mock scenes can only be sent when the mock BroadcastChannel is active.");
-    return;
-  }
-
-  const sceneId = mockSceneSelect.value;
-  publishMockScene(currentSessionId, sceneId);
-  setStatus(`Mock scene sent: ${sceneId}`);
 }
 
 function onSessionEnded() {
@@ -438,13 +402,11 @@ async function initSupport() {
   }
 }
 
-populateMockSceneSelect();
 startVrButton.addEventListener("click", () => startXR("immersive-vr"));
 startArButton.addEventListener("click", () => startXR("immersive-ar"));
 startSimButton.addEventListener("click", startSimulation);
 endButton.addEventListener("click", endCurrentSession);
 connectSessionButton.addEventListener("click", connectSceneStream);
-sendMockSceneButton.addEventListener("click", sendMockScene);
 window.addEventListener("beforeunload", () => {
   if (typeof unsubscribeScene === "function") {
     unsubscribeScene();
