@@ -43,7 +43,7 @@ export default {
           id: "church-360",
           type: "360-photo",
           label: "Visa kyrkan",
-          src: "church/image.jpg" 
+          src: "church/church-tonemapped.jpg" 
         },
         { 
           id: "church-org",

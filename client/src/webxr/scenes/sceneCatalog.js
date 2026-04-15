@@ -165,35 +165,53 @@ function emitSceneDebug(detail) {
   window.dispatchEvent(new CustomEvent(SCENE_DEBUG_EVENT, { detail }));
 }
 
-function createScreenFoundation(scene, theme, root) {
+function createScreenFoundation(scene, theme, root, options = {}) {
+  const {
+    showFloor = true,
+    showPedestal = true,
+    showPanel = true,
+  } = options;
   const materials = [];
   const meshes = [];
 
-  const floorMat = createMaterial(scene, makeColor(theme.ground), Color3.Black());
-  materials.push(floorMat);
+  let floor = null;
+  let pedestal = null;
+  let panel = null;
+  let floorMat = null;
+  let pedestalMat = null;
+  let panelMat = null;
 
-  const floor = MeshBuilder.CreateGround("screen-floor", { width: 12, height: 12 }, scene);
-  floor.material = floorMat;
-  floor.position = new Vector3(0, 0, 0);
-  floor.parent = root;
-  meshes.push(floor);
+  if (showFloor) {
+    floorMat = createMaterial(scene, makeColor(theme.ground), Color3.Black());
+    materials.push(floorMat);
 
-  const pedestalMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent));
-  materials.push(pedestalMat);
+    floor = MeshBuilder.CreateGround("screen-floor", { width: 4.8, height: 4.8 }, scene);
+    floor.material = floorMat;
+    floor.position = new Vector3(0, 0, 0);
+    floor.parent = root;
+    meshes.push(floor);
+  }
 
-  const pedestal = MeshBuilder.CreateCylinder("screen-pedestal", { height: 0.25, diameter: 3.2 }, scene);
-  pedestal.material = pedestalMat;
-  pedestal.position = new Vector3(0, 0.125, -2.1);
-  pedestal.parent = root;
-  meshes.push(pedestal);
+  if (showPedestal) {
+    pedestalMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent));
+    materials.push(pedestalMat);
 
-  const panelMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent), 0.9);
-  materials.push(panelMat);
-  const panel = MeshBuilder.CreatePlane("screen-panel", { width: 2.6, height: 1.4 }, scene);
-  panel.material = panelMat;
-  panel.position = new Vector3(0, 1.45, -2.4);
-  panel.parent = root;
-  meshes.push(panel);
+    pedestal = MeshBuilder.CreateCylinder("screen-pedestal", { height: 0.25, diameter: 1.2 }, scene);
+    pedestal.material = pedestalMat;
+    pedestal.position = new Vector3(0, 0.125, -0.1);
+    pedestal.parent = root;
+    meshes.push(pedestal);
+  }
+
+  if (showPanel) {
+    panelMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent), 0.9);
+    materials.push(panelMat);
+    panel = MeshBuilder.CreatePlane("screen-panel", { width: 2.6, height: 1.4 }, scene);
+    panel.material = panelMat;
+    panel.position = new Vector3(0, 1.45, -2.4);
+    panel.parent = root;
+    meshes.push(panel);
+  }
 
   return {
     materials,
@@ -203,12 +221,18 @@ function createScreenFoundation(scene, theme, root) {
     panel,
     applyMode(mode) {
       const isAr = mode === "xr-ar";
-      const panelAlpha = isAr ? 0.78 : 0.92;
-      const panelGlow = isAr ? 0.16 : 0.05;
-
-      panelMat.alpha = panelAlpha;
-      pedestalMat.specularColor = isAr ? makeColor("#ffffff") : makeColor(theme.accent);
-      panelMat.emissiveColor = makeColor(theme.accent).scale(panelGlow);
+      if (panelMat) {
+        const panelAlpha = isAr ? 0.78 : 0.92;
+        const panelGlow = isAr ? 0.16 : 0.05;
+        panelMat.alpha = panelAlpha;
+        panelMat.emissiveColor = makeColor(theme.accent).scale(panelGlow);
+      }
+      if (pedestalMat) {
+        pedestalMat.specularColor = isAr ? makeColor("#ffffff") : makeColor(theme.accent);
+      }
+      if (floorMat) {
+        floorMat.alpha = isAr ? 0.12 : 1;
+      }
     },
     locomotion: null,
     dispose() {
@@ -347,7 +371,7 @@ function createPanoramaDome(scene, root, sceneRef) {
     {
       resolution: 32,
       size: 1000,
-      useDirectMapping: false,
+      useDirectMapping: true,
     },
     scene,
     (message, exception) => {
@@ -362,6 +386,8 @@ function createPanoramaDome(scene, root, sceneRef) {
   );
 
   dome.parent = root;
+  dome.photoTexture.gammaSpace = true;
+  dome.material.imageProcessingConfiguration.isEnabled = false;
   dome.onLoadObservable.add(() => {
     emitSceneDebug({
       sceneId: sceneRef.id,
@@ -513,6 +539,36 @@ function composeScreen(scene, theme, rendererId, mode) {
   };
 }
 
+function buildPanoramaScreen(scene, theme, sceneRef, mode) {
+  const root = new TransformNode(`scene-${sceneRef.id}-panorama-root`, scene);
+  const base = createScreenFoundation(scene, theme, root, {
+    showFloor: false,
+    showPedestal: false,
+    showPanel: false,
+  });
+  const panoramaHandle = createPanoramaDome(scene, root, sceneRef);
+
+  if (!panoramaHandle) {
+    base.dispose();
+    return composeScreen(scene, theme, normalizeRendererId(sceneRef.id), mode);
+  }
+
+  base.applyMode(mode);
+  return {
+    root,
+    clearColor: makeColor4(theme.clearColor),
+    locomotion: null,
+    applyMode(nextMode) {
+      base.applyMode(nextMode);
+      panoramaHandle.applyMode(nextMode);
+    },
+    dispose() {
+      panoramaHandle.dispose();
+      base.dispose();
+    },
+  };
+}
+
 function buildWaitingScreen(scene, mode) {
   return composeScreen(scene, SCENE_LIBRARY.waiting, "waiting", mode);
 }
@@ -547,23 +603,11 @@ function buildSceneHandle(scene, sceneRef, mode) {
     return buildLocomotionTestScene(scene, theme, mode);
   }
   const normalizedScene = normalizeSceneRef(sceneRef);
-  const handle = composeScreen(scene, theme, rendererId, mode);
-  const panoramaHandle = createPanoramaDome(scene, handle.root, normalizedScene);
-  if (!panoramaHandle) {
-    return handle;
+  const panoramaControl = resolvePrimaryPanoramaControl({ activeControls: normalizedScene.activeControls });
+  if (panoramaControl) {
+    return buildPanoramaScreen(scene, theme, normalizedScene, mode);
   }
-
-  return {
-    ...handle,
-    applyMode(nextMode) {
-      handle.applyMode(nextMode);
-      panoramaHandle.applyMode(nextMode);
-    },
-    dispose() {
-      panoramaHandle.dispose();
-      handle.dispose();
-    },
-  };
+  return composeScreen(scene, theme, rendererId, mode);
 }
 
 export function createSceneManager(scene) {
