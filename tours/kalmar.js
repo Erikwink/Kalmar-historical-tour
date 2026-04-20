@@ -12,6 +12,7 @@ export default {
       label:    "Kalmar slott",
       icon:     "castle",
       color:    "#573c9b",
+      image:    image,
       controls: [
         {
           id: "castle-360",
@@ -38,6 +39,7 @@ export default {
       label:    "Kalmar domkyrka",
       icon:     "church",
       color:    "#121c2c",
+      image:    image,
       controls: [
         { 
           id: "church-360",

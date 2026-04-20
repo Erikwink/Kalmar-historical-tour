@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useSettings } from '../context/SettingsContext'
 import TopAppBar from '../components/TopAppBar'
+import ConfirmModal from '../components/ConfirmModal'
 
 const LANGUAGES = [
   { value: 'sv', label: 'Svenska' },
@@ -16,8 +17,9 @@ const FONT_SIZE_VALUES = ['small', 'medium', 'large']
  * Switches to an inline headset management view when the user clicks "Hantera enheter".
  * @param {{ onLogout: Function, headsets: Array, onRemoveHeadset: Function }} props
  */
-export default function SettingsPage({ onLogout, headsets = [], onRemoveHeadset, adapterStatus }) {
+export default function SettingsPage({ onLogout, onEndSession, headsets = [], onRemoveHeadset, adapterStatus }) {
   const [view, setView] = useState('settings')
+  const [showEndModal, setShowEndModal] = useState(false)
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { theme, setTheme, language, setLanguage, fontSize, setFontSize } = useSettings()
@@ -58,6 +60,7 @@ export default function SettingsPage({ onLogout, headsets = [], onRemoveHeadset,
   }
 
   return (
+    <>
     <div className="page">
       <TopAppBar title={t('settingsPage.title')} onBack={() => navigate(-1)} showSettings={false} />
 
@@ -135,6 +138,16 @@ export default function SettingsPage({ onLogout, headsets = [], onRemoveHeadset,
         </div>
 
         <div className="section-header">
+          <span className="section-header__title">{t('settingsPage.sessionSection', 'Session')}</span>
+        </div>
+        <div className="card settings-list">
+          <button className="settings-item settings-item--danger" onClick={() => setShowEndModal(true)}>
+            <span className="settings-item__label">{t('settingsPage.endSession')}</span>
+            <span className="ms settings-item__arrow">stop_circle</span>
+          </button>
+        </div>
+
+        <div className="section-header">
           <span className="section-header__title">{t('settingsPage.accountSection')}</span>
         </div>
         <div className="card settings-list">
@@ -145,5 +158,18 @@ export default function SettingsPage({ onLogout, headsets = [], onRemoveHeadset,
         </div>
       </div>
     </div>
+
+    {showEndModal && (
+      <ConfirmModal
+        title={t("settingsPage.endSession")}
+        message={t("settingsPage.endSessionMessage")}
+        confirmLabel={t("settingsPage.endSession")}
+        cancelLabel={t("endSessionModal.cancel")}
+        confirmIcon="power_off"
+        onConfirm={() => { setShowEndModal(false); onEndSession(); }}
+        onCancel={() => setShowEndModal(false)}
+      />
+    )}
+    </>
   )
 }
