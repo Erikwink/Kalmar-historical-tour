@@ -54,8 +54,9 @@ export default {
 {
   id:    "castle",      // unique within tour, used as activeSceneId value
   label: "Kalmar slott",
-  icon:  "castle",      // material symbol
+  icon:  "castle",      // material symbol — shown when no image is set
   color: "#CFBCFF",     // accent color in UI
+  image: import("./img/castle.jpg"), // optional — replaces icon in SceneCard header
   controls: [ /* Control[] */ ],
 }
 ```

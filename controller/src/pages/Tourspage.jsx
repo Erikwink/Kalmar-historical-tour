@@ -19,17 +19,15 @@ export default function ToursPage() {
           <h2 className="tours-header__city">{t('toursPage.city')}</h2>
         </div>
 
-        <Section title="">
-          <div className="tour-grid">
-            {tours.map(tour => (
-              <TourCard
-                key={tour.id}
-                tour={tour}
-                onClick={() => navigate(`/tour/ready?tourId=${tour.id}`)}
-              />
-            ))}
-          </div>
-        </Section>
+        <div className="tour-grid">
+          {tours.map(tour => (
+            <TourCard
+              key={tour.id}
+              tour={tour}
+              onClick={() => navigate(`/tour?tourId=${tour.id}`)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   )

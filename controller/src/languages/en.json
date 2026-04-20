@@ -25,10 +25,14 @@
   "sessionPage": {
     "fallbackTitle": "Welcome back, NAME",
     "fallbackDescription": "Experience this immersive tour",
+    "connectHeadset": "Connect headset",
+    "connectWithCode": "Connect with session code",
+    "connectWithSound": "Connect with sound",
     "connectDevice": "Connect device",
     "connectedDevices": "Connected devices",
     "sessionCode": "Session code",
     "playSound": "Play sound",
+    "next": "Next",
     "sessionId": "Session ID",
     "headsets": "Headsets",
     "showQR": "Show QR code",
@@ -51,7 +55,8 @@
     "pleaseWaitForStart": "Please wait for start",
     "pleaseRemoveHeadset": "Please remove headset",
     "endTour": "End tour",
-    "scenesOverview": "Scenes overview"
+    "scenesOverview": "Scenes overview",
+    "endTourMessage": "Tour will be ended, and scene set to remove headsets!"
   },
   "detailPage": {
     "title": "Detailed view",
@@ -78,7 +83,10 @@
     "dark": "Dark",
     "light": "Light",
     "accountSection": "Account",
-    "logout": "Log out"
+    "logout": "Log out",
+    "sessionSection": "Session",
+    "endSession": "End session",
+    "endSessionMessage": "All headsets will lose their connection and the session will be cleared."
   },
   "readyPage": {
     "headsets": "Headsets"
@@ -95,10 +103,10 @@
     "close": "Close"
   },
   "endSessionModal": {
-    "title": "End session?",
-    "message": "All headsets will lose their connection.",
+    "title": "End tour?",
+    "message": "Tour will be ended.",
     "cancel": "Cancel",
-    "confirm": "End session"
+    "confirm": "End tour"
   },
   "qrModal": {
     "title": "QR code",
@@ -111,41 +119,5 @@
   "sessionCard": {
     "label": "Session",
     "tagline": "Scan to join the tour"
-  },
-  "tours": {
-    "kalmar-medeltid": { 
-      "title": "Medieval Kalmar",
-      "description": "Explore Kalmar during the Middle Ages, from the ancient castle to the cathedral"
-    },
-    "kalmarsund": { 
-      "title": "Kalmarsund",
-      "description": "Discover the historical maritime heritage and the famous Kalmarsund strait"
-    },
-    "kalmar-union": { 
-      "title": "The Kalmar Union",
-      "description": "Learn about the historic union between Sweden, Norway, and Denmark"
-    },
-    "kalmar-slott": { 
-      "title": "Kalmar Castle",
-      "description": "Tour the magnificent Kalmar Castle and experience its rich history"
-    }
-  },
-  "controls": {
-    "castle-360": "Show the castle",
-    "castle-amb": "Ambient sound",
-    "castle-nar": "Narration",
-    "church-360": "Show the church",
-    "church-org": "Organ music"
-  },
-  "scenes": {
-    "waiting": "Waiting to start",
-    "remove-headset": "Remove headset",
-    "castle": "Kalmar Castle",
-    "church": "Kalmar Cathedral",
-    "audio": "Priest speaking",
-    "harbor": "The Harbor",
-    "boats": "The Warship",
-    "throne-room": "The Throne Room",
-    "city-center": "City Center"
   }
 }

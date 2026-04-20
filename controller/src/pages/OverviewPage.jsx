@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SceneBtn from "../components/sceneBtn";
-import EndSessionModal from "../components/endSessionModal";
+import SceneCard from "../components/SceneCard";
+import ConfirmModal from "../components/ConfirmModal";
 import HeadsetStatusBar from "../components/HeadsetStatusBar";
 import TopAppBar from "../components/TopAppBar";
 import ActiveSceneChip from "../components/ActiveSceneChip";
@@ -16,11 +17,19 @@ import TourSummaryCard from './../components/TourSummaryCard';
  * Active tour control page — lets the guide select which scene headsets should display.
  * @param {{ sessionId: string, activeScene: string, onScenePress: Function, onEndSession: Function, headsets: Array }} props
  */
-export default function OverviewPage({ sessionId, activeScene, onScenePress, onEndSession, headsets = [] }) {
+export default function OverviewPage({ sessionId, activeScene, activeControls = {}, onScenePress, onControlToggle, headsets = [] }) {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { t } = useTranslation();
   const [showEndModal, setShowEndModal] = useState(false);
+  const [expandedScene, setExpandedScene] = useState(null);
+
+  function handleSceneSelect(sceneId) {
+    setExpandedScene(prev => prev === sceneId ? null : sceneId);
+    if (sceneId !== activeScene) {
+      onScenePress(sceneId);
+    }
+  }
 
   const tourId = searchParams.get("tourId");
 
@@ -40,46 +49,45 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
     <>
       <div className="page">
         <TopAppBar
-          title={t(`tours.${tour.id}.title`)}
-          onBack={() => navigate(`/tour/ready?tourId=${tourId}`)}
+          title={tour.title}
+          onBack={() => navigate('/tours')}
         />
 
         <div className="page-content">
-            <TourSummaryCard 
-              tour={tour} 
-              scenes={scenes} 
-            />
             
             <HeadsetStatusBar headsets={headsets} />
 
 
           {currentScene && (
             <Section title={t("overviewPage.activeScene")}>
-              <ActiveSceneChip scene={currentScene} label={t(`scenes.${currentScene.id}`, currentScene.label)} />
+              <ActiveSceneChip scene={currentScene} label={currentScene.label} activeControls={activeControls} />
             </Section>
           )}
 
           <Section title={t("overviewPage.scenesOverview")}>
-            <div className="card scene-list">
+            <div className="scene-card-list">
               {scenes.map((scene) => (
-                <SceneBtn
+                <SceneCard
                   key={scene.id}
                   scene={scene}
-                  label={t(`scenes.${scene.id}`, scene.label)}
+                  label={scene.label}
                   isActive={scene.id === activeScene}
-                  onClick={() => navigate(`/tour/detail?tourId=${tourId}&sceneId=${scene.id}`)}
+                  isExpanded={expandedScene === scene.id}
+                  activeControls={activeControls}
+                  onSelect={handleSceneSelect}
+                  onControlToggle={onControlToggle}
                 />
               ))}
             </div>
           </Section>
 
           <Section title={t("overviewPage.waitingControls")}>
-            <div className="card scene-list">
+            <div className="scene-list">
               {WAITING_CONTROLS.map((scene) => (
                 <SceneBtn
                   key={scene.id}
                   scene={scene}
-                  label={t(`scenes.${scene.id}`, scene.label)}
+                  label={scene.label}
                   isActive={scene.id === activeScene}
                   onClick={() => onScenePress(scene.id)}
                 />
@@ -89,16 +97,19 @@ export default function OverviewPage({ sessionId, activeScene, onScenePress, onE
         </div>
 
         <Fab 
-          icon="stop_circle" 
-          variant="danger" 
           onClick={() => setShowEndModal(true)}>
           {t("overviewPage.endTour")}
         </Fab>
       </div>
 
       {showEndModal && (
-        <EndSessionModal
-          onConfirm={() => { setShowEndModal(false); onEndSession(); }}
+        <ConfirmModal
+          title={t("overviewPage.endTour")}
+          message={t("overviewPage.endTourMessage")}
+          confirmLabel={t("overviewPage.endTour")}
+          cancelLabel={t("endSessionModal.cancel")}
+          confirmIcon="stop_circle"
+          onConfirm={() => { setShowEndModal(false); onScenePress("remove-headset"); navigate('/'); }}
           onCancel={() => setShowEndModal(false)}
         />
       )}

@@ -3,52 +3,38 @@ import { useTranslation } from 'react-i18next'
 import HeadsetList from '../components/headsetList'
 import TopAppBar from '../components/TopAppBar'
 import Fab from '../components/Fab'
-import Section from '../components/Section'
-import SessionCard from '../components/sessionCard'
+import Section from '../components/Section';
 
-/**
- * Session overview page — shows the session ID and headset list.
- * The guide starts the tour from here once at least one headset is connected.
- * @param {{ sessionId: string, headsets: Array, adapterStatus: string|null }} props
- */
 export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
-
   return (
     <div className="page">
-      <TopAppBar title={t('sessionPage.fallbackTitle')} />
+      <TopAppBar title={t('sessionPage.connectHeadset')} />
 
       <div className="page-content">
         <Section
-          title={t("sessionPage.connectDevice")}>
-          <div className="session-info-card">
-            <SessionCard label={t('sessionPage.sessionCode')}>
-              <div className="session-card__sessionId">{sessionId}</div>
-            </SessionCard>
+          title={t('sessionPage.connectWithCode')}
+        >
+      <p className="session-connect__code">{sessionId}</p>
+                <button className="session-connect__sound-btn">
+                  <span className="ms">volume_up</span>
+                  {t('sessionPage.connectWithSound')}
+                </button>
+              </Section>
+              
 
-            <SessionCard label={t('sessionPage.playSound')}>
-              <button className="session-info-card__sound-btn">
-                <span className="ms">volume_up</span>
-              </button>
-            </SessionCard>
-          </div>
-        </Section>
-
-
-
-          <HeadsetList
-            headsets={headsets}
-            adapterStatus={adapterStatus}
-            title={t('sessionPage.connectedDevices')}
-            icon="head_mounted_device"
-          />
-        </div>
-    
+        <HeadsetList
+          headsets={headsets}
+          adapterStatus={adapterStatus}
+          title={t('sessionPage.connectedDevices')}
+          icon="head_mounted_device"
+        />
+      </div>
 
       <Fab onClick={() => navigate('/tours')}>
-        {t('sessionPage.selectTour')}
+        {t('sessionPage.next')}
       </Fab>
     </div>
   )
