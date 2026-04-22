@@ -1,0 +1,122 @@
+{
+  "loginPage": {
+    "title": "Logga in",
+    "guidesIn": "VR turer",
+    "email": "E-post",
+    "city": "Kalmar",
+    "emailPlaceholder": "namn@mail.com",
+    "password": "Lösenord",
+    "showPassword": "Visa lösenord",
+    "hidePassword": "Dölj lösenord",
+    "forgotPassword": "Glömt lösenord?",
+    "submit": "Logga in",
+    "noAccount": "Har du inget konto?",
+    "signUp": "Registrera dig"
+  },
+  "nav": {
+    "back": "Tillbaka",
+    "settings": "Inställningar"
+  },
+  "toursPage": {
+    "guidesIn": "Guider i",
+    "city": "Kalmar",
+    "selectTour": "Välj tour"
+  },
+  "sessionPage": {
+    "fallbackTitle": "Välkommen tillbaka, NAMN",
+    "fallbackDescription": "Upplev denna fantastiska tour",
+    "connectHeadset": "Anslut headset",
+    "connectWithCode": "Anslut med sessionskod",
+    "connectWithSound": "Anslut med ljud",
+    "connectDevice": "Anslut enhet",
+    "connectedDevices": "Anslutna enheter",
+    "sessionCode": "Sessionskod",
+    "playSound": "Spela ljud",
+    "next": "Nästa",
+    "headsets": "Headsets",
+    "sessionId": "Session-ID",
+    "showQR": "Visa QR-kod",
+    "cancel": "Avbryt",
+    "startTour": "Starta tour",
+    "selectTour": "Välj tour" 
+  },
+  "overviewPage": {
+    "activeScene": "Aktiv scen",
+    "scenes": "Scener",
+    "stops": "stopp",
+    "headsetInfo": "Headset info",
+    "headsetOnline": "online",
+    "headsetConnecting": "ansluter",
+    "headsetNotReady": "inte redo",
+    "headsetOffline": "offline",
+    "headsetError": "fel",
+    "noHeadsets": "Inga headset anslutna",
+    "waitingControls": "Väntande kontroller",
+    "pleaseWaitForStart": "Vänta på start",
+    "pleaseRemoveHeadset": "Ta av headset",
+    "endTour": "Avsluta tour",
+    "scenesOverview": "Översikt scener",
+    "endTourMessage": "Turen kommer att avslutas och scene satt till Ta av headsets"
+  },
+  "detailPage": {
+    "title": "Detaljerad vy",
+    "activeView": "Aktiv vy",
+    "views": "Vyer",
+    "sound": "Ljud",
+    "picture": "Bild",
+    "nextStop": "Nästa stopp",
+    "tourComplete": "Tour slutförd",
+    "backToOverview": "Tillbaka till översikt",
+    "lastScene": "Sista scenen"
+  },
+  "settingsPage": {
+    "title": "Inställningar",
+    "tourSection": "Tour",
+    "editTour": "Redigera tour",
+    "manageDevices": "Hantera enheter",
+    "generalSection": "Allmänt",
+    "language": "Språk",
+    "fontSize": "Textstorlek",
+    "appearance": "Utseende",
+    "toggleDarkMode": "Växla mörkt läge",
+    "dark": "Mörkt",
+    "light": "Ljust",
+    "accountSection": "Konto",
+    "logout": "Logga ut",
+    "sessionSection": "Session",
+    "endSession": "Avsluta session",
+    "endSessionMessage": "Alla headsets tappar anslutningen och sessionen rensas."
+  },
+  "readyPage": {
+    "headsets": "Headsets"
+  },
+  "fontSizes": {
+    "small": "Liten",
+    "medium": "Medel",
+    "large": "Stor"
+  },
+  "manageHeadsetsModal": {
+    "title": "Hantera headsets",
+    "empty": "Inga headsets anslutna.",
+    "remove": "Ta bort headset",
+    "close": "Stäng"
+  },
+  "endSessionModal": {
+    "title": "Avsluta Tour?",
+    "message": " Touren kommer att avslutas",
+    "cancel": "Avbryt",
+    "confirm": "Avsluta tour"
+  },
+  "qrModal": {
+    "title": "QR-kod",
+    "close": "Stäng",
+    "hint": "Skanna för att ansluta till session"
+  },
+  "headsetList": {
+    "title": "Headset"
+  },
+  "sessionCard": {
+    "label": "Session",
+    "tagline": "Skanna för att gå med i touren"
+  }
+}

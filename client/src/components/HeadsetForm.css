@@ -1,0 +1,78 @@
+.modal-card {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 500px; /* Justera bredd för att passa input + knapp */
+  background: #fff;
+  border-radius: 8px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+}
+
+.modal-header {
+  margin-bottom: 24px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  color: #000;
+  font-family: 'Inter', sans-serif;
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+
+.modal-header p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.form-group {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 16px; /* Mellanrum mellan input och knapp */
+  align-items: center;
+}
+
+.form-group input {
+  width: 335px;
+  height: 80px;
+  border-radius: 8px;
+  background: #D7DFEF;
+  border: none; /* Ta bort standardborder */
+  padding: 10px 25px;
+  font-size: 35px;
+  box-sizing: border-box;
+  color: #000;
+}
+
+.form-group input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(48, 54, 79, 0.2); /* Fokusera med knappfärg */
+}
+
+button {
+  width: 96px;
+  height: 80px;
+  border-radius: 8px;
+  background: #30364F;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 30px;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background: #252a3d;
+}
+
+button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}

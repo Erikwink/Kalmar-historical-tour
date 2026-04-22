@@ -1,0 +1,9 @@
+{
+  "scripts": {
+    "dev": "concurrently --names client,controller --prefix-colors cyan,magenta \"npm run dev --prefix client\" \"npm run dev --prefix controller\"",
+    "ngrok": "ngrok http 5173"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
