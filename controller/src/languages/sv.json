@@ -25,10 +25,14 @@
   "sessionPage": {
     "fallbackTitle": "Välkommen tillbaka, NAMN",
     "fallbackDescription": "Upplev denna fantastiska tour",
+    "connectHeadset": "Anslut headset",
+    "connectWithCode": "Anslut med sessionskod",
+    "connectWithSound": "Anslut med ljud",
     "connectDevice": "Anslut enhet",
     "connectedDevices": "Anslutna enheter",
     "sessionCode": "Sessionskod",
     "playSound": "Spela ljud",
+    "next": "Nästa",
     "headsets": "Headsets",
     "sessionId": "Session-ID",
     "showQR": "Visa QR-kod",
@@ -51,7 +55,8 @@
     "pleaseWaitForStart": "Vänta på start",
     "pleaseRemoveHeadset": "Ta av headset",
     "endTour": "Avsluta tour",
-    "scenesOverview": "Översikt scener"
+    "scenesOverview": "Översikt scener",
+    "endTourMessage": "Turen kommer att avslutas och scene satt till Ta av headsets"
   },
   "detailPage": {
     "title": "Detaljerad vy",
@@ -77,7 +82,10 @@
     "dark": "Mörkt",
     "light": "Ljust",
     "accountSection": "Konto",
-    "logout": "Logga ut"
+    "logout": "Logga ut",
+    "sessionSection": "Session",
+    "endSession": "Avsluta session",
+    "endSessionMessage": "Alla headsets tappar anslutningen och sessionen rensas."
   },
   "readyPage": {
     "headsets": "Headsets"
@@ -94,10 +102,10 @@
     "close": "Stäng"
   },
   "endSessionModal": {
-    "title": "Avsluta session?",
-    "message": " Alla headset kommer att tappa anslutningen.",
+    "title": "Avsluta Tour?",
+    "message": " Touren kommer att avslutas",
     "cancel": "Avbryt",
-    "confirm": "Avsluta session"
+    "confirm": "Avsluta tour"
   },
   "qrModal": {
     "title": "QR-kod",
@@ -110,41 +118,5 @@
   "sessionCard": {
     "label": "Session",
     "tagline": "Skanna för att gå med i touren"
-  },
-  "tours": {
-    "kalmar-medeltid": { 
-      "title": "Kalmar Medeltid",
-      "description": "Utforska Kalmar under medeltiden, från det gamla slottet till domkyrkan"
-    },
-    "kalmarsund": { 
-      "title": "Kalmarsund",
-      "description": "Upptäck det historiska maritima arvet och det berömda Kalmarsund"
-    },
-    "kalmar-union": { 
-      "title": "Kalmarunionen",
-      "description": "Lär dig om unionen mellan Sverige, Norge och Danmark"
-    },
-    "kalmar-slott": { 
-      "title": "Kalmar Slott",
-      "description": "Vandra genom det magnifika Kalmar slott och upplev dess rika historia"
-    }
-  },
-  "controls": {
-    "castle-360": "Visa slottet",
-    "castle-amb": "Ambient ljud",
-    "castle-nar": "Berättarröst",
-    "church-360": "Visa kyrkan",
-    "church-org": "Orgelmusik"
-  },
-  "scenes": {
-    "waiting": "Vänta på start",
-    "remove-headset": "Ta av headset",
-    "castle": "Kalmar slott",
-    "church": "Kalmar domkyrka",
-    "audio": "Präst talar",
-    "harbor": "Hamnen",
-    "boats": "Slagskeppet",
-    "throne-room": "Tronsalen",
-    "city-center": "Centrum"
   }
 }

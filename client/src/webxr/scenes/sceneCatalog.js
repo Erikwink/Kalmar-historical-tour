@@ -3,6 +3,7 @@ import {
   Color4,
   MeshBuilder,
   StandardMaterial,
+  Texture,
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
@@ -396,8 +397,73 @@ function createPanoramaDome(scene, root, sceneRef) {
     });
   });
 
+  let panoramaRequestId = 0;
+
+  function update(sceneRefToLoad) {
+    const nextPanoramaControl = resolvePrimaryPanoramaControl({ activeControls: sceneRefToLoad.activeControls });
+    if (!nextPanoramaControl) {
+      return false;
+    }
+
+    const nextPanoramaUrl = resolveMediaAssetUrl(nextPanoramaControl.src);
+    if (!nextPanoramaUrl) {
+      emitSceneDebug({
+        sceneId: sceneRefToLoad.id,
+        status: "error",
+        message: `Active 360-photo control '${nextPanoramaControl.id}' is missing a usable src value.`,
+      });
+      return false;
+    }
+
+    if (dome.photoTexture?.name === nextPanoramaUrl || dome.photoTexture?.url === nextPanoramaUrl) {
+      return true;
+    }
+
+    panoramaRequestId += 1;
+    const requestId = panoramaRequestId;
+    const previousTexture = dome.photoTexture;
+
+    const nextTexture = new Texture(
+      nextPanoramaUrl,
+      scene,
+      true,
+      false,
+      undefined,
+      () => {
+        if (requestId !== panoramaRequestId) {
+          nextTexture.dispose();
+          return;
+        }
+
+        nextTexture.gammaSpace = true;
+        nextTexture.anisotropicFilteringLevel = 1;
+        dome.photoTexture = nextTexture;
+        dome.photoTexture.gammaSpace = true;
+        previousTexture?.dispose();
+        emitSceneDebug({
+          sceneId: sceneRefToLoad.id,
+          status: "loaded",
+          message: `Panorama swapped to active control '${nextPanoramaControl.id}'.`,
+        });
+      },
+      (message, exception) => {
+        nextTexture.dispose();
+        console.error(`[sceneCatalog] Failed to swap panorama '${nextPanoramaUrl}':`, exception || message);
+        emitSceneDebug({
+          sceneId: sceneRefToLoad.id,
+          status: "error",
+          message: `Failed to swap panorama '${nextPanoramaControl.id}'.`,
+          error: typeof message === "string" && message ? message : String(exception || "Unknown panorama load error"),
+        });
+      },
+    );
+
+    return true;
+  }
+
   return {
     applyMode() {},
+    update,
     dispose() {
       dome.dispose(false, true);
     },
@@ -554,13 +620,25 @@ function buildPanoramaScreen(scene, theme, sceneRef, mode) {
   }
 
   base.applyMode(mode);
+  let currentClearColor = makeColor4(theme.clearColor);
   return {
     root,
-    clearColor: makeColor4(theme.clearColor),
+    clearColor: currentClearColor,
     locomotion: null,
     applyMode(nextMode) {
       base.applyMode(nextMode);
       panoramaHandle.applyMode(nextMode);
+    },
+    updateScene(nextSceneRef, nextTheme, nextMode) {
+      const updated = panoramaHandle.update(nextSceneRef);
+      if (!updated) {
+        return false;
+      }
+
+      currentClearColor = makeColor4(nextTheme.clearColor);
+      this.clearColor = currentClearColor;
+      this.applyMode(nextMode);
+      return true;
     },
     dispose() {
       panoramaHandle.dispose();
@@ -620,6 +698,8 @@ export function createSceneManager(scene) {
     const normalizedScene = normalizeSceneRef(sceneRef);
     const nextId = normalizedScene.id;
     const nextMode = mode || "preview";
+    const nextPanoramaControl = resolvePrimaryPanoramaControl({ activeControls: normalizedScene.activeControls });
+    const { theme } = getThemeForScene(normalizedScene);
     const nextSceneSignature = JSON.stringify({
       id: normalizedScene.id,
       label: normalizedScene.label || "",
@@ -636,16 +716,44 @@ export function createSceneManager(scene) {
       return { sceneId: nextId, clearColor: handle.clearColor, locomotion: handle.locomotion || null };
     }
 
+    if (handle?.updateScene && nextPanoramaControl) {
+      const updated = handle.updateScene(normalizedScene, theme, nextMode);
+      if (updated) {
+        activeSceneId = nextId;
+        activeMode = nextMode;
+        activeSceneSignature = nextSceneSignature;
+        return { sceneId: nextId, clearColor: handle.clearColor, locomotion: handle.locomotion || null };
+      }
+    }
+
+    let nextHandle = null;
+    try {
+      nextHandle = buildSceneHandle(scene, normalizedScene, nextMode);
+      nextHandle.applyMode(nextMode);
+    } catch (error) {
+      emitSceneDebug({
+        sceneId: nextId,
+        status: "error",
+        message: `Failed to build scene '${nextId}'.`,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (!handle) {
+        throw error;
+      }
+
+      return { sceneId: activeSceneId, clearColor: handle.clearColor, locomotion: handle.locomotion || null };
+    }
+
     if (handle) {
       handle.dispose();
       handle = null;
     }
 
-    handle = buildSceneHandle(scene, normalizedScene, nextMode);
+    handle = nextHandle;
     activeSceneId = nextId;
     activeMode = nextMode;
     activeSceneSignature = nextSceneSignature;
-    handle.applyMode(nextMode);
 
     return { sceneId: nextId, clearColor: handle.clearColor, locomotion: handle.locomotion || null };
   }

@@ -50,6 +50,46 @@ const DESKTOP_EYE_HEIGHT_METERS = 1.7;
 const FORWARD_AXIS = new Vector3(0, 0, 1);
 const RIGHT_AXIS = new Vector3(1, 0, 0);
 
+function getAutostartMode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("autostart");
+}
+
+function handleAutoStart() {
+  const mode = getAutostartMode();
+
+  if (!mode) return;
+
+  // Om vi vill auto-starta
+  if (mode === "sim") {
+    // Om VR stöds → prioritera VR
+    if (support.vr) {
+      startXR("immersive-vr");
+      return;
+    }
+
+    // annars fallback
+    startSimulation();
+  }
+
+  if (mode === "vr") {
+    if (support.vr) {
+      startXR("immersive-vr");
+    } else {
+      setStatus("VR stöds inte, startar simulation istället.");
+      startSimulation();
+    }
+  }
+
+  if (mode === "ar") {
+    if (support.ar) {
+      startXR("immersive-ar");
+    } else {
+      setStatus("AR stöds inte.");
+    }
+  }
+}
+
 function normalizeSessionId(rawSessionId) {
   return typeof rawSessionId === "string" ? rawSessionId.trim() : "";
 }
@@ -96,6 +136,8 @@ let desktopLocomotionWasActive = false;
 let autoLaunchResolved = false;
 let autoVrGestureLaunchArmed = false;
 let xrStartInFlight = false;
+let sceneRefreshTimer = null;
+const SCENE_REFRESH_DEBOUNCE_MS = 80;
 const tmpForward = new Vector3();
 const tmpRight = new Vector3();
 const tmpMovement = new Vector3();
@@ -235,7 +277,7 @@ function applyTourId(rawTourId) {
   setSceneIndicator(activeSceneState);
   setControlsIndicator(activeControlsState);
   if (scene) {
-    applySceneTheme();
+    scheduleSceneThemeRefresh();
   }
 }
 
@@ -248,7 +290,7 @@ function applyActiveControls(rawActiveControls) {
   setControlsIndicator(activeControlsState);
   const nextRenderableSignature = getRenderableSceneControlSignature(activeControlsState.activeControls);
   if (scene && previousRenderableSignature !== nextRenderableSignature) {
-    applySceneTheme();
+    scheduleSceneThemeRefresh();
     return;
   }
 
@@ -537,6 +579,28 @@ function applySceneTheme() {
   }
 }
 
+function scheduleSceneThemeRefresh() {
+  if (sceneRefreshTimer !== null) {
+    window.clearTimeout(sceneRefreshTimer);
+  }
+
+  sceneRefreshTimer = window.setTimeout(() => {
+    sceneRefreshTimer = null;
+    if (!scene) {
+      return;
+    }
+
+    try {
+      applySceneTheme();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setSceneDebug(`[scene-refresh] Failed to apply scene update. Error: ${message}`, "error");
+      setStatus(`Scene refresh failed: ${message}`);
+      console.error("[webxr] Scene refresh failed:", error);
+    }
+  }, SCENE_REFRESH_DEBOUNCE_MS);
+}
+
 function applySceneChange(sceneId) {
   activeSceneState = resolveScene(activeTourState, sceneId, { includeDevelopmentScenes: true });
   activeControlsState = resolveActiveControls(activeSceneState, activeControlsState.controlMap);
@@ -550,7 +614,7 @@ function applySceneChange(sceneId) {
     );
   } else {
     setSceneDebug(`Scene '${activeSceneId}' is active. Waiting for scene-specific diagnostics...`);
-    applySceneTheme();
+    scheduleSceneThemeRefresh();
   }
   const fallbackSuffix =
     activeSceneState.usedFallback && activeSceneState.requestedSceneId
@@ -1023,5 +1087,10 @@ setSceneIndicator(activeSceneState);
 setControlsIndicator(activeControlsState);
 setSceneDebug("No scene diagnostics yet.");
 enableIdleButtons();
-initSupport();
-bootstrapFromQuery();
+initSupport().then(() => {
+  bootstrapFromQuery();
+  handleAutoStart();
+});
+// initSupport();
+// bootstrapFromQuery();
+// handleAutoStart();

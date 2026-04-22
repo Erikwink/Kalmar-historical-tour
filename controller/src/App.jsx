@@ -4,9 +4,7 @@ import { loginController, connect, onHeadsetsChange, publish, toggleControl, dis
 import { FIREBASE_STATUS } from "./utils/status_maps"
 import ToursPage from "./pages/Tourspage"
 import SessionPage from "./pages/SessionPage"
-import ReadyPage from "./pages/ReadyPage"
 import OverviewPage from "./pages/OverviewPage"
-import DetailPage from "./pages/DetailPage"
 import SettingsPage from "./pages/Settingspage"
 import LoginPage from "./pages/LoginPage"
 import JoinMock from "./JoinMock" // DEV: remove when real client exists
@@ -109,34 +107,16 @@ function AppContent() {
         />
         <Route path="/tours" element={<ToursPage />} />
         <Route
-          path="/tour/ready"
-          element={
-            <ReadyPage
-              headsets={headsets}
-              adapterStatus={saasStatus}
-            />
-          }
-        />
-        <Route
           path="/tour"
           element={
             <OverviewPage
               sessionId={sessionId}
               activeScene={activeScene}
-              onScenePress={handleScenePress}
-              onEndSession={handleEndSession}
-              headsets={headsets}
-            />
-          }
-        />
-        <Route
-          path="/tour/detail"
-          element={
-            <DetailPage
-              activeScene={activeScene}
               activeControls={activeControls}
               onScenePress={handleScenePress}
               onControlToggle={handleControlToggle}
+              onEndSession={handleEndSession}
+              headsets={headsets}
             />
           }
         />
@@ -145,6 +125,7 @@ function AppContent() {
           element={
             <SettingsPage
               onLogout={() => navigate('/login')}
+              onEndSession={handleEndSession}
               headsets={headsets}
               onRemoveHeadset={handleRemoveHeadset}
               adapterStatus={saasStatus}

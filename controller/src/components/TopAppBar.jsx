@@ -11,23 +11,25 @@ export default function TopAppBar({ title, onBack, showSettings = true }) {
 
   return (
     <div className="top-app-bar">
-      {onBack ? (
-        <button className="icon-btn" onClick={onBack} aria-label={t("nav.back")}>
-          <span className="ms">arrow_back</span>
-        </button>
-      ) : (
-        <div className="icon-btn" />
-      )}
+      <div className="top-app-bar__actions">
+        {onBack ? (
+          <button className="icon-btn" onClick={onBack} aria-label={t("nav.back")}>
+            <span className="ms">arrow_back</span>
+          </button>
+        ) : (
+          <div className="icon-btn" />
+        )}
+
+        {showSettings ? (
+          <button className="icon-btn" onClick={() => navigate("/settings")} aria-label={t("nav.settings")}>
+            <span className="ms">settings</span>
+          </button>
+        ) : (
+          <div className="icon-btn" />
+        )}
+      </div>
 
       <span className="top-app-bar__title">{title}</span>
-
-      {showSettings ? (
-        <button className="icon-btn" onClick={() => navigate("/settings")} aria-label={t("nav.settings")}>
-          <span className="ms">settings</span>
-        </button>
-      ) : (
-        <div className="icon-btn" />
-      )}
     </div>
   );
 }
