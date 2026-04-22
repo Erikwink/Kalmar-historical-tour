@@ -26,7 +26,7 @@ function ClientPage() {
     sessionStorage.getItem(ACTIVE_SESSION_KEY) ?? ""
   );
   const [log, setLog] = useState([]);
-  const [isReady, setIsReady] = useState(false);
+  //const [isReady, setIsReady] = useState(false);
   const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
   const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
 
@@ -105,21 +105,30 @@ function ClientPage() {
    * Joins the session using the stable headset ID and the user-provided label.
    */
   const handleAddHeadset = async () => {
+
     const normalizedSessionId = normalizeSessionId(sessionId);
     if (!normalizedSessionId) {
       appendLog("Skapa session först.");
       return;
     }
+    const url = `${window.location.origin}/webxr.html?session=${normalizedSessionId}&autostart=sim`;
+    window.open(url, "_blank");
     try {
       setSessionId(normalizedSessionId);
+
       const result = await join(
         normalizedSessionId,
         headsetId,
         headsetLabel || headsetId
       );
+
       setDisconnectCancelFn(() => result?.cancel);
       setActiveSessionId(normalizedSessionId);
+
       appendLog(`Headset ansluten till session ${normalizedSessionId}.`);
+
+
+
     } catch (e) {
       appendLog("Fel vid headset: " + e.message);
     }
@@ -128,26 +137,26 @@ function ClientPage() {
   /**
    * Toggles the headset ready state and syncs it to Firebase.
    */
-  const handleToggleReady = async () => {
-    try {
-      await ready(activeSessionId, headsetId, !isReady, xrSceneUrl);
-      setIsReady(!isReady);
-      // Open the XR scene in a new tab when user is ready.
-      if (!isReady) {
-        window.open(xrSceneUrl, "_blank");
-      }
-      appendLog(
-        !isReady ? "Headset är nu redo." : "Headset är inte längre redo."
-      );
-    } catch (e) {
-      appendLog("Fel vid ready: " + e.message);
-    }
-  };
+  /*  const handleToggleReady = async () => {
+     try {
+       await ready(activeSessionId, headsetId, !isReady, xrSceneUrl);
+       setIsReady(!isReady);
+       // Open the XR scene in a new tab when user is ready.
+       if (!isReady) {
+         window.open(xrSceneUrl, "_blank");
+       }
+       appendLog(
+         !isReady ? "Headset är nu redo." : "Headset är inte längre redo."
+       );
+     } catch (e) {
+       appendLog("Fel vid ready: " + e.message);
+     }
+   }; */
 
   /**
    * Removes the headset from the current session.
    */
-  const handleRemoveHeadset = async () => {
+  /* const handleRemoveHeadset = async () => {
     if (!activeSessionId) {
       appendLog("Anslut till session först.");
       return;
@@ -162,12 +171,9 @@ function ClientPage() {
       appendLog("Fel vid headset: " + e.message);
     }
   };
-
+ */
   return (
     <div className="page">
-      <div className="top-app-bar top-app-bar--medium">
-        <h1 className="top-app-bar__title">Kalmar Historical Tour</h1>
-      </div>
 
       <div className="page-content">
         <HeadsetForm
@@ -177,9 +183,9 @@ function ClientPage() {
           setHeadsetLabel={setHeadsetLabel}
           activeSceneId={activeSceneId}
           onAddHeadset={handleAddHeadset}
-          onRemoveHeadset={handleRemoveHeadset}
-          onToggleReady={handleToggleReady}
-          isReady={isReady}
+          //onRemoveHeadset={handleRemoveHeadset}
+          //onToggleReady={handleToggleReady}
+          //isReady={isReady}
           activeSessionId={activeSessionId}
           xrSceneUrl={xrSceneUrl}
         />

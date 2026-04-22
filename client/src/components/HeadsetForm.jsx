@@ -1,7 +1,7 @@
 /**
  * Form for entering session ID and headset label
  */
-function HeadsetForm({
+/* function HeadsetForm({
   sessionId,
   setSessionId,
   headsetLabel,
@@ -65,6 +65,50 @@ function HeadsetForm({
           {isReady ? "Inte redo" : "Jag är redo"}
         </button>
       </div>
+    </div>
+  );
+}
+
+export default HeadsetForm; */
+import './HeadsetForm.css';
+function HeadsetForm({
+  sessionId,
+  setSessionId,
+  headsetLabel,
+  setHeadsetLabel,
+  onAddHeadset,
+  activeSessionId,
+  statusText
+}) {
+  const headerText = activeSessionId ? "Headset-information" : "Väntar på headset";
+  const status = statusText || (activeSessionId ? "Headset anslutet" : "Ingen session aktiv");
+
+  return (
+    <div className="modal-card">
+      <div className="modal-header">
+        <h2>Enter session code to connect</h2>
+      </div>
+
+      <div className="form-group">
+        <input
+          type="text"
+          value={sessionId}
+          maxLength={6}
+          inputMode="numeric"
+          pattern="\d*"
+          onChange={(e) =>
+            setSessionId(e.target.value.replace(/\D/g, "").slice(0, 6))
+          }
+        />
+        <button
+          onClick={onAddHeadset}
+          disabled={!sessionId || sessionId.length < 6}
+        >
+          OK
+        </button>
+      </div>
+
+      {/* Om du vill ha headsetLabel, lägg till här, men det var inte i prompten */}
     </div>
   );
 }

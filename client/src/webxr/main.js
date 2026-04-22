@@ -22,6 +22,46 @@ const startSimButton = document.getElementById("start-sim");
 const endButton = document.getElementById("end-xr");
 const canvas = document.getElementById("xr-canvas");
 
+function getAutostartMode() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("autostart");
+}
+
+function handleAutoStart() {
+  const mode = getAutostartMode();
+
+  if (!mode) return;
+
+  // Om vi vill auto-starta
+  if (mode === "sim") {
+    // Om VR stöds → prioritera VR
+    if (support.vr) {
+      startXR("immersive-vr");
+      return;
+    }
+
+    // annars fallback
+    startSimulation();
+  }
+
+  if (mode === "vr") {
+    if (support.vr) {
+      startXR("immersive-vr");
+    } else {
+      setStatus("VR stöds inte, startar simulation istället.");
+      startSimulation();
+    }
+  }
+
+  if (mode === "ar") {
+    if (support.ar) {
+      startXR("immersive-ar");
+    } else {
+      setStatus("AR stöds inte.");
+    }
+  }
+}
+
 function normalizeSessionId(rawSessionId) {
   return typeof rawSessionId === "string" ? rawSessionId.trim() : "";
 }
@@ -415,5 +455,10 @@ window.addEventListener("beforeunload", () => {
 
 setSceneIndicator(activeSceneId);
 enableIdleButtons();
-initSupport();
-bootstrapFromQuery();
+initSupport().then(() => {
+  bootstrapFromQuery();
+  handleAutoStart();
+});
+// initSupport();
+// bootstrapFromQuery();
+// handleAutoStart();
