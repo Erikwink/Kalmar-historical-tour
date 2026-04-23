@@ -350,7 +350,10 @@ function createMediaPlaceholder(scene, root, theme, sceneRef) {
  * Creates a Babylon PhotoDome when the active scene exposes an active 360-photo control.
  */
 function createPanoramaDome(scene, root, sceneRef) {
-  const panoramaControl = resolvePrimaryPanoramaControl({ activeControls: sceneRef.activeControls });
+  const panoramaControl = resolvePrimaryPanoramaControl({
+    activeControls: sceneRef.activeControls,
+    availableControls: sceneRef.availableControls,
+  });
   if (!panoramaControl) {
     return null;
   }
@@ -603,7 +606,10 @@ function buildSceneHandle(scene, sceneRef, mode) {
     return buildLocomotionTestScene(scene, theme, mode);
   }
   const normalizedScene = normalizeSceneRef(sceneRef);
-  const panoramaControl = resolvePrimaryPanoramaControl({ activeControls: normalizedScene.activeControls });
+  const panoramaControl = resolvePrimaryPanoramaControl({
+    activeControls: normalizedScene.activeControls,
+    availableControls: normalizedScene.availableControls,
+  });
   if (panoramaControl) {
     return buildPanoramaScreen(scene, theme, normalizedScene, mode);
   }

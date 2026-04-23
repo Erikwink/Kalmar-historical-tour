@@ -137,18 +137,28 @@ export function resolveMediaAssetUrl(rawSrc) {
 }
 
 /**
- * Resolves the primary panorama control from the currently active controls.
- * Until the session model tracks activation order, the last 360-photo in scene control order wins.
+ * Resolves the primary panorama control for the active scene.
+ * If no 360-photo control is currently active, the first available 360-photo acts as the
+ * scene's default visual so scene selection still shows a panorama without extra toggles.
  */
 export function resolvePrimaryPanoramaControl(controlsState) {
-  const panoramaControls = Array.isArray(controlsState?.activeControls)
+  const activePanoramaControls = Array.isArray(controlsState?.activeControls)
     ? controlsState.activeControls.filter((control) => control.type === "360-photo" && typeof control.src === "string")
     : [];
 
-  if (!panoramaControls.length) {
+  if (activePanoramaControls.length) {
+    return activePanoramaControls[activePanoramaControls.length - 1];
+  }
+
+  const availablePanoramaControls = Array.isArray(controlsState?.availableControls)
+    ? controlsState.availableControls.filter((control) => control.type === "360-photo" && typeof control.src === "string")
+    : [];
+
+  if (!availablePanoramaControls.length) {
     return null;
   }
-  return panoramaControls[panoramaControls.length - 1];
+
+  return availablePanoramaControls[0];
 }
 
 /**

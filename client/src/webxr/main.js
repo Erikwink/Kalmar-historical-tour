@@ -186,6 +186,84 @@ function isUserActivationError(error) {
   );
 }
 
+function isUnsupportedSessionConfigError(error) {
+  const name = typeof error?.name === "string" ? error.name : "";
+  const message = typeof error?.message === "string" ? error.message : "";
+  return (
+    name === "NotSupportedError" ||
+    /specified session configuration is not supported|session configuration is not supported/i.test(message)
+  );
+}
+
+function getXRSessionAttempts(mode) {
+  if (mode === "immersive-ar") {
+    return [
+      {
+        label: "local",
+        referenceSpaceType: "local",
+        sessionInit: {
+          requiredFeatures: ["local"],
+          optionalFeatures: ["bounded-floor", "hand-tracking"],
+        },
+      },
+    ];
+  }
+
+  return [
+    {
+      label: "local-floor + bounded-floor + hand-tracking",
+      referenceSpaceType: "local-floor",
+      sessionInit: {
+        optionalFeatures: ["local-floor", "bounded-floor", "hand-tracking"],
+      },
+    },
+    {
+      label: "local-floor",
+      referenceSpaceType: "local-floor",
+      sessionInit: {
+        optionalFeatures: ["local-floor"],
+      },
+    },
+    {
+      label: "local + hand-tracking",
+      referenceSpaceType: "local",
+      sessionInit: {
+        optionalFeatures: ["hand-tracking"],
+      },
+    },
+    {
+      label: "local",
+      referenceSpaceType: "local",
+      sessionInit: {},
+    },
+  ];
+}
+
+async function enterXRWithFallbacks(xr, mode) {
+  const attempts = getXRSessionAttempts(mode);
+  let lastError = null;
+
+  for (const attempt of attempts) {
+    try {
+      setStatus(`Starting ${mode} with ${attempt.label}...`);
+      await xr.baseExperience.enterXRAsync(
+        mode,
+        attempt.referenceSpaceType,
+        xr.renderTarget,
+        attempt.sessionInit,
+      );
+      return attempt;
+    } catch (error) {
+      lastError = error;
+      if (!isUnsupportedSessionConfigError(error)) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError ?? new Error(`No supported XR session configuration found for ${mode}.`);
+}
+
 function isInteractiveLaunchTarget(target) {
   return target instanceof Element && Boolean(target.closest("button, input, select, a, textarea"));
 }
@@ -815,14 +893,6 @@ async function startXR(mode) {
     setStatus(`Starting ${mode}...`);
 
     const xr = await ensureXRExperience();
-    const referenceSpaceType = mode === "immersive-ar" ? "local" : "local-floor";
-    const sessionInit = {
-      optionalFeatures: ["local-floor", "bounded-floor", "hand-tracking"],
-    };
-    if (mode === "immersive-ar") {
-      sessionInit.requiredFeatures = ["local"];
-    }
-
     appMode = mode === "immersive-ar" ? "xr-ar" : "xr-vr";
     onModeChanged(appMode);
     setCameraControlsEnabled(false);
@@ -833,14 +903,9 @@ async function startXR(mode) {
       canEnd: true,
     });
 
-    await xr.baseExperience.enterXRAsync(
-      mode,
-      referenceSpaceType,
-      xr.renderTarget,
-      sessionInit,
-    );
+    const resolvedAttempt = await enterXRWithFallbacks(xr, mode);
     syncXRTeleportationState();
-    setStatus(`${mode} active. Rendering Babylon.js scene '${activeSceneId}'.`);
+    setStatus(`${mode} active using ${resolvedAttempt.label}. Rendering Babylon.js scene '${activeSceneId}'.`);
     return { started: true, error: null };
   } catch (error) {
     appMode = "idle";
