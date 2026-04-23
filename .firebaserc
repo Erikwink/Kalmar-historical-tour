@@ -1,0 +1,13 @@
+{
+  "projects": {
+    "default": "kalmar-historical-tour"
+  },
+  "targets": {
+    "kalmar-historical-tour": {
+      "hosting": {
+        "controller": ["kalmar-controller"],
+        "client": ["kalmar-client"]
+      }
+    }
+  }
+}
