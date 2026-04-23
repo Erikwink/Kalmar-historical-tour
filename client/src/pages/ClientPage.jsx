@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { loginClient, join, leave, onSceneChange, ready } from "../../../saas-adapter/src/index";
+import { loginClient, join, leave, onSceneChange} from "../../../saas-adapter/src/index";
 import {
   SESSION_ID_KEY,
   ACTIVE_SESSION_KEY,

@@ -145,7 +145,7 @@ export class Firebase {
       label,
       status: "online",
       lastSeenAt: Date.now(),
-      ready: false,
+      //ready: false,
       lastSceneId: null,
     });
 
@@ -185,10 +185,10 @@ export class Firebase {
   // -----------------------------
   // Client: ändrar ready-status
   // -----------------------------
-  async ready(sessionId, clientId, ready = true) {
-    const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`);
-    await update(clientRef, { ready, lastSeenAt: Date.now() });
-  }
+  // async ready(sessionId, clientId, ready = true) {
+  //   const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`);
+  //   await update(clientRef, { ready, lastSeenAt: Date.now() });
+  // }
 
   // -----------------------------
   // Controller: ta bort ett headset från sessionen

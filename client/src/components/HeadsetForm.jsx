@@ -76,22 +76,16 @@ function HeadsetForm({
   setSessionId,
   headsetLabel,
   setHeadsetLabel,
-  onAddHeadset,
-  activeSessionId,
-  statusText
+  onAddHeadset
 }) {
-  const headerText = activeSessionId ? "Headset-information" : "Väntar på headset";
-  const status = statusText || (activeSessionId ? "Headset anslutet" : "Ingen session aktiv");
-
+  
   return (
     <div className="modal-card">
-      <div className="modal-header">
-        <h2>Enter session code to connect</h2>
-      </div>
 
       <div className="form-group">
         <input
           type="text"
+          placeholder='Sessionskod'
           value={sessionId}
           maxLength={6}
           inputMode="numeric"
@@ -100,15 +94,23 @@ function HeadsetForm({
             setSessionId(e.target.value.replace(/\D/g, "").slice(0, 6))
           }
         />
-        <button
+       
+      </div>
+       <div className="form-group">
+          <input
+            type="text"
+            placeholder='Headset-namn'
+            value={headsetLabel}
+            maxLength={20}
+            onChange={(e) => setHeadsetLabel(e.target.value)}
+          />
+        </div>
+         <button
           onClick={onAddHeadset}
-          disabled={!sessionId || sessionId.length < 6}
+          disabled={!sessionId || sessionId.length < 6 || !headsetLabel}
         >
           OK
         </button>
-      </div>
-
-      {/* Om du vill ha headsetLabel, lägg till här, men det var inte i prompten */}
     </div>
   );
 }

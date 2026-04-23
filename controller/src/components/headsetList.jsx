@@ -22,7 +22,7 @@ function displayStatus(headset) {
   if (headset.status === HEADSET_STATUS.OFFLINE) return HEADSET_STATUS.OFFLINE;
   // -------- TODO: RM comments when heartbeat is ready on client --------------------
   //if (Date.now() - headset.lastSeenAt > STALE_MS) return HEADSET_STATUS.ERROR;
-  if (!headset.ready) return HEADSET_STATUS.NOT_READY;
+  //if (!headset.ready) return HEADSET_STATUS.NOT_READY;
   return headset.status;
 }
 

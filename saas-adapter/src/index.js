@@ -22,6 +22,6 @@ export const removeAllRooms = adapter.removeAllRooms.bind(adapter) // dev only
 export const loginClient = adapter.loginClient.bind(adapter) // logga in anonymt
 export const join = adapter.join.bind(adapter)             // registrera + starta heartbeat
 export const heartbeat = adapter.heartbeat.bind(adapter)   // skicka status + lastSeenAt
-export const ready = adapter.ready.bind(adapter)
+//export const ready = adapter.ready.bind(adapter)
 export const leave = adapter.leave.bind(adapter)           // lämna session
 export const onSceneChange = adapter.onSceneChange.bind(adapter) // lyssna på scen-kommandon
