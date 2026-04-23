@@ -1,0 +1,123 @@
+{
+  "loginPage": {
+    "title": "Sign in",
+    "guidesIn": "VR Tour",
+    "email": "Email",
+    "city": "Kalmar",
+    "emailPlaceholder": "name@mail.com",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Sign in",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up"
+  },
+  "nav": {
+    "back": "Back",
+    "settings": "Settings"
+  },
+  "toursPage": {
+    "guidesIn": "Guides in",
+    "city": "Kalmar",
+    "selectTour": "Select tour"
+  },
+  "sessionPage": {
+    "fallbackTitle": "Welcome back, NAME",
+    "fallbackDescription": "Experience this immersive tour",
+    "connectHeadset": "Connect headset",
+    "connectWithCode": "Connect with session code",
+    "connectWithSound": "Connect with sound",
+    "connectDevice": "Connect device",
+    "connectedDevices": "Connected devices",
+    "sessionCode": "Session code",
+    "playSound": "Play sound",
+    "next": "Next",
+    "sessionId": "Session ID",
+    "headsets": "Headsets",
+    "showQR": "Show QR code",
+    "cancel": "Cancel",
+    "startTour": "Start tour",
+    "selectTour": "Select tour" 
+  },
+  "overviewPage": {
+    "activeScene": "Active scene",
+    "scenes": "Scenes",
+    "stops": "stops",
+    "headsetInfo": "Headset info",
+    "headsetOnline": "online",
+    "headsetConnecting": "connecting",
+    "headsetNotReady": "not ready",
+    "headsetOffline": "offline",
+    "headsetError": "error",
+    "noHeadsets": "No headsets connected",
+    "waitingControls": "Waiting controls",
+    "pleaseWaitForStart": "Please wait for start",
+    "pleaseRemoveHeadset": "Please remove headset",
+    "endTour": "End tour",
+    "scenesOverview": "Scenes overview",
+    "endTourMessage": "Tour will be ended, and scene set to remove headsets!"
+  },
+  "detailPage": {
+    "title": "Detailed view",
+    "activeView": "Active view",
+    "views": "Views",
+    "sound": "Sound",
+    "picture": "Picture",
+    "nextStop": "Next stop",
+    "tourComplete": "Tour complete",
+    "backToOverview": "Back to overview",
+    "lastScene": "Last scene"
+
+  },
+  "settingsPage": {
+    "title": "Settings",
+    "tourSection": "Tour",
+    "editTour": "Edit tour",
+    "manageDevices": "Manage devices",
+    "generalSection": "General",
+    "language": "Language",
+    "fontSize": "Font size",
+    "appearance": "Appearance",
+    "toggleDarkMode": "Toggle dark mode",
+    "dark": "Dark",
+    "light": "Light",
+    "accountSection": "Account",
+    "logout": "Log out",
+    "sessionSection": "Session",
+    "endSession": "End session",
+    "endSessionMessage": "All headsets will lose their connection and the session will be cleared."
+  },
+  "readyPage": {
+    "headsets": "Headsets"
+  },
+  "fontSizes": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "manageHeadsetsModal": {
+    "title": "Manage headsets",
+    "empty": "No headsets connected.",
+    "remove": "Remove headset",
+    "close": "Close"
+  },
+  "endSessionModal": {
+    "title": "End tour?",
+    "message": "Tour will be ended.",
+    "cancel": "Cancel",
+    "confirm": "End tour"
+  },
+  "qrModal": {
+    "title": "QR code",
+    "close": "Close",
+    "hint": "Scan to join session"
+  },
+  "headsetList": {
+    "title": "Headsets"
+  },
+  "sessionCard": {
+    "label": "Session",
+    "tagline": "Scan to join the tour"
+  }
+}

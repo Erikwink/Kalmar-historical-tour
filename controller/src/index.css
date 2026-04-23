@@ -1,0 +1,1529 @@
+/* ── Reset ───────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── MD3 Dark Theme Tokens ───────────────────────────── */
+:root {
+  /* Primary (teal seed #006874) */
+  /* --md-primary:              #4FD8EB;
+  --md-on-primary:           #00363D;
+  --md-primary-container:    #004F58;
+  --md-on-primary-container: #97F0FF; */
+
+  /* Error */
+  /* --md-error:           #FFB4AB;
+  --md-error-container: #93000A; */
+
+  /* Background / Surface */
+  /* --md-background:      #0E1415;
+  --md-on-background:   #DDE4E6;
+  --md-surface:         #0E1415;
+  --md-on-surface:      #DDE4E6; */
+
+  /* --md-surface-variant:    #3F484A;
+  --md-on-surface-variant: #BFC8CA; */
+
+  /* --md-outline:         #899294;
+  --md-outline-variant: #3F484A; */
+
+  /* Surface containers */
+  /* --md-surface-container-low:     #161D1F;
+  --md-surface-container:         #1A2224;
+  --md-surface-container-high:    #252B2D;
+  --md-surface-container-highest: #2F3638; */
+
+  /* Typography */
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-ui: 'Outfit', system-ui, sans-serif;
+
+  /* UX color tokens — dark mode (default) */
+  --color-background: #252C35;
+  --color-list: #353A43;
+  --color-button: #43A3C6;
+  --color-sign-in-box: #D7DFEF;
+  --color-connected-ready: #2C9934;
+  --color-not-ready: #FFA508;
+  --color-warning: #FF6464;
+
+  --color-button-text: #FFFFFF;
+  --text-color: #efefef;
+  --line-color: #7f7d7d;
+  --login-wave-front: #3F4757;
+  --login-wave-back: #4A597461;
+}
+
+/* ── Font Size (sets rem base on html element) ───────── */
+[data-font-size="small"] {
+  font-size: 12px;
+}
+
+[data-font-size="medium"] {
+  font-size: 14px;
+}
+
+[data-font-size="large"] {
+  font-size: 17px;
+}
+
+/* ── MD3 Light Theme Tokens ──────────────────────────── */
+[data-theme="light"] {
+  /* UX color tokens — light mode */
+  --color-background: #EFEFEF;
+  --color-list: #EBEBEB;
+  --color-button: #30364F;
+
+  --color-sign-in-box: #D7DFEF;
+  --color-connected-ready: #209934;
+  --color-not-ready: #D16900;
+  --color-warning: #FF3333;
+
+  --color-button-text: #efefef;
+  --text-color: black;
+  --line-color: #c7c5c5;
+  --login-wave-front: #EBEBEB;
+  --login-wave-back: #30364F;
+
+
+  /* --md-primary:              #30364F;
+  --md-on-primary:           #F5F3F1;
+  --md-primary-container:    #ACBAC4;
+  --md-on-primary-container: #001F24;
+
+  --md-error:           #BA1A1A;
+  --md-error-container: #FFDAD6;
+
+  --md-background:      #FAFDFE;
+  --md-on-background:   #191C1D;
+  --md-surface:         #FAFDFE;
+  --md-on-surface:      #191C1D;
+
+  --md-surface-variant:    #DBE4E6;
+  --md-on-surface-variant: #3F484A;
+
+  --md-outline:         #6F797A;
+  --md-outline-variant: #BFC8CA;
+
+  --md-surface-container-low:     #F2FAFB;
+  --md-surface-container:         #ECF4F5;
+  --md-surface-container-high:    #E6EEF0;
+  --md-surface-container-highest: #E0E8EA; */
+
+
+}
+
+/* ── Base ────────────────────────────────────────────── */
+body {
+  background: var(--color-background);
+  color: var(--text-color);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  line-height: 1.5;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: env(safe-area-inset-bottom, 24px);
+}
+
+/* ── Top App Bar ─────────────────────────────────────── */
+.top-app-bar {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 4px 12px;
+  background: var(--color-background);
+  color: var(--text-color);
+}
+
+.top-app-bar__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+}
+
+.top-app-bar__title {
+  font-family: var(--font-ui);
+  text-align: left;
+  font-size: 2rem;
+  font-weight: 400;
+  padding: 0 16px;
+}
+
+
+/* ── Icon Button ─────────────────────────────────────── */
+.icon-btn {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--md-on-surface-variant);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.icon-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 80ms;
+}
+
+.icon-btn:hover::before {
+  opacity: 0.08;
+}
+
+.icon-btn:active::before {
+  opacity: 0.12;
+}
+
+/* ── Material Symbols helper ─────────────────────────── */
+.ms {
+  font-family: 'Material Symbols Rounded';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 350,
+    'GRAD' 0,
+    'opsz' 50;
+  user-select: none;
+}
+
+/* ── Cards ───────────────────────────────────────────── */
+.card {
+  background: var(--color-list);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.card--elevated {
+  background: var(--color-list);
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, .3),
+    0 2px 6px rgba(0, 0, 0, .15);
+}
+
+/* ── Pages ───────────────────────────────────────────── */
+.page {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  animation: page-enter 200ms ease both;
+}
+
+.page-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+
+/* ── Tour Summary (stops + headset info combined) ───── */
+.tour-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+}
+
+.tour-summary__sep {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+  display: inline-block;
+  margin: 0 6px;
+  vertical-align: middle;
+}
+
+/* ── Tour Info Card ──────────────────────────────────── */
+.tour-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+}
+
+.tour-info-card__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tour-info-card__title {
+  font-size: 1.143rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+}
+
+.tour-info-card__meta {
+  font-size: 0.857rem;
+  color: var(--md-on-surface-variant);
+  display: flex;
+  gap: 16px;
+}
+
+/* ── Headset Status Bar ──────────────────────────────── */
+.headset-status-bar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.headset-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: none;
+  cursor: default;
+  width: 100%;
+  background-color: var(--color-list);
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: 0.938rem;
+  transition: background 0.15s;
+}
+
+.headset-status-bar--ok {
+  color: var(--text-color);
+}
+
+.headset-status-bar--warning {
+  color: var(--color-warning);
+}
+
+.headset-status-bar__icon { font-size: 1.25rem; }
+.headset-status-bar__text { flex: 1; }
+.headset-status-bar__warning { color: var(--color-warning); font-size: 1.1rem; }
+.headset-status-bar__chevron { font-size: 1.25rem; color: var(--text-color); }
+
+
+
+/* ── Section Header ──────────────────────────────────── */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  margin-bottom: 0;
+}
+
+.section-header__title {
+  font-size: 1.5rem;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--md-on-surface);
+  flex: 1;
+}
+
+.section-header__badge {
+  font-size: 0.857rem;
+  font-weight: 500;
+  color: var(--md-on-surface-variant);
+  background: var(--md-surface-container-highest);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+/* ── SaaS Status Row ─────────────────────────────────── */
+
+.saas-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.saas-dot--connected {
+  background-color: var(--color-connected-ready);
+}
+
+.saas-dot--connecting {
+  background-color: var(--color-not-ready);
+}
+
+.saas-dot--error {
+  background: var(--color-warning);
+}
+
+.saas-dot--disconnected {
+  background: grey;
+}
+
+
+/* ── Headset List ────────────────────────────────────── */
+
+.headset-list__header {
+  display: flex;
+  align-items: center;
+  padding: 8px 0 8px;
+}
+
+.headset-list__title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.headset-list__icon {
+  padding-left: 8px;
+  font-size: 3rem;
+  color: var(--color-button);
+}
+
+.headset-items {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.headset-item {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  border-bottom: 1px solid var(--line-color);
+}
+
+.headset-item:last-child {
+  border-bottom: none;
+}
+
+.headset-item__label {
+  flex: 1;
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.headset-item__status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.857rem;
+  color: var(--text-color);
+}
+
+.headset-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.headset-item__dot--online {
+  background-color: var(--color-connected-ready);
+}
+
+.headset-item__dot--connected {
+  background-color: var(--color-connected-ready);
+}
+
+.headset-item__dot--not-ready {
+  background-color: var(--color-not-ready);
+}
+
+.headset-item__dot--connecting {
+  background-color: var(--color-not-ready);
+}
+
+.headset-item__dot--error {
+  background: var(--color-warning);
+}
+
+.headset-item__dot--offline {
+  background-color: grey;
+}
+
+.headset-item__dot--disconnected {
+  background-color: grey;
+}
+
+/* ── Active Scene Chip ───────────────────────────────── */
+.active-scene-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--color-list);
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+.active-scene-chip-ms {
+  color: var(--scene-color);
+}
+
+.active-scene-chip__label {
+  flex: 1;
+}
+
+.active-scene-chip__controls {
+  display: flex;
+  gap: 4px;
+}
+
+.active-scene-chip__control-icon {
+  color: var(--scene-color);
+  opacity: 0.85;
+}
+
+/* ── Scene Cards ─────────────────────────────────────── */
+.scene-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.scene-card {
+  position: relative;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transition: opacity 120ms;
+}
+
+.scene-card:active {
+  opacity: 0.85;
+}
+
+.scene-card--active .scene-card__backdrop {
+  outline: 3px solid var(--scene-color, #fff);
+  outline-offset: -3px;
+}
+
+.scene-card__backdrop {
+  position: relative;
+  height: 120px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--scene-color, #444) 60%, #000) 0%,
+    color-mix(in srgb, var(--scene-color, #444) 30%, #000) 100%
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scene-card__icon {
+  font-size: 48px;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.scene-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scene-card__footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 8px 12px;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scene-card__label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.scene-card__check {
+  font-size: 1.25rem;
+  color: var(--scene-color, #fff);
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.scene-card__chevron {
+  font-size: 1.25rem;
+  color: rgba(255,255,255,0.8);
+}
+
+.scene-card__header {
+  width: 100%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: none;
+  display: block;
+}
+
+.scene-card__controls {
+  background: var(--color-list);
+  display: flex;
+  flex-direction: column;
+}
+
+.scene-card__control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--text-color);
+  font-family: var(--font-ui);
+  font-size: 0.938rem;
+  text-align: left;
+  border-top: 1px solid var(--line-color);
+}
+
+
+.scene-card__control--on {
+  color: var(--scene-color, var(--color-button));
+}
+
+.scene-card__control-icon {
+  font-size: 1.5rem;
+  opacity: 1;
+}
+
+.scene-card__control-label {
+  flex: 1;
+}
+
+.scene-card__control-toggle {
+  font-size: 1.5rem;
+  opacity: 1;
+}
+
+.scene-card__control--on .scene-card__control-toggle {
+  opacity: 1;
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* ── Scene List & Buttons ────────────────────────────── */
+.scene-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.scene-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 100px;
+  padding: 16px 12px;
+  border: none;
+  border-radius: 16px;
+  background: var(--color-list);
+  box-shadow: 0 1px 3px rgba(0,0,0,.25), 0 1px 2px rgba(0,0,0,.15);
+  color: var(--text-color);
+  font-family: var(--font-ui);
+  font-size: 0.938rem;
+  font-weight: 400;
+  text-align: center;
+  cursor: pointer;
+  transition: box-shadow 120ms, background 80ms;
+  -webkit-user-select: none;
+  user-select: none;
+  overflow: hidden;
+  gap: 10px;
+}
+
+.scene-btn:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+
+.scene-btn:active {
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  opacity: 0.9;
+}
+
+
+.scene-btn__icon-wrap {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  transition: background 120ms;
+}
+
+.scene-btn.active .scene-btn__icon-wrap {
+  background: color-mix(in srgb, var(--scene-color, var(--text-color)) 20%, transparent);
+}
+
+.scene-btn__icon {
+  font-size: 5rem;
+  color: var(--text-color);
+  transition: color 120ms;
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 32;
+}
+
+.scene-btn.active .scene-btn__icon {
+  color: var(--scene-color);
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20;
+}
+
+.scene-btn__label {
+  flex: unset;
+  line-height: 1.2;
+  font-size: 1.2rem;
+}
+
+/* ── Waiting Controls ────────────────────────────────── */
+.waiting-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.waiting-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.938rem;
+  color: var(--md-on-surface);
+}
+
+.waiting-status .ms {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+/* ── Views List ──────────────────────────────────────── */
+.views-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.view-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--md-surface-container);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms;
+}
+
+.view-item:hover {
+  background: var(--md-surface-container-high);
+}
+
+.view-item__checkbox {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--md-primary);
+}
+
+.view-item__label {
+  font-size: 0.938rem;
+  color: var(--md-on-surface);
+}
+
+.scene-btn.active .scene-btn__label {
+  font-weight: 500;
+}
+
+.scene-btn__check {
+  display: none;
+}
+
+/* ── Extended FAB ────────────────────────────────────── */
+.fab-wrap {
+  padding: 16px;
+  margin-top: auto;
+}
+
+.fab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  height: 56px;
+  border: none;
+  border-radius: 24px;
+  background: var(--color-button);
+  color: var(--color-button-text);
+  font-family: var(--font-ui);
+  font-size: 1.071rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: box-shadow 80ms, opacity 80ms;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.fab:hover {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .3), 0 4px 8px rgba(0, 0, 0, .15);
+}
+
+.fab:disabled {
+  opacity: 0.38;
+  cursor: default;
+  box-shadow: none;
+}
+
+/* ── FAB row ─────────────────────────────────────────── */
+.fab-wrap--row {
+  display: flex;
+  gap: 12px;
+}
+
+.fab-wrap--row .fab {
+  flex: 1;
+}
+
+
+.fab--danger {
+  background: var(--color-warning);
+  color: var(--text-color);
+}
+.fab--seccondary {
+  background: var(--color-list);
+  color: var(--text-color);
+}
+
+/* ── Tours Page ──────────────────────────────────────── */
+.tours-header {
+  padding: 4px 0 8px;
+}
+
+.tours-header__sub {
+  font-size: 0.857rem;
+  color: var(--text-color);
+  display: block;
+}
+
+.tours-header__city {
+  font-family: var(--font-display);
+  font-size: 2.286rem;
+  font-weight: 200;
+  color: var(--text-color);
+  line-height: 1.1;
+}
+
+.section-label {
+  font-size: 1rem;
+  color: var(--text-color);
+  margin-bottom: -4px;
+}
+
+.tour-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ── Tour Card ───────────────────────────────────────── */
+.tour-card {
+  display: flex;
+  flex-direction: column;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--color-background);
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+  margin: 0.2rem;
+  transition: box-shadow 120ms;
+}
+
+.tour-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .3);
+}
+
+.tour-card:active {
+  opacity: 0.85;
+}
+
+.tour-card__image {
+  height: 100px;
+  display: grid;
+  place-items: center;
+  background: var(--md-surface-container-high);
+}
+
+.tour-card__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tour-card__icon {
+  font-size: 40px;
+  color: var(--md-on-surface-variant);
+}
+
+.tour-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px 12px;
+}
+
+.tour-card__title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+  line-height: 1.3;
+}
+
+/* ── Tour card: gradient + white text overlaid on image ─────────────────── */
+.tour-card--gradient {
+  position: relative;
+}
+
+.tour-card--gradient .tour-card__image {
+  position: relative;
+  height: 160px;
+}
+
+.tour-card--gradient .tour-card__image::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.1) 55%, transparent 80%);
+}
+
+.tour-card--gradient .tour-card__body {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 10px 12px 12px;
+  z-index: 1;
+}
+
+.tour-card--gradient .tour-card__title {
+  color: #fff;
+}
+
+/* ── Session Connect ─────────────────────────────────── */
+.session-connect {
+  padding: 1.5rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.session-connect__heading {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-color);
+  margin: 0 0 0.5rem;
+}
+
+.session-connect__label {
+  font-size: 1.6rem;
+  color: var(--text-secondary, #666);
+  margin: 0;
+}
+
+.session-connect__code {
+  font-size: 2rem;
+  font-weight: 350;
+  padding-left: 1rem;
+  letter-spacing: 0.1em;
+  color: var(--text-color);
+  margin: 0.25rem 0 1rem;
+}
+
+.session-connect__sound-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  margin-left: 1rem;
+  border: 1px solid var(--line-color);
+  border-radius: 9px;
+  background: var(--color-list);
+  box-shadow: 0 1px 3px rgba(0,0,0,.25), 0 1px 2px rgba(0,0,0,.15);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: var(--font-ui);
+  color: var(--text-color);
+  width: fit-content;
+  transition: background 120ms, box-shadow 120ms;
+}
+
+.session-connect__sound-btn:hover {
+  background: color-mix(in srgb, var(--color-list) 85%, white);
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+
+.session-connect__sound-btn:active {
+  box-shadow: 0 1px 2px rgba(0,0,0,.2);
+  transform: translateY(1px);
+}
+
+.session-connect__sound-btn .ms {
+  font-size: 1.8rem;
+}
+
+/* ── Session Info Card ───────────────────────────────── */
+.session-info-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.session-info-card__code-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 6px 20px;
+  background-color: var(--color-list);
+  border-radius: 12px;
+  flex: 1 1;
+  min-width: 120px;
+  max-width: 180px;
+}
+
+.session-card__label {
+  font-size: 0.786rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-color);
+}
+
+.session-card__sessionId {
+  font-size: 2rem;
+  color: var(--text-color);
+  margin-top: 4px;
+}
+
+.session-info-card__sound-btn {
+  background: none;
+  cursor: pointer;
+  color: var(--text-color);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  margin-top: 4px;
+  border: none;
+}
+
+/* overwrite ms class to increase size of icon */
+.session-info-card__sound-btn .ms {
+  font-size: 4rem;
+
+}
+
+.session-info-card__sound-btn:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+/* ── Tour Info Section ───────────────────────────────── */
+.tour-info-section {
+  padding: 12px 0;
+}
+
+.tour-info-section__description {
+  font-size: 1rem;
+  color: var(--md-on-surface);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Headset Section ─────────────────────────────────── */
+.headset-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+  background-color: var(--color-list);
+}
+
+.headset-section .card {
+  padding: 0;
+  overflow: visible;
+}
+
+
+.headset-section .section-header {
+  padding: 0;
+}
+
+.headset-section .section-header__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+}
+
+/* ── Settings Page ───────────────────────────────────── */
+.settings-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  font-family: var(--font-ui);
+  font-size: 1.071rem;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+}
+
+.settings-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 5%;
+  width: 90%;
+  height: 1px;
+  background: var(--line-color);
+}
+
+.settings-item:last-child::after {
+  display: none;
+}
+
+.settings-item:last-child {
+  border-bottom: none;
+}
+
+.settings-item--danger {
+  color: var(--color-warning);
+}
+
+.settings-item__label {
+  flex: 1;
+}
+
+.settings-item__arrow {
+  color: var(--text-color);
+  font-size: 20px;
+}
+
+.settings-item--select {
+  cursor: default;
+}
+
+.settings-select {
+  background: var(--color-list);
+  color: var(--text-color);
+  border: 1px solid var(--line-color);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-family: var(--font-ui);
+  font-size: 0.929rem;
+  cursor: pointer;
+}
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line-color);
+  background: transparent;
+  color: var(--text-color);
+  font-family: var(--font-ui);
+  font-size: 0.929rem;
+  cursor: pointer;
+}
+
+.settings-toggle--active {
+  background: var(--color-background);
+  color: var(--text-color);
+  border-color: var(--line-color)
+}
+
+/* ── QR Modal ────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  animation: fade-in 150ms ease;
+}
+
+.modal {
+  background: var(--color-list);
+  border-radius: 20px;
+  width: min(340px, calc(100vw - 48px));
+  overflow: hidden;
+  animation: slide-up 200ms ease;
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  padding: 8px 8px 8px 20px;
+  border-bottom: 1px solid var(--line-color);
+}
+
+.modal__title {
+  flex: 1;
+  font-size: 1.143rem;
+  font-weight: 500;
+}
+
+.modal__body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+}
+
+.modal__qr {
+  padding: 12px;
+  background: #fff;
+  border-radius: 12px;
+}
+
+.modal__hint {
+  font-size: 0.929rem;
+  color: var(--md-on-surface-variant);
+  text-align: center;
+}
+
+.modal__message {
+  text-align: center;
+}
+
+.modal__footer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px 16px;
+}
+
+.modal__footer .fab {
+  height: 44px;
+  border-radius: 12px;
+  font-size: 0.929rem;
+}
+
+/* ── Login Page ──────────────────────────────────────── */
+.login-page {
+  --wave-back: var(--login-wave-back);
+  --wave-front: var(--login-wave-front);
+
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+  color: var(--text-color);
+}
+
+.login-hero {
+  position: relative;
+  z-index: 1;
+  min-height: 34dvh;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(40px, 8vh, 72px) 24px 90px;
+}
+
+.login-logo {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.login-logo__sub {
+  font-size: 0.82rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-color);
+  opacity: 0.95;
+}
+
+.login-logo__city {
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 5vw, 2.6rem);
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.login-wave {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 70%;
+  z-index: 0;
+}
+
+.login-wave--back {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 97%;
+  z-index: 1;
+}
+
+.login-wave--front {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+}
+
+.login-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 65%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: transparent;
+  padding: 28px 20px 28px;
+}
+
+.login-card__heading {
+  margin: 0 0 24px;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 2.4rem);
+  line-height: 1.05;
+  font-weight: 700;
+  color: var(--text-color);
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.login-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.login-field__label {
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--text-color);
+}
+
+.login-field__password-wrap {
+  position: relative;
+}
+
+.login-field__input {
+  width: 100%;
+  height: 48px;
+  border: none;
+  border-radius: 8px;
+  padding: 0 14px;
+  background: var(--color-sign-in-box);
+  color: #1e2235;
+  font-family: var(--font-ui);
+  font-size: 1.2rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.login-field__input::placeholder {
+  color: #7a8197;
+  opacity: 1;
+}
+
+.login-field__input:focus {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-button) 22%, transparent);
+}
+
+.login-field__password-wrap .login-field__input {
+  padding-right: 48px;
+}
+
+.login-field__eye {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: 0;
+  background: transparent;
+  color: #66708f;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.login-field__eye:hover {
+  background: color-mix(in srgb, var(--color-button) 10%, transparent);
+}
+
+.login-forgot {
+  align-self: flex-end;
+  margin-top: -2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-color);
+  opacity: 0.9;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.login-submit {
+  margin-top: 100px;
+}
+
+.login-signup {
+  margin-top: 12px;
+  padding-top: 24px;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--text-color);
+}
+
+.login-signup__link {
+  border: 0;
+  padding: 0;
+  background: none;
+  color: var(--text-color);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+@media (max-width: 430px) {
+  .login-hero {
+    min-height: 200px;
+    padding: 32px 20px 58px;
+  }
+
+  .login-panel {
+    padding: 24px 20px 28px;
+  }
+}
+
+/* ── Animations ──────────────────────────────────────── */
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
