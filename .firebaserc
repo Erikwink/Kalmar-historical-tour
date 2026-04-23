@@ -5,9 +5,14 @@
   "targets": {
     "kalmar-historical-tour": {
       "hosting": {
-        "controller": ["kalmar-controller"],
-        "client": ["kalmar-client"]
+        "controller": [
+          "kalmar-controller"
+        ],
+        "client": [
+          "kalmar-client"
+        ]
       }
     }
-  }
+  },
+  "etags": {}
 }
