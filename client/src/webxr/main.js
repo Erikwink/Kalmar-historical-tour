@@ -38,6 +38,7 @@ const startVrButton = document.getElementById("start-vr");
 const startArButton = document.getElementById("start-ar");
 const startSimButton = document.getElementById("start-sim");
 const endButton = document.getElementById("end-xr");
+const resumeVrButton = document.getElementById("resume-vr");
 const canvas = document.getElementById("xr-canvas");
 const sceneDebugEl = document.getElementById("scene-debug");
 const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
@@ -137,6 +138,8 @@ let autoLaunchResolved = false;
 let autoVrGestureLaunchArmed = false;
 let xrStartInFlight = false;
 let sceneRefreshTimer = null;
+let pendingVrResumeAfterSceneChange = false;
+let sceneTransitionExitInFlight = false;
 const SCENE_REFRESH_DEBOUNCE_MS = 80;
 const tmpForward = new Vector3();
 const tmpRight = new Vector3();
@@ -199,6 +202,61 @@ function setSceneDebug(message, tone = "info") {
 
   sceneDebugEl.textContent = message;
   sceneDebugEl.dataset.tone = tone;
+}
+
+function setResumeVrPromptVisible(visible) {
+  if (!resumeVrButton) {
+    return;
+  }
+
+  resumeVrButton.dataset.visible = visible ? "true" : "false";
+  resumeVrButton.disabled = !visible || !support.vr || xrStartInFlight;
+}
+
+function isXRSessionActive() {
+  return Boolean(xrExperience && xrExperience.baseExperience.state !== WebXRState.NOT_IN_XR);
+}
+
+function shouldDeferSceneRenderForActiveVr() {
+  return appMode === "xr-vr" && isXRSessionActive();
+}
+
+async function exitXRForSceneTransition(reason) {
+  if (!xrExperience || !isXRSessionActive()) {
+    return;
+  }
+
+  pendingVrResumeAfterSceneChange = true;
+  setResumeVrPromptVisible(false);
+  setStatus(`${reason} Leaving VR to load the scene safely...`);
+  setSceneDebug("Scene update received during immersive VR. Exiting VR before rebuilding the panorama.", "info");
+
+  if (sceneTransitionExitInFlight) {
+    return;
+  }
+
+  sceneTransitionExitInFlight = true;
+  try {
+    await xrExperience.baseExperience.sessionManager.exitXRAsync();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    pendingVrResumeAfterSceneChange = false;
+    setResumeVrPromptVisible(false);
+    setStatus(`Could not leave VR for scene transition: ${message}`);
+    setSceneDebug(`Could not leave VR for scene transition. Error: ${message}`, "error");
+    console.error("[webxr] Failed to exit XR for scene transition:", error);
+  } finally {
+    sceneTransitionExitInFlight = false;
+  }
+}
+
+function deferSceneRenderIfActiveVr(reason) {
+  if (!shouldDeferSceneRenderForActiveVr()) {
+    return false;
+  }
+
+  exitXRForSceneTransition(reason);
+  return true;
 }
 
 /**
@@ -355,6 +413,9 @@ function applyTourId(rawTourId) {
   setSceneIndicator(activeSceneState);
   setControlsIndicator(activeControlsState);
   if (scene) {
+    if (deferSceneRenderIfActiveVr(`Tour changed to '${activeTourState.resolvedTourId}'.`)) {
+      return;
+    }
     scheduleSceneThemeRefresh();
   }
 }
@@ -368,6 +429,9 @@ function applyActiveControls(rawActiveControls) {
   setControlsIndicator(activeControlsState);
   const nextRenderableSignature = getRenderableSceneControlSignature(activeControlsState.activeControls);
   if (scene && previousRenderableSignature !== nextRenderableSignature) {
+    if (deferSceneRenderIfActiveVr(`Controls changed for scene '${activeSceneId}'.`)) {
+      return;
+    }
     scheduleSceneThemeRefresh();
     return;
   }
@@ -380,6 +444,7 @@ function setButtons({ canStartVr, canStartAr, canStartSim, canEnd }) {
   startArButton.disabled = !canStartAr;
   startSimButton.disabled = !canStartSim;
   endButton.disabled = !canEnd;
+  setResumeVrPromptVisible(pendingVrResumeAfterSceneChange);
 }
 
 function enableIdleButtons() {
@@ -669,6 +734,9 @@ function scheduleSceneThemeRefresh() {
     }
 
     try {
+      if (deferSceneRenderIfActiveVr(`Scene '${activeSceneId}' refresh is pending.`)) {
+        return;
+      }
       applySceneTheme();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -692,6 +760,14 @@ function applySceneChange(sceneId) {
     );
   } else {
     setSceneDebug(`Scene '${activeSceneId}' is active. Waiting for scene-specific diagnostics...`);
+    if (deferSceneRenderIfActiveVr(`Scene '${activeSceneId}' received.`)) {
+      const fallbackSuffix =
+        activeSceneState.usedFallback && activeSceneState.requestedSceneId
+          ? ` (fallback from '${activeSceneState.requestedSceneId}')`
+          : "";
+      setStatus(`Scene queued for safe VR transition (${sceneSource}): ${activeSceneId}${fallbackSuffix}`);
+      return;
+    }
     scheduleSceneThemeRefresh();
   }
   const fallbackSuffix =
@@ -928,16 +1004,31 @@ function sendMockScene() {
 }
 
 function onSessionEnded() {
+  const shouldResumeAfterSceneChange = pendingVrResumeAfterSceneChange;
+
   if (appMode === "xr-vr" || appMode === "xr-ar") {
-    appMode = "idle";
+    appMode = shouldResumeAfterSceneChange ? "simulation" : "idle";
   }
 
-  stopRenderLoop();
+  if (!shouldResumeAfterSceneChange) {
+    stopRenderLoop();
+  } else {
+    startRenderLoop();
+  }
   setCameraControlsEnabled(true);
   enableIdleButtons();
   onModeChanged("simulation");
   applySceneTheme();
   syncXRTeleportationState();
+
+  if (shouldResumeAfterSceneChange) {
+    setResumeVrPromptVisible(true);
+    setStatus(`Scene '${activeSceneId}' loaded outside VR. Press Fortsätt i VR to continue.`);
+    setSceneDebug("Panorama updated outside the WebXR session. VR can be started again with the current scene.", "success");
+    return;
+  }
+
+  setResumeVrPromptVisible(false);
   setStatus(`XR session ended. Latest scene: ${activeSceneId}`);
 }
 
@@ -968,6 +1059,10 @@ async function startXR(mode) {
     });
 
     const resolvedAttempt = await enterXRWithFallbacks(xr, mode);
+    if (mode === "immersive-vr") {
+      pendingVrResumeAfterSceneChange = false;
+      setResumeVrPromptVisible(false);
+    }
     syncXRTeleportationState();
     setStatus(`${mode} active using ${resolvedAttempt.label}. Rendering Babylon.js scene '${activeSceneId}'.`);
     return { started: true, error: null };
@@ -979,15 +1074,19 @@ async function startXR(mode) {
     enableIdleButtons();
     applySceneTheme();
     syncXRTeleportationState();
+    setResumeVrPromptVisible(pendingVrResumeAfterSceneChange);
     setStatus(`Could not start ${mode}: ${error.message}`);
     return { started: false, error };
   } finally {
     xrStartInFlight = false;
+    setResumeVrPromptVisible(pendingVrResumeAfterSceneChange);
   }
 }
 
 function startSimulation() {
   try {
+    pendingVrResumeAfterSceneChange = false;
+    setResumeVrPromptVisible(false);
     ensureBabylonContext();
     appMode = "simulation";
     setCameraControlsEnabled(true);
@@ -1026,6 +1125,23 @@ async function endCurrentSession() {
     syncXRTeleportationState();
     setStatus("Simulation ended.");
   }
+}
+
+async function resumeVrAfterSceneTransition() {
+  if (!pendingVrResumeAfterSceneChange) {
+    return;
+  }
+
+  setStatus(`Starting VR with scene '${activeSceneId}'...`);
+  const result = await startXR("immersive-vr");
+  if (result.started) {
+    return;
+  }
+
+  pendingVrResumeAfterSceneChange = true;
+  setResumeVrPromptVisible(true);
+  const message = result.error instanceof Error ? result.error.message : "Unknown WebXR start error";
+  setStatus(`Could not continue in VR: ${message}`);
 }
 
 /**
@@ -1128,6 +1244,7 @@ startArButton.addEventListener("click", () => {
 });
 startSimButton.addEventListener("click", startSimulation);
 endButton.addEventListener("click", endCurrentSession);
+resumeVrButton?.addEventListener("click", resumeVrAfterSceneTransition);
 connectSessionButton.addEventListener("click", connectSceneStream);
 sendMockSceneButton.addEventListener("click", sendMockScene);
 canvas.tabIndex = 0;

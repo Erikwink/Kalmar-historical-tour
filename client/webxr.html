@@ -125,6 +125,20 @@
         color: var(--text);
       }
 
+      #resume-vr {
+        display: none;
+        width: 100%;
+        margin-top: 10px;
+        background: var(--vr);
+        color: #1d2027;
+        font-size: 1.08rem;
+        padding: 15px 18px;
+      }
+
+      #resume-vr[data-visible="true"] {
+        display: block;
+      }
+
       #connect-session {
         background: var(--light-btn);
         color: #161823;
@@ -212,6 +226,8 @@
           <button id="start-sim">Start Simulation</button>
           <button id="end-xr" disabled>End Session</button>
         </div>
+
+        <button id="resume-vr" type="button">Fortsätt i VR</button>
 
         <div class="field-grid">
           <label for="session-id">Session ID</label>
