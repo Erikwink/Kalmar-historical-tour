@@ -2,14 +2,12 @@ import {
   Color3,
   Color4,
   MeshBuilder,
-  SceneLoader,
   StandardMaterial,
   Texture,
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
 import { PhotoDome } from "@babylonjs/core/Helpers/photoDome";
-import "@babylonjs/loaders/glTF";
 import {
   getRenderableSceneControls,
   resolveMediaAssetUrl,
@@ -17,7 +15,6 @@ import {
 } from "../../toursClient.js";
 
 const DEFAULT_SCENE_ID = "waiting";
-const WAITING_MODEL_URL = "/assets/castle.glb";
 const SCENE_ALIAS = {
   boat: "boats",
 };
@@ -350,136 +347,6 @@ function createMediaPlaceholder(scene, root, theme, sceneRef) {
   };
 }
 
-function getMeshBounds(meshes) {
-  return meshes.reduce(
-    (bounds, mesh) => {
-      if (!mesh || mesh.isDisposed() || typeof mesh.getBoundingInfo !== "function") {
-        return bounds;
-      }
-
-      mesh.computeWorldMatrix(true);
-      const boundingBox = mesh.getBoundingInfo().boundingBox;
-      bounds.min = Vector3.Minimize(bounds.min, boundingBox.minimumWorld);
-      bounds.max = Vector3.Maximize(bounds.max, boundingBox.maximumWorld);
-      bounds.hasBounds = true;
-      return bounds;
-    },
-    {
-      min: new Vector3(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY),
-      max: new Vector3(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY),
-      hasBounds: false,
-    },
-  );
-}
-
-function fitModelToWaitingView(meshes, modelRoot) {
-  const bounds = getMeshBounds(meshes);
-  if (!bounds.hasBounds) {
-    modelRoot.position = new Vector3(0, 0, -2.4);
-    modelRoot.scaling.setAll(0.5);
-    return;
-  }
-
-  const size = bounds.max.subtract(bounds.min);
-  const center = bounds.min.add(size.scale(0.5));
-  const maxDimension = Math.max(size.x, size.y, size.z, 1);
-  const scale = Math.min(2.2 / maxDimension, 1.6);
-  const targetZ = -2.4;
-
-  modelRoot.scaling.setAll(scale);
-  modelRoot.position = new Vector3(
-    -center.x * scale,
-    -bounds.min.y * scale,
-    targetZ - center.z * scale,
-  );
-}
-
-function buildWaitingModelScreen(scene, theme = SCENE_LIBRARY.waiting, mode = "preview") {
-  const root = new TransformNode("scene-waiting-model-root", scene);
-  const base = createScreenFoundation(scene, theme, root, {
-    showFloor: true,
-    showPedestal: false,
-    showPanel: false,
-  });
-  const modelRoot = new TransformNode("waiting-castle-model-root", scene);
-  modelRoot.parent = root;
-
-  let disposed = false;
-  let loadedMeshes = [];
-  let loadedTransformNodes = [];
-  let loadedAnimationGroups = [];
-
-  SceneLoader.ImportMeshAsync("", "", WAITING_MODEL_URL, scene)
-    .then((result) => {
-      if (disposed) {
-        result.meshes.forEach((mesh) => mesh.dispose(false, true));
-        result.transformNodes?.forEach((node) => node.dispose());
-        result.animationGroups?.forEach((group) => group.dispose());
-        return;
-      }
-
-      loadedMeshes = result.meshes || [];
-      loadedTransformNodes = result.transformNodes || [];
-      loadedAnimationGroups = result.animationGroups || [];
-
-      loadedMeshes.forEach((mesh) => {
-        if (!mesh.parent) {
-          mesh.parent = modelRoot;
-        }
-        mesh.isPickable = false;
-      });
-
-      loadedTransformNodes.forEach((node) => {
-        if (!node.parent) {
-          node.parent = modelRoot;
-        }
-      });
-
-      fitModelToWaitingView(loadedMeshes, modelRoot);
-      loadedAnimationGroups.forEach((group) => group.start(true));
-
-      emitSceneDebug({
-        sceneId: "waiting",
-        status: "loaded",
-        message: "Waiting scene model loaded from /assets/castle.glb.",
-      });
-    })
-    .catch((error) => {
-      emitSceneDebug({
-        sceneId: "waiting",
-        status: "error",
-        message: "Failed to load waiting scene model from /assets/castle.glb.",
-        error: error instanceof Error ? error.message : String(error),
-      });
-    });
-
-  base.applyMode(mode);
-  return {
-    root,
-    clearColor: makeColor4(theme.clearColor),
-    locomotion: null,
-    applyMode(nextMode) {
-      base.applyMode(nextMode);
-    },
-    dispose() {
-      disposed = true;
-      loadedAnimationGroups.forEach((group) => group.dispose());
-      loadedMeshes.forEach((mesh) => {
-        if (!mesh.isDisposed()) {
-          mesh.dispose(false, true);
-        }
-      });
-      loadedTransformNodes.forEach((node) => {
-        if (!node.isDisposed()) {
-          node.dispose();
-        }
-      });
-      modelRoot.dispose();
-      base.dispose();
-    },
-  };
-}
-
 /**
  * Creates a Babylon PhotoDome when the active scene exposes an active 360-photo control.
  */
@@ -784,7 +651,7 @@ function buildPanoramaScreen(scene, theme, sceneRef, mode) {
 }
 
 function buildWaitingScreen(scene, mode) {
-  return buildWaitingModelScreen(scene, SCENE_LIBRARY.waiting, mode);
+  return composeScreen(scene, SCENE_LIBRARY.waiting, "waiting", mode);
 }
 
 function buildCastleScreen(scene, mode) {

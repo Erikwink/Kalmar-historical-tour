@@ -37,6 +37,8 @@
 
       body[data-headset-mode="true"] {
         background: #04050b;
+        height: 100vh;
+        overflow: hidden;
       }
 
       main {
@@ -140,10 +142,12 @@
       }
 
       body[data-headset-mode="true"] #resume-vr {
-        max-width: 420px;
-        margin: 0 auto;
+        width: min(420px, calc(100vw - 48px));
+        margin: 0;
         font-size: 1.18rem;
         padding: 18px 22px;
+        justify-self: center;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
       }
 
       #resume-vr[data-visible="true"] {
@@ -204,7 +208,7 @@
 
       body[data-headset-mode="true"] main {
         width: 100vw;
-        min-height: 100vh;
+        height: 100vh;
         padding: 0;
         border: 0;
         border-radius: 0;
@@ -214,11 +218,13 @@
       }
 
       body[data-headset-mode="true"] .stack {
-        min-height: 100vh;
+        height: 100vh;
         margin: 0;
-        gap: 18px;
-        grid-template-rows: 1fr auto;
-        padding: 18px;
+        gap: 0;
+        grid-template-rows: 1fr;
+        padding: 0;
+        position: relative;
+        overflow: hidden;
       }
 
       body[data-headset-mode="true"] .sandbox-only {
@@ -226,10 +232,79 @@
       }
 
       body[data-headset-mode="true"] #xr-canvas {
-        height: auto;
+        width: 100%;
+        height: 100%;
         min-height: 0;
         border: 0;
         border-radius: 0;
+        opacity: 0.38;
+      }
+
+      body[data-headset-lobby-visible="true"] #xr-canvas {
+        opacity: 0;
+      }
+
+      .headset-lobby {
+        display: none;
+      }
+
+      .headset-lobby[hidden] {
+        display: none !important;
+      }
+
+      body[data-headset-mode="true"] .headset-lobby {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        align-items: center;
+        justify-items: center;
+        gap: 24px;
+        padding: 42px 24px 52px;
+        background:
+          linear-gradient(180deg, rgba(4, 5, 11, 0.96), rgba(4, 5, 11, 1)),
+          radial-gradient(circle at 50% 28%, rgba(229, 241, 79, 0.14), transparent 34%);
+      }
+
+      .headset-lobby__copy {
+        max-width: 620px;
+        text-align: center;
+      }
+
+      .headset-lobby__eyebrow {
+        margin: 0 0 12px;
+        color: var(--vr);
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .headset-lobby__title {
+        margin: 0;
+        font-size: clamp(2rem, 7vw, 4.4rem);
+        line-height: 1.02;
+        font-weight: 760;
+      }
+
+      .headset-lobby__text {
+        margin: 16px auto 0;
+        max-width: 520px;
+        color: var(--muted);
+        font-size: clamp(1rem, 2.5vw, 1.25rem);
+        line-height: 1.45;
+      }
+
+      body[data-headset-mode="true"] .headset-lobby #resume-vr {
+        display: none;
+      }
+
+      body[data-headset-mode="true"] #resume-vr {
+        position: absolute;
+        left: 50%;
+        bottom: max(30px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        z-index: 2;
       }
 
       .footer-link {
@@ -296,6 +371,14 @@
         </div>
 
         <canvas id="xr-canvas" aria-label="WebXR preview canvas"></canvas>
+
+        <section class="headset-lobby" aria-live="polite">
+          <div class="headset-lobby__copy">
+            <p class="headset-lobby__eyebrow">Kalmar historisk tur</p>
+            <h2 id="headset-lobby-title" class="headset-lobby__title">Väntar på nästa scen</h2>
+            <p id="headset-lobby-text" class="headset-lobby__text">Guiden startar upplevelsen när alla headset är redo.</p>
+          </div>
+        </section>
 
         <button id="resume-vr" type="button">Fortsätt i VR</button>
       </div>

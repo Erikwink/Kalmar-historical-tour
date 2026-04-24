@@ -19,6 +19,7 @@ import {
 import { createAudioPlaybackManager } from "./audioPlayback.js";
 import { createSceneManager, DEFAULT_SCENE_ID } from "./scenes/sceneCatalog.js";
 import {
+  getRenderableSceneControls,
   getRenderableSceneControlSignature,
   getSelectableScenes,
   resolveActiveControls,
@@ -40,6 +41,9 @@ const startSimButton = document.getElementById("start-sim");
 const endButton = document.getElementById("end-xr");
 const resumeVrButton = document.getElementById("resume-vr");
 const canvas = document.getElementById("xr-canvas");
+const headsetLobbyEl = document.querySelector(".headset-lobby");
+const headsetLobbyTitleEl = document.getElementById("headset-lobby-title");
+const headsetLobbyTextEl = document.getElementById("headset-lobby-text");
 const sceneDebugEl = document.getElementById("scene-debug");
 const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
 const LOCOMOTION_TEST_SCENE_ID = "locomotion-test";
@@ -106,7 +110,12 @@ function getTourIdFromUrl() {
   return typeof rawTourId === "string" ? rawTourId.trim() : "";
 }
 
-const isHeadsetRuntimePage = Boolean(getSessionFromUrl());
+function isDebugSandboxRequested() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("debug") === "1";
+}
+
+const isHeadsetRuntimePage = !isDebugSandboxRequested();
 document.body.dataset.headsetMode = isHeadsetRuntimePage ? "true" : "false";
 
 const support = {
@@ -185,6 +194,29 @@ function setSceneIndicator(sceneState) {
   const label = sceneState.scene?.label ?? sceneState.resolvedSceneId;
   const suffix = sceneState.usedFallback ? " (fallback)" : "";
   sceneIndicatorEl.textContent = `Active scene: ${label} [${sceneState.resolvedSceneId}]${suffix}`;
+  syncHeadsetLobbyVisibility();
+}
+
+function isSceneReadyForVr() {
+  return activeSceneId !== DEFAULT_SCENE_ID && getRenderableSceneControls(activeControlsState.activeControls).length > 0;
+}
+
+function syncHeadsetLobbyVisibility() {
+  const shouldShow = isHeadsetRuntimePage && !isXRSessionActive();
+  document.body.dataset.headsetLobbyVisible = shouldShow ? "true" : "false";
+
+  if (!headsetLobbyEl) {
+    return;
+  }
+
+  headsetLobbyEl.hidden = !shouldShow;
+
+  if (headsetLobbyTitleEl && headsetLobbyTextEl) {
+    headsetLobbyTitleEl.textContent = isSceneReadyForVr() ? "Scen redo" : "Väntar på nästa scen";
+    headsetLobbyTextEl.textContent = isSceneReadyForVr()
+      ? "Tryck Fortsätt i VR för att gå in i den nya scenen."
+      : "Guiden startar nästa scen när gruppen är redo.";
+  }
 }
 
 function setControlsIndicator(controlsState) {
@@ -208,7 +240,14 @@ function setSceneDebug(message, tone = "info") {
 }
 
 function shouldShowHeadsetLaunchPrompt() {
-  return isHeadsetRuntimePage && support.vr && !isXRSessionActive() && appMode !== "xr-vr" && appMode !== "xr-ar";
+  return (
+    isHeadsetRuntimePage &&
+    isSceneReadyForVr() &&
+    support.vr &&
+    !isXRSessionActive() &&
+    appMode !== "xr-vr" &&
+    appMode !== "xr-ar"
+  );
 }
 
 function setResumeVrPromptVisible(visible) {
@@ -216,9 +255,10 @@ function setResumeVrPromptVisible(visible) {
     return;
   }
 
-  const shouldShow = Boolean(visible || shouldShowHeadsetLaunchPrompt());
+  const shouldShow = Boolean((visible || shouldShowHeadsetLaunchPrompt()) && isSceneReadyForVr());
   resumeVrButton.dataset.visible = shouldShow ? "true" : "false";
   resumeVrButton.disabled = !shouldShow || !support.vr || xrStartInFlight;
+  syncHeadsetLobbyVisibility();
 }
 
 function isXRSessionActive() {
@@ -435,6 +475,10 @@ function applyActiveControls(rawActiveControls) {
   const previousRenderableSignature = getRenderableSceneControlSignature(activeControlsState.activeControls);
   activeControlsState = resolveActiveControls(activeSceneState, rawActiveControls);
   setControlsIndicator(activeControlsState);
+  if (!isSceneReadyForVr()) {
+    pendingVrResumeAfterSceneChange = false;
+  }
+  setResumeVrPromptVisible(isSceneReadyForVr());
   const nextRenderableSignature = getRenderableSceneControlSignature(activeControlsState.activeControls);
   if (scene && previousRenderableSignature !== nextRenderableSignature) {
     if (deferSceneRenderIfActiveVr(`Controls changed for scene '${activeSceneId}'.`)) {
@@ -759,8 +803,12 @@ function applySceneChange(sceneId) {
   activeSceneState = resolveScene(activeTourState, sceneId, { includeDevelopmentScenes: true });
   activeControlsState = resolveActiveControls(activeSceneState, activeControlsState.controlMap);
   activeSceneId = activeSceneState.resolvedSceneId;
+  if (!isSceneReadyForVr()) {
+    pendingVrResumeAfterSceneChange = false;
+  }
   setSceneIndicator(activeSceneState);
   setControlsIndicator(activeControlsState);
+  setResumeVrPromptVisible(isSceneReadyForVr());
   if (!scene) {
     const requestedSceneId = activeSceneState.requestedSceneId || activeSceneState.resolvedSceneId;
     setSceneDebug(
@@ -1030,9 +1078,15 @@ function onSessionEnded() {
   syncXRTeleportationState();
 
   if (shouldResumeAfterSceneChange) {
-    setResumeVrPromptVisible(true);
-    setStatus(`Scene '${activeSceneId}' loaded outside VR. Press Fortsätt i VR to continue.`);
-    setSceneDebug("Panorama updated outside the WebXR session. VR can be started again with the current scene.", "success");
+    setResumeVrPromptVisible(isSceneReadyForVr());
+    if (isSceneReadyForVr()) {
+      setStatus(`Scene '${activeSceneId}' loaded outside VR. Press Fortsätt i VR to continue.`);
+      setSceneDebug("Panorama updated outside the WebXR session. VR can be started again with the current scene.", "success");
+    } else {
+      pendingVrResumeAfterSceneChange = false;
+      setStatus("Scene stopped. Waiting for the guide to start the next scene.");
+      setSceneDebug("Scene stopped. Waiting outside VR for the next scene.", "info");
+    }
     return;
   }
 
@@ -1163,8 +1217,12 @@ async function maybeAutoLaunchPreferredMode(trigger = "auto") {
     const result = startSimulation();
     if (result.started) {
       autoLaunchResolved = true;
-      setResumeVrPromptVisible(true);
-      setStatus(`Waiting scene loaded. Press Fortsätt i VR to enter immersive VR.`);
+      setResumeVrPromptVisible(isSceneReadyForVr());
+      setStatus(
+        isSceneReadyForVr()
+          ? `Scene '${activeSceneId}' loaded. Press Fortsätt i VR to enter immersive VR.`
+          : "Waiting for the guide to start the next scene.",
+      );
     }
     return;
   }
