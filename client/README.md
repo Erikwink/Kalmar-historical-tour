@@ -1,6 +1,6 @@
 # Kalmar WebXR Client
 
-React/Vite client for the headset flow and the isolated Babylon WebXR sandbox.
+React/Vite client for the headset flow and Babylon WebXR runtime.
 
 ## Commands
 
@@ -11,15 +11,17 @@ npm run lint
 npm run build
 ```
 
-## WebXR Sandbox
+## WebXR Runtime
 
 Open `webxr.html` through Vite and use `?session=123456` to auto-connect a scene stream.
 The client now also reads `tourId` from the Firebase session and falls back to `kalmar-medeltid` during development until the controller has written the field.
 Active scene lookup is now resolved from the selected tour in `tours.js`, with `waiting` as the shared fallback state when a scene ID is unknown.
 The client also subscribes to `activeControls` from Firebase and resolves them against the currently active scene.
-Active `360-photo` controls are now rendered as Babylon `PhotoDome` panoramas in the sandbox and headset client.
+Active `360-photo` controls are rendered as Babylon `PhotoDome` panoramas in the WebXR runtime.
 Active `audio` controls loop in the browser audio layer, while `narration` controls play once and temporarily duck ambient audio volume.
-On VR-capable headset browsers, the sandbox now prefers immersive VR on startup and falls back to a one-tap entry prompt when the browser requires a user gesture. On laptops and AR/non-VR runtimes, the page starts the browser simulation automatically instead.
+On headset browsers, `webxr.html?session=123456` shows a lobby until the guide activates a renderable scene control such as `Visa slottet` or `Visa kyrkan`. The headset then shows `Scen redo` and a one-tap `Fortsätt i VR` prompt.
+
+For laptop debugging, open `webxr.html?session=123456&preview=1`. This uses the same Firebase scene/control stream as the headset runtime, starts Babylon browser simulation automatically, and shows a small status overlay without exposing local mock controls.
 
 ## Panorama Assets
 
@@ -47,13 +49,12 @@ Then reference them in `tours.js` with relative `src` values such as:
 - `castle/ambient.mp3`
 - `castle/narration.mp3`
 
-The sandbox now includes a dedicated `locomotion-test` scene with:
+The runtime includes a dedicated `locomotion-test` scene with:
 
 - a large floor area for teleportation testing
 - elevated platforms that can act as additional teleport targets
 - Babylon teleportation wired to the right-hand VR controller
 - custom left-thumbstick locomotion wired on top of Babylon XR input
-- a local scene preview button that works even when the real scene stream is connected
 - desktop locomotion controls in simulation: `W/A/S/D` or arrow keys to move, mouse drag to look, and double-click to teleport on valid floor meshes
 
 ## Current limitation

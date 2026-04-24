@@ -35,7 +35,8 @@
         background: radial-gradient(circle at top, var(--bg-top), var(--bg-bottom) 65%);
       }
 
-      body[data-headset-mode="true"] {
+      body[data-runtime-mode="headset"],
+      body[data-runtime-mode="preview"] {
         background: #04050b;
         height: 100vh;
         overflow: hidden;
@@ -141,7 +142,7 @@
         padding: 15px 18px;
       }
 
-      body[data-headset-mode="true"] #resume-vr {
+      body[data-runtime-mode="headset"] #resume-vr {
         width: min(420px, calc(100vw - 48px));
         margin: 0;
         font-size: 1.18rem;
@@ -206,7 +207,8 @@
         background: rgba(0, 0, 0, 0.2);
       }
 
-      body[data-headset-mode="true"] main {
+      body[data-runtime-mode="headset"] main,
+      body[data-runtime-mode="preview"] main {
         width: 100vw;
         height: 100vh;
         padding: 0;
@@ -217,7 +219,8 @@
         display: grid;
       }
 
-      body[data-headset-mode="true"] .stack {
+      body[data-runtime-mode="headset"] .stack,
+      body[data-runtime-mode="preview"] .stack {
         height: 100vh;
         margin: 0;
         gap: 0;
@@ -227,11 +230,8 @@
         overflow: hidden;
       }
 
-      body[data-headset-mode="true"] .sandbox-only {
-        display: none;
-      }
-
-      body[data-headset-mode="true"] #xr-canvas {
+      body[data-runtime-mode="headset"] #xr-canvas,
+      body[data-runtime-mode="preview"] #xr-canvas {
         width: 100%;
         height: 100%;
         min-height: 0;
@@ -240,7 +240,7 @@
         opacity: 0.38;
       }
 
-      body[data-headset-lobby-visible="true"] #xr-canvas {
+      body[data-runtime-mode="headset"][data-headset-lobby-visible="true"] #xr-canvas {
         opacity: 0;
       }
 
@@ -252,7 +252,7 @@
         display: none !important;
       }
 
-      body[data-headset-mode="true"] .headset-lobby {
+      body[data-runtime-mode="headset"] .headset-lobby {
         position: absolute;
         inset: 0;
         display: grid;
@@ -295,16 +295,50 @@
         line-height: 1.45;
       }
 
-      body[data-headset-mode="true"] .headset-lobby #resume-vr {
+      body[data-runtime-mode="headset"] .headset-lobby #resume-vr {
         display: none;
       }
 
-      body[data-headset-mode="true"] #resume-vr {
+      body[data-runtime-mode="headset"] #resume-vr {
         position: absolute;
         left: 50%;
         bottom: max(30px, env(safe-area-inset-bottom));
         transform: translateX(-50%);
         z-index: 2;
+      }
+
+      .runtime-status {
+        display: none;
+      }
+
+      body[data-runtime-mode="preview"] .runtime-status {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 18px;
+        display: grid;
+        gap: 6px;
+        max-width: 620px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(4, 5, 11, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: var(--muted);
+        font-size: 0.86rem;
+        line-height: 1.35;
+      }
+
+      body[data-runtime-mode="preview"] #status {
+        color: var(--text);
+      }
+
+      body[data-runtime-mode="preview"] #resume-vr,
+      body[data-runtime-mode="preview"] .headset-lobby {
+        display: none;
+      }
+
+      .runtime-controls {
+        display: none;
       }
 
       .footer-link {
@@ -329,47 +363,9 @@
       }
     </style>
   </head>
-  <body>
+  <body data-runtime-mode="headset" data-headset-mode="true">
     <main>
-      <h1 class="sandbox-only">Kalmar WebXR Sandbox</h1>
-      <p class="sandbox-only">Use this page to test the isolated Babylon WebXR client without touching the main React headset app.</p>
-      <p class="sandbox-only">Open with <code>/webxr.html?session=123456</code> to auto-connect a session.</p>
-
       <div class="stack">
-        <div class="controls sandbox-only">
-          <button id="start-vr">Start VR</button>
-          <button id="start-ar">Start AR</button>
-          <button id="start-sim">Start Simulation</button>
-          <button id="end-xr" disabled>End Session</button>
-        </div>
-
-        <div class="field-grid sandbox-only">
-          <label for="session-id">Session ID</label>
-          <input id="session-id" name="session-id" type="text" value="" maxlength="32" placeholder="Skriv sessionskod" />
-          <button id="connect-session">Connect Scene Stream</button>
-        </div>
-
-        <div class="field-grid sandbox-only">
-          <label for="mock-scene-select">Mock scene sender</label>
-          <select id="mock-scene-select">
-            <option value="waiting">waiting</option>
-            <option value="castle">castle</option>
-            <option value="church">church</option>
-            <option value="boats">boats</option>
-            <option value="locomotion-test">locomotion-test</option>
-            <option value="remove-headset">remove-headset</option>
-          </select>
-          <button id="send-mock-scene" disabled>Preview / Send Scene</button>
-        </div>
-
-        <div class="status sandbox-only">
-          <div id="status">Checking WebXR support...</div>
-          <div id="tour-indicator">Active tour: kalmar-medeltid [kalmar-medeltid] (fallback)</div>
-          <div id="scene-indicator">Active scene: waiting</div>
-          <div id="controls-indicator">Active controls: none</div>
-          <div id="scene-debug" data-tone="info">No scene diagnostics yet.</div>
-        </div>
-
         <canvas id="xr-canvas" aria-label="WebXR preview canvas"></canvas>
 
         <section class="headset-lobby" aria-live="polite">
@@ -381,9 +377,33 @@
         </section>
 
         <button id="resume-vr" type="button">Fortsätt i VR</button>
-      </div>
 
-      <a class="footer-link sandbox-only" href="/">Back to main client</a>
+        <aside class="runtime-status" aria-live="polite">
+          <div id="status">Checking WebXR support...</div>
+          <div id="tour-indicator">Active tour: kalmar-medeltid [kalmar-medeltid] (fallback)</div>
+          <div id="scene-indicator">Active scene: waiting</div>
+          <div id="controls-indicator">Active controls: none</div>
+          <div id="scene-debug" data-tone="info">No scene diagnostics yet.</div>
+        </aside>
+
+        <div class="runtime-controls" hidden>
+          <input id="session-id" name="session-id" type="text" value="" maxlength="32" />
+          <button id="connect-session" type="button">Connect Scene Stream</button>
+          <select id="mock-scene-select">
+            <option value="waiting">waiting</option>
+            <option value="castle">castle</option>
+            <option value="church">church</option>
+            <option value="boats">boats</option>
+            <option value="locomotion-test">locomotion-test</option>
+            <option value="remove-headset">remove-headset</option>
+          </select>
+          <button id="send-mock-scene" type="button" disabled>Preview / Send Scene</button>
+          <button id="start-vr" type="button">Start VR</button>
+          <button id="start-ar" type="button">Start AR</button>
+          <button id="start-sim" type="button">Start Simulation</button>
+          <button id="end-xr" type="button" disabled>End Session</button>
+        </div>
+      </div>
     </main>
 
     <script type="module" src="/src/webxr/main.js"></script>

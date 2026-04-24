@@ -110,13 +110,15 @@ function getTourIdFromUrl() {
   return typeof rawTourId === "string" ? rawTourId.trim() : "";
 }
 
-function isDebugSandboxRequested() {
+function isLaptopPreviewRequested() {
   const params = new URLSearchParams(window.location.search);
-  return params.get("debug") === "1";
+  return params.get("preview") === "1";
 }
 
-const isHeadsetRuntimePage = !isDebugSandboxRequested();
+const isLaptopPreviewPage = isLaptopPreviewRequested();
+const isHeadsetRuntimePage = !isLaptopPreviewPage;
 document.body.dataset.headsetMode = isHeadsetRuntimePage ? "true" : "false";
+document.body.dataset.runtimeMode = isLaptopPreviewPage ? "preview" : "headset";
 
 const support = {
   vr: false,
@@ -255,7 +257,7 @@ function setResumeVrPromptVisible(visible) {
     return;
   }
 
-  const shouldShow = Boolean((visible || shouldShowHeadsetLaunchPrompt()) && isSceneReadyForVr());
+  const shouldShow = Boolean(isHeadsetRuntimePage && (visible || shouldShowHeadsetLaunchPrompt()) && isSceneReadyForVr());
   resumeVrButton.dataset.visible = shouldShow ? "true" : "false";
   resumeVrButton.disabled = !shouldShow || !support.vr || xrStartInFlight;
   syncHeadsetLobbyVisibility();
@@ -1190,6 +1192,10 @@ async function endCurrentSession() {
 }
 
 async function resumeVrAfterSceneTransition() {
+  if (!isHeadsetRuntimePage || !isSceneReadyForVr()) {
+    return;
+  }
+
   setStatus(`Starting VR with scene '${activeSceneId}'...`);
   autoLaunchResolved = true;
   disarmAutoVrGestureLaunch();
@@ -1210,6 +1216,15 @@ async function resumeVrAfterSceneTransition() {
  */
 async function maybeAutoLaunchPreferredMode(trigger = "auto") {
   if (autoLaunchResolved || appMode !== "idle") {
+    return;
+  }
+
+  if (isLaptopPreviewPage && trigger === "auto") {
+    const result = startSimulation();
+    if (result.started) {
+      autoLaunchResolved = true;
+      setStatus(`Laptop preview active. Rendering scene '${activeSceneId}'.`);
+    }
     return;
   }
 
