@@ -106,6 +106,9 @@ function getTourIdFromUrl() {
   return typeof rawTourId === "string" ? rawTourId.trim() : "";
 }
 
+const isHeadsetRuntimePage = Boolean(getSessionFromUrl());
+document.body.dataset.headsetMode = isHeadsetRuntimePage ? "true" : "false";
+
 const support = {
   vr: false,
   ar: false,
@@ -204,13 +207,18 @@ function setSceneDebug(message, tone = "info") {
   sceneDebugEl.dataset.tone = tone;
 }
 
+function shouldShowHeadsetLaunchPrompt() {
+  return isHeadsetRuntimePage && support.vr && !isXRSessionActive() && appMode !== "xr-vr" && appMode !== "xr-ar";
+}
+
 function setResumeVrPromptVisible(visible) {
   if (!resumeVrButton) {
     return;
   }
 
-  resumeVrButton.dataset.visible = visible ? "true" : "false";
-  resumeVrButton.disabled = !visible || !support.vr || xrStartInFlight;
+  const shouldShow = Boolean(visible || shouldShowHeadsetLaunchPrompt());
+  resumeVrButton.dataset.visible = shouldShow ? "true" : "false";
+  resumeVrButton.disabled = !shouldShow || !support.vr || xrStartInFlight;
 }
 
 function isXRSessionActive() {
@@ -1128,17 +1136,15 @@ async function endCurrentSession() {
 }
 
 async function resumeVrAfterSceneTransition() {
-  if (!pendingVrResumeAfterSceneChange) {
-    return;
-  }
-
   setStatus(`Starting VR with scene '${activeSceneId}'...`);
+  autoLaunchResolved = true;
+  disarmAutoVrGestureLaunch();
   const result = await startXR("immersive-vr");
   if (result.started) {
     return;
   }
 
-  pendingVrResumeAfterSceneChange = true;
+  pendingVrResumeAfterSceneChange = pendingVrResumeAfterSceneChange || isHeadsetRuntimePage;
   setResumeVrPromptVisible(true);
   const message = result.error instanceof Error ? result.error.message : "Unknown WebXR start error";
   setStatus(`Could not continue in VR: ${message}`);
@@ -1150,6 +1156,16 @@ async function resumeVrAfterSceneTransition() {
  */
 async function maybeAutoLaunchPreferredMode(trigger = "auto") {
   if (autoLaunchResolved || appMode !== "idle") {
+    return;
+  }
+
+  if (isHeadsetRuntimePage && trigger === "auto") {
+    const result = startSimulation();
+    if (result.started) {
+      autoLaunchResolved = true;
+      setResumeVrPromptVisible(true);
+      setStatus(`Waiting scene loaded. Press Fortsätt i VR to enter immersive VR.`);
+    }
     return;
   }
 

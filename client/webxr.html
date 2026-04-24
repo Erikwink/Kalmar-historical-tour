@@ -35,6 +35,10 @@
         background: radial-gradient(circle at top, var(--bg-top), var(--bg-bottom) 65%);
       }
 
+      body[data-headset-mode="true"] {
+        background: #04050b;
+      }
+
       main {
         width: min(92vw, 620px);
         padding: 24px;
@@ -135,6 +139,13 @@
         padding: 15px 18px;
       }
 
+      body[data-headset-mode="true"] #resume-vr {
+        max-width: 420px;
+        margin: 0 auto;
+        font-size: 1.18rem;
+        padding: 18px 22px;
+      }
+
       #resume-vr[data-visible="true"] {
         display: block;
       }
@@ -191,6 +202,36 @@
         background: rgba(0, 0, 0, 0.2);
       }
 
+      body[data-headset-mode="true"] main {
+        width: 100vw;
+        min-height: 100vh;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: #04050b;
+        backdrop-filter: none;
+        display: grid;
+      }
+
+      body[data-headset-mode="true"] .stack {
+        min-height: 100vh;
+        margin: 0;
+        gap: 18px;
+        grid-template-rows: 1fr auto;
+        padding: 18px;
+      }
+
+      body[data-headset-mode="true"] .sandbox-only {
+        display: none;
+      }
+
+      body[data-headset-mode="true"] #xr-canvas {
+        height: auto;
+        min-height: 0;
+        border: 0;
+        border-radius: 0;
+      }
+
       .footer-link {
         display: inline-block;
         margin-top: 14px;
@@ -215,27 +256,25 @@
   </head>
   <body>
     <main>
-      <h1>Kalmar WebXR Sandbox</h1>
-      <p>Use this page to test the isolated Babylon WebXR client without touching the main React headset app.</p>
-      <p>Open with <code>/webxr.html?session=123456</code> to auto-connect a session.</p>
+      <h1 class="sandbox-only">Kalmar WebXR Sandbox</h1>
+      <p class="sandbox-only">Use this page to test the isolated Babylon WebXR client without touching the main React headset app.</p>
+      <p class="sandbox-only">Open with <code>/webxr.html?session=123456</code> to auto-connect a session.</p>
 
       <div class="stack">
-        <div class="controls">
+        <div class="controls sandbox-only">
           <button id="start-vr">Start VR</button>
           <button id="start-ar">Start AR</button>
           <button id="start-sim">Start Simulation</button>
           <button id="end-xr" disabled>End Session</button>
         </div>
 
-        <button id="resume-vr" type="button">Fortsätt i VR</button>
-
-        <div class="field-grid">
+        <div class="field-grid sandbox-only">
           <label for="session-id">Session ID</label>
           <input id="session-id" name="session-id" type="text" value="" maxlength="32" placeholder="Skriv sessionskod" />
           <button id="connect-session">Connect Scene Stream</button>
         </div>
 
-        <div class="field-grid">
+        <div class="field-grid sandbox-only">
           <label for="mock-scene-select">Mock scene sender</label>
           <select id="mock-scene-select">
             <option value="waiting">waiting</option>
@@ -248,7 +287,7 @@
           <button id="send-mock-scene" disabled>Preview / Send Scene</button>
         </div>
 
-        <div class="status">
+        <div class="status sandbox-only">
           <div id="status">Checking WebXR support...</div>
           <div id="tour-indicator">Active tour: kalmar-medeltid [kalmar-medeltid] (fallback)</div>
           <div id="scene-indicator">Active scene: waiting</div>
@@ -257,9 +296,11 @@
         </div>
 
         <canvas id="xr-canvas" aria-label="WebXR preview canvas"></canvas>
+
+        <button id="resume-vr" type="button">Fortsätt i VR</button>
       </div>
 
-      <a class="footer-link" href="/">Back to main client</a>
+      <a class="footer-link sandbox-only" href="/">Back to main client</a>
     </main>
 
     <script type="module" src="/src/webxr/main.js"></script>
