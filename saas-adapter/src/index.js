@@ -1,5 +1,5 @@
 // index.js
-import { Firebase } from "./firebase.js"
+import { Firebase } from "./Firebase.js"
 
 const adapter = new Firebase()
 
