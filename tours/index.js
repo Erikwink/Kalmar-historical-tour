@@ -20,7 +20,6 @@ const placeholderTours = [
 export const tours = [
   kalmarMedeltiden,
   kalmar,
-  ...placeholderTours,
 ];
 
 export { WAITING_CONTROLS } from "./waiting-controls";

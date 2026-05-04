@@ -13,15 +13,9 @@ export default {
       id:       "castle",
       label:    "Kalmar slott",
       icon:     "castle",
-      color:    "#ffffff",
+      color:    "#08e08d",
       image:    kalmarSlottScene,
       controls: [
-        {
-          id: "castle-360",
-          type: "360-photo",
-          label: "Visa slottet",
-          src: "castle/image.jpg" 
-        },
         { 
           id: "castle-amb",
           type: "audio",
