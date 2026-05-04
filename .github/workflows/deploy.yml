@@ -38,7 +38,7 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: kalmar-historical-tour
           channelId: live
-          targets: controller
+          target: controller
 
   deploy-client:
     name: Deploy Client
@@ -71,4 +71,4 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: kalmar-historical-tour
           channelId: live
-          targets: client
+          target: client
