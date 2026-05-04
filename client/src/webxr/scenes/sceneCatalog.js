@@ -1,0 +1,377 @@
+import {
+  Color3,
+  Color4,
+  MeshBuilder,
+  StandardMaterial,
+  TransformNode,
+  Vector3,
+} from "@babylonjs/core";
+
+const DEFAULT_SCENE_ID = "waiting";
+const SCENE_ALIAS = {
+  boat: "boats",
+};
+
+export const SCENE_SEQUENCE = ["waiting", "castle", "church", "boats", "remove-headset"];
+
+const SCENE_LIBRARY = {
+  waiting: {
+    displayName: "Waiting",
+    clearColor: "#0c1426",
+    ground: "#13213a",
+    accent: "#4f83ff",
+    build: buildWaitingScreen,
+  },
+  castle: {
+    displayName: "Castle",
+    clearColor: "#2a1a12",
+    ground: "#30210f",
+    accent: "#ffc36b",
+    build: buildCastleScreen,
+  },
+  church: {
+    displayName: "Church",
+    clearColor: "#10253a",
+    ground: "#132b48",
+    accent: "#9ad0ff",
+    build: buildChurchScreen,
+  },
+  boats: {
+    displayName: "Boats",
+    clearColor: "#0e2f33",
+    ground: "#173d45",
+    accent: "#6ce5db",
+    build: buildBoatsScreen,
+  },
+  "remove-headset": {
+    displayName: "Remove Headset",
+    clearColor: "#2a0f10",
+    ground: "#41161b",
+    accent: "#ff8f76",
+    build: buildRemoveHeadsetScreen,
+  },
+  default: {
+    displayName: "Default",
+    clearColor: "#1d1d1f",
+    ground: "#2a2a32",
+    accent: "#d7d7d7",
+    build: buildDefaultScreen,
+  },
+};
+
+function normalizeSceneId(raw) {
+  if (typeof raw !== "string") {
+    return DEFAULT_SCENE_ID;
+  }
+
+  const normalized = raw.trim();
+  if (SCENE_ALIAS[normalized]) {
+    return SCENE_ALIAS[normalized];
+  }
+  return SCENE_LIBRARY[normalized] ? normalized : DEFAULT_SCENE_ID;
+}
+
+function makeColor(hex, fallback = "#ffffff") {
+  return Color3.FromHexString(hex || fallback);
+}
+
+function makeColor4(hex, alpha = 1) {
+  const color = makeColor(hex, "#000000");
+  return new Color4(color.r, color.g, color.b, alpha);
+}
+
+function createMaterial(scene, diffuseColor, emissiveColor, alpha = 1) {
+  const material = new StandardMaterial(`mat-${Math.random().toString(36).slice(2)}`, scene);
+  material.diffuseColor = diffuseColor;
+  material.emissiveColor = emissiveColor;
+  material.alpha = alpha;
+  return material;
+}
+
+function createScreenFoundation(scene, theme, root) {
+  const materials = [];
+  const meshes = [];
+
+  const floorMat = createMaterial(scene, makeColor(theme.ground), Color3.Black());
+  materials.push(floorMat);
+
+  const floor = MeshBuilder.CreateGround("screen-floor", { width: 12, height: 12 }, scene);
+  floor.material = floorMat;
+  floor.position = new Vector3(0, 0, 0);
+  floor.parent = root;
+  meshes.push(floor);
+
+  const pedestalMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent));
+  materials.push(pedestalMat);
+
+  const pedestal = MeshBuilder.CreateCylinder("screen-pedestal", { height: 0.25, diameter: 3.2 }, scene);
+  pedestal.material = pedestalMat;
+  pedestal.position = new Vector3(0, 0.125, -2.1);
+  pedestal.parent = root;
+  meshes.push(pedestal);
+
+  const panelMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent), 0.9);
+  materials.push(panelMat);
+  const panel = MeshBuilder.CreatePlane("screen-panel", { width: 2.6, height: 1.4 }, scene);
+  panel.material = panelMat;
+  panel.position = new Vector3(0, 1.45, -2.4);
+  panel.parent = root;
+  meshes.push(panel);
+
+  return {
+    materials,
+    meshes,
+    floor,
+    pedestal,
+    panel,
+    applyMode(mode) {
+      const isAr = mode === "xr-ar";
+      const panelAlpha = isAr ? 0.78 : 0.92;
+      const panelGlow = isAr ? 0.16 : 0.05;
+
+      panelMat.alpha = panelAlpha;
+      pedestalMat.specularColor = isAr ? makeColor("#ffffff") : makeColor(theme.accent);
+      panelMat.emissiveColor = makeColor(theme.accent).scale(panelGlow);
+    },
+    dispose() {
+      meshes.forEach((mesh) => mesh.dispose());
+      materials.forEach((material) => material.dispose());
+      root.dispose();
+    },
+  };
+}
+
+function addCastleSceneElements(scene, root, accentColor) {
+  const baseMat = new StandardMaterial(`castle-base-${Date.now()}`, scene);
+  baseMat.diffuseColor = accentColor;
+  const accentMat = new StandardMaterial(`castle-accent-${Date.now()}`, scene);
+  accentMat.diffuseColor = Color3.White();
+
+  const keep = MeshBuilder.CreateBox("castle-keep", { width: 1.2, height: 1, depth: 1.1 }, scene);
+  keep.position = new Vector3(0, 1.15, -2.4);
+  keep.material = baseMat;
+
+  const leftTower = MeshBuilder.CreateCylinder("castle-tower-left", { height: 1.35, diameter: 0.42 }, scene);
+  leftTower.position = new Vector3(-0.65, 1.1, -2.4);
+  leftTower.material = baseMat;
+
+  const rightTower = MeshBuilder.CreateCylinder("castle-tower-right", { height: 1.35, diameter: 0.42 }, scene);
+  rightTower.position = new Vector3(0.65, 1.1, -2.4);
+  rightTower.material = baseMat;
+
+  const roof = MeshBuilder.CreateBox("castle-roof", { width: 1.5, height: 0.25, depth: 1.3 }, scene);
+  roof.position = new Vector3(0, 1.78, -2.4);
+  roof.material = accentMat;
+
+  keep.parent = root;
+  leftTower.parent = root;
+  rightTower.parent = root;
+  roof.parent = root;
+}
+
+function addChurchSceneElements(scene, root, accentColor) {
+  const wallMat = new StandardMaterial(`church-wall-${Date.now()}`, scene);
+  wallMat.diffuseColor = accentColor.scale(0.88);
+  const roofMat = new StandardMaterial(`church-roof-${Date.now()}`, scene);
+  roofMat.diffuseColor = Color3.White().scale(0.92);
+
+  const nave = MeshBuilder.CreateBox("church-nave", { width: 1.3, height: 0.9, depth: 0.9 }, scene);
+  nave.position = new Vector3(0, 0.95, -2.3);
+  nave.material = wallMat;
+
+  const tower = MeshBuilder.CreateCylinder("church-tower", { height: 1.1, diameterBottom: 0.5, diameterTop: 0.35 }, scene);
+  tower.position = new Vector3(0.7, 1.0, -2.4);
+  tower.material = accentColor;
+
+  const spire = MeshBuilder.CreateCylinder("church-spire", { height: 0.45, diameterTop: 0, diameterBottom: 0.22 }, scene);
+  spire.position = new Vector3(0.7, 1.7, -2.4);
+  spire.material = roofMat;
+
+  const naveBeam = MeshBuilder.CreateCylinder("church-beam", { height: 1.4, diameter: 0.08 }, scene);
+  naveBeam.position = new Vector3(0, 1.6, -2.4);
+  naveBeam.rotation.z = Math.PI / 8;
+  naveBeam.material = wallMat;
+
+  nave.parent = root;
+  tower.parent = root;
+  spire.parent = root;
+  naveBeam.parent = root;
+  tower.material = wallMat;
+}
+
+function addBoatsSceneElements(scene, root, accentColor) {
+  const hullMat = new StandardMaterial(`boat-hull-${Date.now()}`, scene);
+  hullMat.diffuseColor = accentColor.scale(0.8);
+  const sailMat = new StandardMaterial(`boat-sail-${Date.now()}`, scene);
+  sailMat.diffuseColor = Color3.White().scale(0.95);
+
+  const hull = MeshBuilder.CreateBox("boat-hull", { width: 1.4, height: 0.22, depth: 0.55 }, scene);
+  hull.position = new Vector3(-0.35, 0.31, -2.25);
+  hull.material = hullMat;
+  hull.parent = root;
+
+  const sail = MeshBuilder.CreatePlane("boat-sail", { width: 0.7, height: 0.7 }, scene);
+  sail.position = new Vector3(-0.35, 0.82, -2.25);
+  sail.rotation.y = Math.PI / 4;
+  sail.material = sailMat;
+  sail.parent = root;
+
+  const hull2 = MeshBuilder.CreateBox("boat-hull-2", { width: 1.2, height: 0.18, depth: 0.48 }, scene);
+  hull2.position = new Vector3(0.85, 0.29, -2.15);
+  hull2.material = hullMat;
+  hull2.parent = root;
+
+  const sail2 = MeshBuilder.CreatePlane("boat-sail-2", { width: 0.58, height: 0.58 }, scene);
+  sail2.position = new Vector3(0.85, 0.75, -2.15);
+  sail2.rotation.y = -Math.PI / 4;
+  sail2.material = sailMat;
+  sail2.parent = root;
+}
+
+function addDefaultElements(scene, root, accentColor) {
+  const orbMat = new StandardMaterial(`orb-${Date.now()}`, scene);
+  orbMat.diffuseColor = accentColor;
+  const orb = MeshBuilder.CreateSphere("scene-orb", { diameter: 0.55 }, scene);
+  orb.position = new Vector3(0, 1.45, -2.4);
+  orb.material = orbMat;
+  orb.parent = root;
+}
+
+function addRemoveHeadsetElements(scene, root, accentColor) {
+  const ringMat = new StandardMaterial(`remove-ring-${Date.now()}`, scene);
+  ringMat.diffuseColor = accentColor;
+  ringMat.emissiveColor = accentColor;
+  const ring = MeshBuilder.CreateTorus("remove-ring", { diameter: 1.1, thickness: 0.2 }, scene);
+  ring.position = new Vector3(0, 1.35, -2.4);
+  ring.material = ringMat;
+  ring.rotation.x = Math.PI / 2.5;
+
+  const warning = MeshBuilder.CreateBox("remove-warning", { width: 0.25, height: 0.25, depth: 0.25 }, scene);
+  warning.position = new Vector3(0, 1.35, -2.4);
+  warning.material = ringMat;
+
+  ring.parent = root;
+  warning.parent = root;
+}
+
+function composeScreen(scene, themeId, mode) {
+  const theme = SCENE_LIBRARY[themeId] || SCENE_LIBRARY.default;
+  const root = new TransformNode(`scene-${themeId}-root`, scene);
+  const base = createScreenFoundation(scene, theme, root);
+
+  const accent = makeColor(theme.accent);
+  switch (themeId) {
+    case "castle":
+      addCastleSceneElements(scene, root, accent);
+      break;
+    case "church":
+      addChurchSceneElements(scene, root, accent);
+      break;
+    case "boats":
+      addBoatsSceneElements(scene, root, accent);
+      break;
+    case "remove-headset":
+      addRemoveHeadsetElements(scene, root, accent);
+      break;
+    default:
+      addDefaultElements(scene, root, accent);
+      break;
+  }
+
+  base.applyMode(mode);
+  return {
+    root,
+    clearColor: makeColor4(theme.clearColor),
+    applyMode(nextMode) {
+      base.applyMode(nextMode);
+    },
+    dispose() {
+      base.dispose();
+    },
+  };
+}
+
+function buildWaitingScreen(scene, mode) {
+  return composeScreen(scene, "waiting", mode);
+}
+
+function buildCastleScreen(scene, mode) {
+  return composeScreen(scene, "castle", mode);
+}
+
+function buildChurchScreen(scene, mode) {
+  return composeScreen(scene, "church", mode);
+}
+
+function buildBoatsScreen(scene, mode) {
+  return composeScreen(scene, "boats", mode);
+}
+
+function buildRemoveHeadsetScreen(scene, mode) {
+  return composeScreen(scene, "remove-headset", mode);
+}
+
+function buildDefaultScreen(scene, mode) {
+  return composeScreen(scene, "default", mode);
+}
+
+function getDefinition(sceneId) {
+  const key = normalizeSceneId(sceneId);
+  return SCENE_LIBRARY[key] || SCENE_LIBRARY.default;
+}
+
+export function createSceneManager(scene) {
+  let activeSceneId = DEFAULT_SCENE_ID;
+  let activeMode = "preview";
+  let handle = null;
+
+  function setScene(sceneId, mode = activeMode) {
+    const nextId = normalizeSceneId(sceneId);
+    const nextMode = mode || "preview";
+
+    if (nextId === activeSceneId && handle && nextMode === activeMode) {
+      handle.applyMode(nextMode);
+      return { sceneId: nextId, clearColor: handle.clearColor };
+    }
+
+    if (handle) {
+      handle.dispose();
+      handle = null;
+    }
+
+    const definition = getDefinition(nextId);
+    handle = definition.build(scene, nextMode);
+    activeSceneId = nextId;
+    activeMode = nextMode;
+    handle.applyMode(nextMode);
+
+    return { sceneId: nextId, clearColor: handle.clearColor };
+  }
+
+  function setMode(mode) {
+    activeMode = mode || activeMode;
+    if (handle) {
+      handle.applyMode(activeMode);
+    }
+    return { sceneId: activeSceneId, clearColor: handle?.clearColor };
+  }
+
+  return {
+    getAvailableScenes() {
+      return [...SCENE_SEQUENCE];
+    },
+    getActiveScene() {
+      return activeSceneId;
+    },
+    setScene,
+    setMode,
+    dispose() {
+      if (handle) {
+        handle.dispose();
+        handle = null;
+      }
+    },
+  };
+}
+
+export { DEFAULT_SCENE_ID };
