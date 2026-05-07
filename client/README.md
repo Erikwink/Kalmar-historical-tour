@@ -23,6 +23,8 @@ On headset browsers, `webxr.html?session=123456` shows a lobby until the guide a
 
 For laptop debugging, open `webxr.html?session=123456&preview=1`. This uses the same Firebase scene/control stream as the headset runtime, starts Babylon browser simulation automatically, and shows a small status overlay without exposing local mock controls.
 
+Runtime architecture and clean-code boundaries are documented in [`../docs/webxr-runtime-architecture.md`](../docs/webxr-runtime-architecture.md).
+
 ## Panorama Assets
 
 Place panorama images under `client/public/assets/<scene-id>/...` so Vite can serve them as static runtime files.
@@ -48,15 +50,3 @@ Then reference them in `tours.js` with relative `src` values such as:
 
 - `castle/ambient.mp3`
 - `castle/narration.mp3`
-
-The runtime includes a dedicated `locomotion-test` scene with:
-
-- a large floor area for teleportation testing
-- elevated platforms that can act as additional teleport targets
-- Babylon teleportation wired to the right-hand VR controller
-- custom left-thumbstick locomotion wired on top of Babylon XR input
-- desktop locomotion controls in simulation: `W/A/S/D` or arrow keys to move, mouse drag to look, and double-click to teleport on valid floor meshes
-
-## Current limitation
-
-Teleportation and thumbstick locomotion are implemented and scene-wired, but they still require a real immersive-vr headset session to fully verify controller behavior and comfort.

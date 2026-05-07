@@ -1,22 +1,24 @@
 import {
-  ArcRotateCamera,
-  Color4,
-  DirectionalLight,
-  Engine,
-  HemisphericLight,
-  Scene,
-  UniversalCamera,
-  Vector3,
-  WebXRDefaultExperience,
-  WebXRState,
-} from "@babylonjs/core";
-import {
   publishMockScene,
   subscribeToActiveControlsChanges,
   subscribeToSceneChanges,
   subscribeToTourIdChanges,
 } from "./backendClient.js";
 import { createAudioPlaybackManager } from "./audioPlayback.js";
+import { createBabylonRuntime } from "./babylonRuntime.js";
+import { getWebXRDom } from "./domElements.js";
+import {
+  enterXRWithFallbacks,
+  isUserActivationError,
+} from "./xrSession.js";
+import {
+  getAutostartMode,
+  getSessionFromUrl,
+  getTourIdFromUrl,
+  normalizeSessionId,
+  resolveRuntimeMode,
+} from "./runtimeConfig.js";
+import { createWebXRUiController } from "./uiController.js";
 import { createSceneManager, DEFAULT_SCENE_ID } from "./scenes/sceneCatalog.js";
 import {
   getRenderableSceneControls,
@@ -27,53 +29,31 @@ import {
   resolveTour,
 } from "../toursClient.js";
 
-const statusEl = document.getElementById("status");
-const tourIndicatorEl = document.getElementById("tour-indicator");
-const sceneIndicatorEl = document.getElementById("scene-indicator");
-const controlsIndicatorEl = document.getElementById("controls-indicator");
-const sessionInput = document.getElementById("session-id");
-const connectSessionButton = document.getElementById("connect-session");
-const mockSceneSelect = document.getElementById("mock-scene-select");
-const sendMockSceneButton = document.getElementById("send-mock-scene");
-const startVrButton = document.getElementById("start-vr");
-const startArButton = document.getElementById("start-ar");
-const startSimButton = document.getElementById("start-sim");
-const endButton = document.getElementById("end-xr");
-const resumeVrButton = document.getElementById("resume-vr");
-const canvas = document.getElementById("xr-canvas");
-const headsetLobbyEl = document.querySelector(".headset-lobby");
-const headsetLobbyTitleEl = document.getElementById("headset-lobby-title");
-const headsetLobbyTextEl = document.getElementById("headset-lobby-text");
-const sceneDebugEl = document.getElementById("scene-debug");
+const dom = getWebXRDom();
+const {
+  sessionInput,
+  connectSessionButton,
+  mockSceneSelect,
+  sendMockSceneButton,
+  startVrButton,
+  startArButton,
+  startSimButton,
+  endButton,
+  resumeVrButton,
+  canvas,
+} = dom;
 const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
-const LOCOMOTION_TEST_SCENE_ID = "locomotion-test";
-const LEFT_HANDEDNESS = "left";
-const RIGHT_HANDEDNESS = "right";
-const XR_MOVE_SPEED_METERS_PER_SECOND = 2.2;
-const XR_MOVE_DEADZONE = 0.18;
-const DESKTOP_EYE_HEIGHT_METERS = 1.7;
-const FORWARD_AXIS = new Vector3(0, 0, 1);
-const RIGHT_AXIS = new Vector3(1, 0, 0);
-
-function getAutostartMode() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("autostart");
-}
 
 function handleAutoStart() {
   const mode = getAutostartMode();
 
   if (!mode) return;
 
-  // Om vi vill auto-starta
   if (mode === "sim") {
-    // Om VR stöds → prioritera VR
     if (support.vr) {
       startXR("immersive-vr");
       return;
     }
-
-    // annars fallback
     startSimulation();
   }
 
@@ -95,30 +75,11 @@ function handleAutoStart() {
   }
 }
 
-function normalizeSessionId(rawSessionId) {
-  return typeof rawSessionId === "string" ? rawSessionId.trim() : "";
-}
-
-function getSessionFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  return normalizeSessionId(params.get("session"));
-}
-
-function getTourIdFromUrl() {
-  const params = new URLSearchParams(window.location.search);
-  const rawTourId = params.get("tourId");
-  return typeof rawTourId === "string" ? rawTourId.trim() : "";
-}
-
-function isLaptopPreviewRequested() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("preview") === "1";
-}
-
-const isLaptopPreviewPage = isLaptopPreviewRequested();
+const runtimeMode = resolveRuntimeMode();
+const isLaptopPreviewPage = runtimeMode === "preview";
 const isHeadsetRuntimePage = !isLaptopPreviewPage;
 document.body.dataset.headsetMode = isHeadsetRuntimePage ? "true" : "false";
-document.body.dataset.runtimeMode = isLaptopPreviewPage ? "preview" : "headset";
+document.body.dataset.runtimeMode = runtimeMode;
 
 const support = {
   vr: false,
@@ -134,20 +95,8 @@ let currentSessionId = "";
 let unsubscribeScene = null;
 let unsubscribeTour = null;
 let unsubscribeActiveControls = null;
-let activeLocomotion = { enabled: false, floorMeshes: [] };
-let registeredTeleportFloorMeshes = [];
 
 let appMode = "idle";
-
-let engine = null;
-let scene = null;
-let orbitCamera = null;
-let desktopCamera = null;
-let xrExperience = null;
-let renderLoopActive = false;
-let resizeHandlerRegistered = false;
-let sceneManager = null;
-let desktopLocomotionWasActive = false;
 let autoLaunchResolved = false;
 let autoVrGestureLaunchArmed = false;
 let xrStartInFlight = false;
@@ -155,9 +104,34 @@ let sceneRefreshTimer = null;
 let pendingVrResumeAfterSceneChange = false;
 let sceneTransitionExitInFlight = false;
 const SCENE_REFRESH_DEBOUNCE_MS = 80;
-const tmpForward = new Vector3();
-const tmpRight = new Vector3();
-const tmpMovement = new Vector3();
+
+const ui = createWebXRUiController({
+  elements: dom,
+  isHeadsetRuntimePage: () => isHeadsetRuntimePage,
+  isXRSessionActive,
+  isSceneReadyForVr,
+  support,
+  isXrStartInFlight: () => xrStartInFlight,
+});
+const {
+  setStatus,
+  setTourIndicator,
+  setSceneIndicator,
+  setControlsIndicator,
+  setSceneDebug,
+  setResumeVrPromptVisible,
+} = ui;
+
+const babylonRuntime = createBabylonRuntime({
+  canvas,
+  createSceneManager,
+  onXRSessionEnded() {
+    if (appMode === "xr-vr" || appMode === "xr-ar") {
+      onSessionEnded();
+    }
+  },
+});
+
 const audioPlaybackManager = createAudioPlaybackManager({
   onPlaybackEvent(detail) {
     if (!detail?.message) {
@@ -178,93 +152,12 @@ const audioPlaybackManager = createAudioPlaybackManager({
   },
 });
 
-function setStatus(message) {
-  statusEl.textContent = message;
-}
-
-function setTourIndicator(tourState) {
-  if (!tourIndicatorEl) {
-    return;
-  }
-
-  const title = tourState.tour?.title ?? tourState.resolvedTourId;
-  const suffix = tourState.usedFallback ? " (fallback)" : "";
-  tourIndicatorEl.textContent = `Active tour: ${title} [${tourState.resolvedTourId}]${suffix}`;
-}
-
-function setSceneIndicator(sceneState) {
-  const label = sceneState.scene?.label ?? sceneState.resolvedSceneId;
-  const suffix = sceneState.usedFallback ? " (fallback)" : "";
-  sceneIndicatorEl.textContent = `Active scene: ${label} [${sceneState.resolvedSceneId}]${suffix}`;
-  syncHeadsetLobbyVisibility();
-}
-
 function isSceneReadyForVr() {
   return activeSceneId !== DEFAULT_SCENE_ID && getRenderableSceneControls(activeControlsState.activeControls).length > 0;
 }
 
-function syncHeadsetLobbyVisibility() {
-  const shouldShow = isHeadsetRuntimePage && !isXRSessionActive();
-  document.body.dataset.headsetLobbyVisible = shouldShow ? "true" : "false";
-
-  if (!headsetLobbyEl) {
-    return;
-  }
-
-  headsetLobbyEl.hidden = !shouldShow;
-
-  if (headsetLobbyTitleEl && headsetLobbyTextEl) {
-    headsetLobbyTitleEl.textContent = isSceneReadyForVr() ? "Scen redo" : "Väntar på nästa scen";
-    headsetLobbyTextEl.textContent = isSceneReadyForVr()
-      ? "Tryck Fortsätt i VR för att gå in i den nya scenen."
-      : "Guiden startar nästa scen när gruppen är redo.";
-  }
-}
-
-function setControlsIndicator(controlsState) {
-  if (!controlsIndicatorEl) {
-    return;
-  }
-
-  const activeControlLabels = controlsState.activeControls.map((control) => control.label || control.id);
-  controlsIndicatorEl.textContent = activeControlLabels.length
-    ? `Active controls: ${activeControlLabels.join(", ")}`
-    : "Active controls: none";
-}
-
-function setSceneDebug(message, tone = "info") {
-  if (!sceneDebugEl) {
-    return;
-  }
-
-  sceneDebugEl.textContent = message;
-  sceneDebugEl.dataset.tone = tone;
-}
-
-function shouldShowHeadsetLaunchPrompt() {
-  return (
-    isHeadsetRuntimePage &&
-    isSceneReadyForVr() &&
-    support.vr &&
-    !isXRSessionActive() &&
-    appMode !== "xr-vr" &&
-    appMode !== "xr-ar"
-  );
-}
-
-function setResumeVrPromptVisible(visible) {
-  if (!resumeVrButton) {
-    return;
-  }
-
-  const shouldShow = Boolean(isHeadsetRuntimePage && (visible || shouldShowHeadsetLaunchPrompt()) && isSceneReadyForVr());
-  resumeVrButton.dataset.visible = shouldShow ? "true" : "false";
-  resumeVrButton.disabled = !shouldShow || !support.vr || xrStartInFlight;
-  syncHeadsetLobbyVisibility();
-}
-
 function isXRSessionActive() {
-  return Boolean(xrExperience && xrExperience.baseExperience.state !== WebXRState.NOT_IN_XR);
+  return babylonRuntime.isXRSessionActive();
 }
 
 function shouldDeferSceneRenderForActiveVr() {
@@ -272,7 +165,7 @@ function shouldDeferSceneRenderForActiveVr() {
 }
 
 async function exitXRForSceneTransition(reason) {
-  if (!xrExperience || !isXRSessionActive()) {
+  if (!isXRSessionActive()) {
     return;
   }
 
@@ -287,7 +180,7 @@ async function exitXRForSceneTransition(reason) {
 
   sceneTransitionExitInFlight = true;
   try {
-    await xrExperience.baseExperience.sessionManager.exitXRAsync();
+    await babylonRuntime.exitXR();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     pendingVrResumeAfterSceneChange = false;
@@ -325,93 +218,6 @@ function isImmersiveVrPreferredRuntime() {
 
 function isBrowserSimulationPreferredRuntime() {
   return !isImmersiveVrPreferredRuntime();
-}
-
-function isUserActivationError(error) {
-  const name = typeof error?.name === "string" ? error.name : "";
-  const message = typeof error?.message === "string" ? error.message : "";
-  return (
-    name === "SecurityError" ||
-    /user activation|transient activation|gesture|requestsession/i.test(message)
-  );
-}
-
-function isUnsupportedSessionConfigError(error) {
-  const name = typeof error?.name === "string" ? error.name : "";
-  const message = typeof error?.message === "string" ? error.message : "";
-  return (
-    name === "NotSupportedError" ||
-    /specified session configuration is not supported|session configuration is not supported/i.test(message)
-  );
-}
-
-function getXRSessionAttempts(mode) {
-  if (mode === "immersive-ar") {
-    return [
-      {
-        label: "local",
-        referenceSpaceType: "local",
-        sessionInit: {
-          requiredFeatures: ["local"],
-          optionalFeatures: ["bounded-floor", "hand-tracking"],
-        },
-      },
-    ];
-  }
-
-  return [
-    {
-      label: "local-floor + bounded-floor + hand-tracking",
-      referenceSpaceType: "local-floor",
-      sessionInit: {
-        optionalFeatures: ["local-floor", "bounded-floor", "hand-tracking"],
-      },
-    },
-    {
-      label: "local-floor",
-      referenceSpaceType: "local-floor",
-      sessionInit: {
-        optionalFeatures: ["local-floor"],
-      },
-    },
-    {
-      label: "local + hand-tracking",
-      referenceSpaceType: "local",
-      sessionInit: {
-        optionalFeatures: ["hand-tracking"],
-      },
-    },
-    {
-      label: "local",
-      referenceSpaceType: "local",
-      sessionInit: {},
-    },
-  ];
-}
-
-async function enterXRWithFallbacks(xr, mode) {
-  const attempts = getXRSessionAttempts(mode);
-  let lastError = null;
-
-  for (const attempt of attempts) {
-    try {
-      setStatus(`Starting ${mode} with ${attempt.label}...`);
-      await xr.baseExperience.enterXRAsync(
-        mode,
-        attempt.referenceSpaceType,
-        xr.renderTarget,
-        attempt.sessionInit,
-      );
-      return attempt;
-    } catch (error) {
-      lastError = error;
-      if (!isUnsupportedSessionConfigError(error)) {
-        throw error;
-      }
-    }
-  }
-
-  throw lastError ?? new Error(`No supported XR session configuration found for ${mode}.`);
 }
 
 function isInteractiveLaunchTarget(target) {
@@ -462,7 +268,7 @@ function applyTourId(rawTourId) {
   activeSceneId = activeSceneState.resolvedSceneId;
   setSceneIndicator(activeSceneState);
   setControlsIndicator(activeControlsState);
-  if (scene) {
+  if (babylonRuntime.hasScene()) {
     if (deferSceneRenderIfActiveVr(`Tour changed to '${activeTourState.resolvedTourId}'.`)) {
       return;
     }
@@ -482,7 +288,7 @@ function applyActiveControls(rawActiveControls) {
   }
   setResumeVrPromptVisible(isSceneReadyForVr());
   const nextRenderableSignature = getRenderableSceneControlSignature(activeControlsState.activeControls);
-  if (scene && previousRenderableSignature !== nextRenderableSignature) {
+  if (babylonRuntime.hasScene() && previousRenderableSignature !== nextRenderableSignature) {
     if (deferSceneRenderIfActiveVr(`Controls changed for scene '${activeSceneId}'.`)) {
       return;
     }
@@ -510,270 +316,20 @@ function enableIdleButtons() {
   });
 }
 
-function syncEngineSize() {
-  if (!engine) {
-    return;
-  }
-
-  engine.resize();
-}
-
-function detachPreviewCameraControls() {
-  orbitCamera?.detachControl();
-  desktopCamera?.detachControl();
-}
-
-function setCameraControlsEnabled(enabled) {
-  if (!orbitCamera || !desktopCamera) {
-    return;
-  }
-
-  if (!enabled) {
-    detachPreviewCameraControls();
-    return;
-  }
-
-  syncPreviewCamera();
-}
-
-function startRenderLoop() {
-  if (!engine || renderLoopActive) {
-    return;
-  }
-
-  engine.runRenderLoop(renderFrame);
-  renderLoopActive = true;
-}
-
-function stopRenderLoop() {
-  if (!engine || !renderLoopActive) {
-    return;
-  }
-
-  engine.stopRenderLoop(renderFrame);
-  renderLoopActive = false;
-}
-
-function getSceneManager() {
-  if (!scene) {
-    return null;
-  }
-
-  if (!sceneManager) {
-    sceneManager = createSceneManager(scene);
-  }
-  return sceneManager;
-}
-
-/**
- * Stores locomotion metadata for the active scene and syncs XR features when available.
- */
-function applyLocomotionState(renderState) {
-  activeLocomotion = renderState?.locomotion || { enabled: false, floorMeshes: [] };
-  syncXRTeleportationState();
-}
-
-/**
- * Returns true only when the dedicated locomotion scene is active in immersive VR.
- */
-function isVRLocomotionActive() {
-  return appMode === "xr-vr" && activeSceneId === LOCOMOTION_TEST_SCENE_ID && activeLocomotion.enabled;
-}
-
-/**
- * Returns true only when the locomotion test scene is active in desktop simulation mode.
- */
-function isDesktopLocomotionActive() {
-  return appMode === "simulation" && activeSceneId === LOCOMOTION_TEST_SCENE_ID && activeLocomotion.enabled;
-}
-
-/**
- * Enables or disables Babylon teleportation and keeps its floor meshes aligned with the active scene.
- */
-function syncXRTeleportationState() {
-  if (!xrExperience?.teleportation) {
-    return;
-  }
-
-  registeredTeleportFloorMeshes.forEach((mesh) => {
-    if (!mesh.isDisposed()) {
-      xrExperience.teleportation.removeFloorMesh(mesh);
-    }
-  });
-  registeredTeleportFloorMeshes = [];
-
-  const shouldEnableTeleportation = isVRLocomotionActive();
-  xrExperience.teleportation.teleportationEnabled = shouldEnableTeleportation;
-
-  if (!shouldEnableTeleportation) {
-    if (activeSceneId === LOCOMOTION_TEST_SCENE_ID) {
-      setSceneDebug(
-        "Locomotion test scene is loaded. Teleportation and thumbstick movement will activate in immersive-vr; headset verification is still required.",
-      );
-    }
-    return;
-  }
-
-  activeLocomotion.floorMeshes.forEach((mesh) => {
-    if (!mesh || mesh.isDisposed()) {
-      return;
-    }
-
-    xrExperience.teleportation.addFloorMesh(mesh);
-    registeredTeleportFloorMeshes.push(mesh);
-  });
-
-  setSceneDebug(
-    "Locomotion test scene is active. Teleportation is wired to the right-hand controller; left thumbstick movement is enabled in VR.",
-    "success",
-  );
-}
-
-/**
- * Reads the left controller thumbstick/touchpad and applies smooth locomotion to the XR camera.
- */
-function updateXRThumbstickMovement(deltaSeconds) {
-  if (!isVRLocomotionActive() || !xrExperience?.input || !xrExperience?.baseExperience?.camera) {
-    return;
-  }
-
-  const leftController = xrExperience.input.controllers.find((controller) => {
-    return controller.inputSource.handedness === LEFT_HANDEDNESS && controller.motionController;
-  });
-  const movementComponent =
-    leftController?.motionController?.getComponentOfType("thumbstick") ||
-    leftController?.motionController?.getComponentOfType("touchpad");
-
-  if (!movementComponent) {
-    return;
-  }
-
-  const moveX = Math.abs(movementComponent.axes.x) > XR_MOVE_DEADZONE ? movementComponent.axes.x : 0;
-  const moveY = Math.abs(movementComponent.axes.y) > XR_MOVE_DEADZONE ? movementComponent.axes.y : 0;
-  if (!moveX && !moveY) {
-    return;
-  }
-
-  const xrCamera = xrExperience.baseExperience.camera;
-  xrCamera.getDirectionToRef(FORWARD_AXIS, tmpForward);
-  xrCamera.getDirectionToRef(RIGHT_AXIS, tmpRight);
-
-  tmpForward.y = 0;
-  tmpRight.y = 0;
-  if (tmpForward.lengthSquared() < 0.0001 || tmpRight.lengthSquared() < 0.0001) {
-    return;
-  }
-
-  tmpForward.normalize();
-  tmpRight.normalize();
-  tmpMovement.copyFrom(tmpRight).scaleInPlace(moveX);
-  tmpMovement.addInPlace(tmpForward.scale(-moveY));
-
-  if (tmpMovement.lengthSquared() < 0.0001) {
-    return;
-  }
-
-  tmpMovement.normalize().scaleInPlace(XR_MOVE_SPEED_METERS_PER_SECOND * deltaSeconds);
-  xrCamera.position.addInPlace(tmpMovement);
-}
-
-/**
- * Resets the desktop locomotion preview camera to a predictable starting pose.
- */
-function resetDesktopLocomotionCamera() {
-  if (!desktopCamera) {
-    return;
-  }
-
-  desktopCamera.position.set(0, DESKTOP_EYE_HEIGHT_METERS, 4.5);
-  desktopCamera.rotation.set(0, Math.PI, 0);
-}
-
-/**
- * Switches between orbit preview and desktop locomotion preview based on mode and active scene.
- */
-function syncPreviewCamera() {
-  if (!scene || !orbitCamera || !desktopCamera) {
-    return;
-  }
-
-  const shouldUseDesktopLocomotion = isDesktopLocomotionActive();
-  if (shouldUseDesktopLocomotion && !desktopLocomotionWasActive) {
-    resetDesktopLocomotionCamera();
-  }
-  desktopLocomotionWasActive = shouldUseDesktopLocomotion;
-
-  const nextCamera = shouldUseDesktopLocomotion ? desktopCamera : orbitCamera;
-  if (scene.activeCamera !== nextCamera) {
-    scene.activeCamera = nextCamera;
-  }
-
-  detachPreviewCameraControls();
-  if (appMode === "xr-vr" || appMode === "xr-ar") {
-    return;
-  }
-
-  nextCamera.attachControl(canvas, true);
-  if (shouldUseDesktopLocomotion) {
-    canvas.focus();
-    setSceneDebug(
-      "Desktop locomotion active. Use W/A/S/D or arrow keys to move, drag with the mouse to look around, and double-click a floor surface to teleport.",
-      "success",
-    );
-  }
-}
-
-/**
- * Teleports the desktop preview camera to the clicked locomotion surface for local scene verification.
- */
-function teleportDesktopPreviewToPointer() {
-  if (!isDesktopLocomotionActive() || !scene || !desktopCamera) {
-    return;
-  }
-
-  const pick = scene.pick(scene.pointerX, scene.pointerY, (mesh) => {
-    return activeLocomotion.floorMeshes.includes(mesh);
-  });
-  if (!pick?.hit || !pick.pickedPoint) {
-    return;
-  }
-
-  desktopCamera.position.set(
-    pick.pickedPoint.x,
-    pick.pickedPoint.y + DESKTOP_EYE_HEIGHT_METERS,
-    pick.pickedPoint.z,
-  );
-  setSceneDebug(
-    "Desktop teleport applied. Use W/A/S/D or arrow keys to continue moving around the locomotion test scene.",
-    "success",
-  );
-}
-
 function applySceneTheme() {
-  if (!scene) {
-    return;
-  }
-
-  const manager = getSceneManager();
-  if (!manager) {
+  if (!babylonRuntime.hasScene()) {
     return;
   }
 
   const mode = appMode === "xr-ar" ? "xr-ar" : appMode === "xr-vr" ? "xr-vr" : "simulation";
-  const renderState = manager.setScene(
+  babylonRuntime.applyScene(
     {
       ...(activeSceneState.scene || { id: activeSceneId }),
       activeControls: activeControlsState.activeControls,
     },
     mode,
   );
-  applyLocomotionState(renderState);
-  syncPreviewCamera();
   syncActiveMediaPlayback();
-
-  if (renderState?.clearColor) {
-    scene.clearColor = renderState.clearColor;
-  }
 }
 
 function scheduleSceneThemeRefresh() {
@@ -783,7 +339,7 @@ function scheduleSceneThemeRefresh() {
 
   sceneRefreshTimer = window.setTimeout(() => {
     sceneRefreshTimer = null;
-    if (!scene) {
+    if (!babylonRuntime.hasScene()) {
       return;
     }
 
@@ -811,7 +367,7 @@ function applySceneChange(sceneId) {
   setSceneIndicator(activeSceneState);
   setControlsIndicator(activeControlsState);
   setResumeVrPromptVisible(isSceneReadyForVr());
-  if (!scene) {
+  if (!babylonRuntime.hasScene()) {
     const requestedSceneId = activeSceneState.requestedSceneId || activeSceneState.resolvedSceneId;
     setSceneDebug(
       `Scene '${requestedSceneId}' resolved to '${activeSceneState.resolvedSceneId}'. Babylon scene not initialized yet; render will start when XR/simulation starts.`,
@@ -854,27 +410,14 @@ function handleSceneDebug(event) {
   }
 }
 
-function onModeChanged(mode) {
-  if (!scene) {
+function applyModeChange(mode) {
+  if (!babylonRuntime.hasScene()) {
     syncActiveMediaPlayback();
     return;
   }
 
-  const manager = getSceneManager();
-  if (!manager) {
-    return;
-  }
-
-  const renderState = manager.setMode(mode);
-  applyLocomotionState(renderState);
-  syncPreviewCamera();
+  babylonRuntime.setMode(mode);
   syncActiveMediaPlayback();
-  if (!renderState?.clearColor) {
-    return;
-  }
-
-  const nextColor = mode === "xr-ar" ? new Color4(0, 0, 0, 0) : renderState.clearColor;
-  scene.clearColor = nextColor;
 }
 
 function populateMockSceneSelect() {
@@ -890,115 +433,6 @@ function populateMockSceneSelect() {
     mockSceneSelect.appendChild(option);
   });
   mockSceneSelect.value = activeSceneId;
-}
-
-function ensureSceneManager() {
-  getSceneManager();
-}
-
-function renderFrame() {
-  if (!scene) {
-    return;
-  }
-
-  const t = performance.now() * 0.001;
-  const dt = engine?.getDeltaTime() ? engine.getDeltaTime() / 1000 : 0.016;
-
-  const screen = scene.getMeshByName("screen-orb") || scene.getMeshByName("screen-pedestal") || null;
-  if (screen) {
-    screen.rotation.y = t * 0.2;
-  }
-
-  updateXRThumbstickMovement(dt);
-  scene.render();
-}
-
-function ensureBabylonContext() {
-  if (scene) {
-    return;
-  }
-
-  engine = new Engine(canvas, true, {
-    preserveDrawingBuffer: true,
-    stencil: true,
-    xrCompatible: true,
-  });
-  engine.setHardwareScalingLevel(1 / Math.min(window.devicePixelRatio || 1, 2));
-
-  scene = new Scene(engine);
-  scene.clearColor = new Color4(0, 0, 0, 1);
-
-  orbitCamera = new ArcRotateCamera(
-    "preview-camera",
-    -Math.PI / 2,
-    Math.PI / 2.35,
-    3.1,
-    new Vector3(0, 1.45, -1.4),
-    scene,
-  );
-  orbitCamera.lowerRadiusLimit = 0.8;
-  orbitCamera.upperRadiusLimit = 6;
-  orbitCamera.wheelPrecision = 35;
-  orbitCamera.panningSensibility = 0;
-
-  desktopCamera = new UniversalCamera(
-    "desktop-locomotion-camera",
-    new Vector3(0, DESKTOP_EYE_HEIGHT_METERS, 4.5),
-    scene,
-  );
-  desktopCamera.minZ = 0.05;
-  desktopCamera.speed = 0.18;
-  desktopCamera.angularSensibility = 3500;
-  desktopCamera.keysUp.push(87);
-  desktopCamera.keysLeft.push(65);
-  desktopCamera.keysDown.push(83);
-  desktopCamera.keysRight.push(68);
-  resetDesktopLocomotionCamera();
-  scene.activeCamera = orbitCamera;
-  orbitCamera.attachControl(canvas, true);
-
-  const hemiLight = new HemisphericLight("hemi-light", new Vector3(0, 1, 0), scene);
-  hemiLight.intensity = 1.05;
-
-  const keyLight = new DirectionalLight("key-light", new Vector3(-0.6, -1, -0.7), scene);
-  keyLight.position = new Vector3(1.5, 2.2, 1.8);
-  keyLight.intensity = 0.9;
-
-  syncEngineSize();
-  if (!resizeHandlerRegistered) {
-    window.addEventListener("resize", syncEngineSize);
-    resizeHandlerRegistered = true;
-  }
-
-  ensureSceneManager();
-  applySceneTheme();
-}
-
-async function ensureXRExperience() {
-  if (xrExperience) {
-    return xrExperience;
-  }
-
-  xrExperience = await WebXRDefaultExperience.CreateAsync(scene, {
-    disableDefaultUI: true,
-    disableNearInteraction: true,
-    disablePointerSelection: false,
-    disableTeleportation: false,
-    floorMeshes: [],
-    teleportationOptions: {
-      forceHandedness: RIGHT_HANDEDNESS,
-      backwardsMovementEnabled: false,
-      timeToTeleportStart: 0,
-    },
-  });
-  xrExperience.teleportation.teleportationEnabled = false;
-  xrExperience.baseExperience.onStateChangedObservable.add((state) => {
-    if (state === WebXRState.NOT_IN_XR && (appMode === "xr-vr" || appMode === "xr-ar")) {
-      onSessionEnded();
-    }
-  });
-
-  return xrExperience;
 }
 
 function connectSceneStream() {
@@ -1069,15 +503,14 @@ function onSessionEnded() {
   }
 
   if (!shouldResumeAfterSceneChange) {
-    stopRenderLoop();
+    babylonRuntime.stopRenderLoop();
   } else {
-    startRenderLoop();
+    babylonRuntime.startRenderLoop();
   }
-  setCameraControlsEnabled(true);
+  babylonRuntime.setCameraControlsEnabled(true);
   enableIdleButtons();
-  onModeChanged("simulation");
+  applyModeChange("simulation");
   applySceneTheme();
-  syncXRTeleportationState();
 
   if (shouldResumeAfterSceneChange) {
     setResumeVrPromptVisible(isSceneReadyForVr());
@@ -1101,20 +534,20 @@ async function startXR(mode) {
     return { started: false, error: new Error("XR session start already in progress.") };
   }
 
-  if (xrExperience && xrExperience.baseExperience.state !== WebXRState.NOT_IN_XR) {
+  if (babylonRuntime.isXRSessionActive()) {
     return { started: true, error: null };
   }
 
   xrStartInFlight = true;
   try {
-    ensureBabylonContext();
-    startRenderLoop();
+    babylonRuntime.ensureContext();
+    babylonRuntime.startRenderLoop();
     setStatus(`Starting ${mode}...`);
 
-    const xr = await ensureXRExperience();
+    const xr = await babylonRuntime.ensureXRExperience();
     appMode = mode === "immersive-ar" ? "xr-ar" : "xr-vr";
-    onModeChanged(appMode);
-    setCameraControlsEnabled(false);
+    applyModeChange(appMode);
+    babylonRuntime.setCameraControlsEnabled(false);
     setButtons({
       canStartVr: false,
       canStartAr: false,
@@ -1122,22 +555,20 @@ async function startXR(mode) {
       canEnd: true,
     });
 
-    const resolvedAttempt = await enterXRWithFallbacks(xr, mode);
+    const resolvedAttempt = await enterXRWithFallbacks(xr, mode, { setStatus });
     if (mode === "immersive-vr") {
       pendingVrResumeAfterSceneChange = false;
       setResumeVrPromptVisible(false);
     }
-    syncXRTeleportationState();
     setStatus(`${mode} active using ${resolvedAttempt.label}. Rendering Babylon.js scene '${activeSceneId}'.`);
     return { started: true, error: null };
   } catch (error) {
     appMode = "idle";
-    onModeChanged(appMode);
-    stopRenderLoop();
-    setCameraControlsEnabled(true);
+    applyModeChange(appMode);
+    babylonRuntime.stopRenderLoop();
+    babylonRuntime.setCameraControlsEnabled(true);
     enableIdleButtons();
     applySceneTheme();
-    syncXRTeleportationState();
     setResumeVrPromptVisible(pendingVrResumeAfterSceneChange);
     setStatus(`Could not start ${mode}: ${error.message}`);
     return { started: false, error };
@@ -1151,11 +582,10 @@ function startSimulation() {
   try {
     pendingVrResumeAfterSceneChange = false;
     setResumeVrPromptVisible(false);
-    ensureBabylonContext();
+    babylonRuntime.ensureContext();
     appMode = "simulation";
-    setCameraControlsEnabled(true);
-    onModeChanged(appMode);
-    syncXRTeleportationState();
+    babylonRuntime.setCameraControlsEnabled(true);
+    applyModeChange(appMode);
     setButtons({
       canStartVr: false,
       canStartAr: false,
@@ -1163,7 +593,7 @@ function startSimulation() {
       canEnd: true,
     });
 
-    startRenderLoop();
+    babylonRuntime.startRenderLoop();
     setStatus(`Simulation active. Rendering scene '${activeSceneId}'.`);
     return { started: true, error: null };
   } catch (error) {
@@ -1175,18 +605,17 @@ function startSimulation() {
 }
 
 async function endCurrentSession() {
-  if (xrExperience && xrExperience.baseExperience.state !== WebXRState.NOT_IN_XR) {
-    await xrExperience.baseExperience.sessionManager.exitXRAsync();
+  if (babylonRuntime.isXRSessionActive()) {
+    await babylonRuntime.exitXR();
     return;
   }
 
   if (appMode === "simulation") {
     appMode = "idle";
-    stopRenderLoop();
-    setCameraControlsEnabled(true);
+    babylonRuntime.stopRenderLoop();
+    babylonRuntime.setCameraControlsEnabled(true);
     enableIdleButtons();
     applySceneTheme();
-    syncXRTeleportationState();
     setStatus("Simulation ended.");
   }
 }
@@ -1337,7 +766,6 @@ resumeVrButton?.addEventListener("click", resumeVrAfterSceneTransition);
 connectSessionButton.addEventListener("click", connectSceneStream);
 sendMockSceneButton.addEventListener("click", sendMockScene);
 canvas.tabIndex = 0;
-canvas.addEventListener("dblclick", teleportDesktopPreviewToPointer);
 window.addEventListener("beforeunload", () => {
   if (typeof unsubscribeScene === "function") {
     unsubscribeScene();
