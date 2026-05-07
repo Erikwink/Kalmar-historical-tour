@@ -19,7 +19,7 @@ const STATUS_LABEL_KEY = {
 
 function resolveStatus(h) {
   if (h.status === HEADSET_STATUS.OFFLINE) return HEADSET_STATUS.OFFLINE
-  if (!h.ready) return HEADSET_STATUS.NOT_READY
+  //if (!h.ready) return HEADSET_STATUS.NOT_READY
   return h.status
 }
 
@@ -34,7 +34,7 @@ export default function HeadsetStatusBar({ headsets = [] }) {
   // calculate total headsets and if online or not
   const total = headsets.length
   const onlineCount = headsets.filter(
-    headset => headset.status === HEADSET_STATUS.ONLINE && headset.ready).length
+    headset => headset.status === HEADSET_STATUS.ONLINE).length
   const problematic = headsets.filter(
     headset => PROBLEM_STATUSES.includes(resolveStatus(headset)))
   // Boolean to controll dropdown  
