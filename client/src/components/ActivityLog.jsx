@@ -1,7 +1,7 @@
 /**
- * Activity log component showing headset actions and status updates, only for development and debugging purposes.
+ * Activity log for development and debugging.
  */
-function ActivityLog({ log }) {
+export default function ActivityLog({ log }) {
   return (
     <div>
       <div className="section-header">
@@ -13,9 +13,9 @@ function ActivityLog({ log }) {
             -- ingen aktivitet --
           </div>
         ) : (
-          log.map((l, i) => (
-            <div key={i} className="log-line">
-              {l}
+          log.map((entry, index) => (
+            <div key={index} className="log-line">
+              {entry}
             </div>
           ))
         )}
@@ -23,5 +23,3 @@ function ActivityLog({ log }) {
     </div>
   );
 }
-
-export default ActivityLog;

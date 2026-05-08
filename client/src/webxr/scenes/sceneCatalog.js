@@ -3,16 +3,22 @@ import {
   Color4,
   MeshBuilder,
   StandardMaterial,
+  Texture,
   TransformNode,
   Vector3,
 } from "@babylonjs/core";
+import { PhotoDome } from "@babylonjs/core/Helpers/photoDome";
+import {
+  getRenderableSceneControls,
+  resolveMediaAssetUrl,
+  resolvePrimaryPanoramaControl,
+} from "../../toursClient.js";
 
 const DEFAULT_SCENE_ID = "waiting";
 const SCENE_ALIAS = {
   boat: "boats",
 };
-
-export const SCENE_SEQUENCE = ["waiting", "castle", "church", "boats", "remove-headset"];
+const SCENE_DEBUG_EVENT = "kalmar:webxr-scene-debug";
 
 const SCENE_LIBRARY = {
   waiting: {
@@ -59,20 +65,45 @@ const SCENE_LIBRARY = {
   },
 };
 
-function normalizeSceneId(raw) {
+function normalizeSceneRef(sceneRef) {
+  if (typeof sceneRef === "string") {
+    return { id: sceneRef.trim() || DEFAULT_SCENE_ID };
+  }
+  if (!sceneRef || typeof sceneRef !== "object") {
+    return { id: DEFAULT_SCENE_ID };
+  }
+
+  const sceneId = typeof sceneRef.id === "string" && sceneRef.id.trim() ? sceneRef.id.trim() : DEFAULT_SCENE_ID;
+  return {
+    ...sceneRef,
+    id: sceneId,
+    activeControls: Array.isArray(sceneRef.activeControls) ? sceneRef.activeControls : [],
+  };
+}
+
+function normalizeRendererId(raw) {
   if (typeof raw !== "string") {
-    return DEFAULT_SCENE_ID;
+    return "default";
   }
 
   const normalized = raw.trim();
   if (SCENE_ALIAS[normalized]) {
     return SCENE_ALIAS[normalized];
   }
-  return SCENE_LIBRARY[normalized] ? normalized : DEFAULT_SCENE_ID;
+  return SCENE_LIBRARY[normalized] ? normalized : "default";
+}
+
+function normalizeHexColor(raw, fallback) {
+  if (typeof raw !== "string") {
+    return fallback;
+  }
+
+  const normalized = raw.trim();
+  return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized : fallback;
 }
 
 function makeColor(hex, fallback = "#ffffff") {
-  return Color3.FromHexString(hex || fallback);
+  return Color3.FromHexString(normalizeHexColor(hex, fallback));
 }
 
 function makeColor4(hex, alpha = 1) {
@@ -88,35 +119,93 @@ function createMaterial(scene, diffuseColor, emissiveColor, alpha = 1) {
   return material;
 }
 
-function createScreenFoundation(scene, theme, root) {
+function buildDynamicTheme(sceneRef) {
+  const accent = normalizeHexColor(sceneRef?.color, SCENE_LIBRARY.default.accent);
+  const accentColor = makeColor(accent, SCENE_LIBRARY.default.accent);
+  return {
+    displayName: sceneRef?.label || "Scene",
+    clearColor: accentColor.scale(0.18).toHexString(),
+    ground: accentColor.scale(0.34).toHexString(),
+    accent,
+  };
+}
+
+function getThemeForScene(sceneRef) {
+  const normalizedScene = normalizeSceneRef(sceneRef);
+  const rendererId = normalizeRendererId(normalizedScene.id);
+  if (rendererId === "default") {
+    return {
+      rendererId,
+      theme: buildDynamicTheme(normalizedScene),
+    };
+  }
+
+  const baseTheme = SCENE_LIBRARY[rendererId] || SCENE_LIBRARY.default;
+  return {
+    rendererId,
+    theme: {
+      ...baseTheme,
+      displayName: normalizedScene.label || baseTheme.displayName,
+      accent: normalizeHexColor(normalizedScene.color, baseTheme.accent),
+    },
+  };
+}
+
+function emitSceneDebug(detail) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new CustomEvent(SCENE_DEBUG_EVENT, { detail }));
+}
+
+function createScreenFoundation(scene, theme, root, options = {}) {
+  const {
+    showFloor = true,
+    showPedestal = true,
+    showPanel = true,
+  } = options;
   const materials = [];
   const meshes = [];
 
-  const floorMat = createMaterial(scene, makeColor(theme.ground), Color3.Black());
-  materials.push(floorMat);
+  let floor = null;
+  let pedestal = null;
+  let panel = null;
+  let floorMat = null;
+  let pedestalMat = null;
+  let panelMat = null;
 
-  const floor = MeshBuilder.CreateGround("screen-floor", { width: 12, height: 12 }, scene);
-  floor.material = floorMat;
-  floor.position = new Vector3(0, 0, 0);
-  floor.parent = root;
-  meshes.push(floor);
+  if (showFloor) {
+    floorMat = createMaterial(scene, makeColor(theme.ground), Color3.Black());
+    materials.push(floorMat);
 
-  const pedestalMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent));
-  materials.push(pedestalMat);
+    floor = MeshBuilder.CreateGround("screen-floor", { width: 4.8, height: 4.8 }, scene);
+    floor.material = floorMat;
+    floor.position = new Vector3(0, 0, 0);
+    floor.parent = root;
+    meshes.push(floor);
+  }
 
-  const pedestal = MeshBuilder.CreateCylinder("screen-pedestal", { height: 0.25, diameter: 3.2 }, scene);
-  pedestal.material = pedestalMat;
-  pedestal.position = new Vector3(0, 0.125, -2.1);
-  pedestal.parent = root;
-  meshes.push(pedestal);
+  if (showPedestal) {
+    pedestalMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent));
+    materials.push(pedestalMat);
 
-  const panelMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent), 0.9);
-  materials.push(panelMat);
-  const panel = MeshBuilder.CreatePlane("screen-panel", { width: 2.6, height: 1.4 }, scene);
-  panel.material = panelMat;
-  panel.position = new Vector3(0, 1.45, -2.4);
-  panel.parent = root;
-  meshes.push(panel);
+    pedestal = MeshBuilder.CreateCylinder("screen-pedestal", { height: 0.25, diameter: 1.2 }, scene);
+    pedestal.material = pedestalMat;
+    pedestal.position = new Vector3(0, 0.125, -0.1);
+    pedestal.parent = root;
+    meshes.push(pedestal);
+  }
+
+  if (showPanel) {
+    panelMat = createMaterial(scene, makeColor(theme.accent), makeColor(theme.accent), 0.9);
+    materials.push(panelMat);
+    panel = MeshBuilder.CreatePlane("screen-panel", { width: 2.6, height: 1.4 }, scene);
+    panel.material = panelMat;
+    panel.position = new Vector3(0, 1.45, -2.4);
+    panel.parent = root;
+    meshes.push(panel);
+  }
 
   return {
     materials,
@@ -126,12 +215,18 @@ function createScreenFoundation(scene, theme, root) {
     panel,
     applyMode(mode) {
       const isAr = mode === "xr-ar";
-      const panelAlpha = isAr ? 0.78 : 0.92;
-      const panelGlow = isAr ? 0.16 : 0.05;
-
-      panelMat.alpha = panelAlpha;
-      pedestalMat.specularColor = isAr ? makeColor("#ffffff") : makeColor(theme.accent);
-      panelMat.emissiveColor = makeColor(theme.accent).scale(panelGlow);
+      if (panelMat) {
+        const panelAlpha = isAr ? 0.78 : 0.92;
+        const panelGlow = isAr ? 0.16 : 0.05;
+        panelMat.alpha = panelAlpha;
+        panelMat.emissiveColor = makeColor(theme.accent).scale(panelGlow);
+      }
+      if (pedestalMat) {
+        pedestalMat.specularColor = isAr ? makeColor("#ffffff") : makeColor(theme.accent);
+      }
+      if (floorMat) {
+        floorMat.alpha = isAr ? 0.12 : 1;
+      }
     },
     dispose() {
       meshes.forEach((mesh) => mesh.dispose());
@@ -139,34 +234,6 @@ function createScreenFoundation(scene, theme, root) {
       root.dispose();
     },
   };
-}
-
-function addCastleSceneElements(scene, root, accentColor) {
-  const baseMat = new StandardMaterial(`castle-base-${Date.now()}`, scene);
-  baseMat.diffuseColor = accentColor;
-  const accentMat = new StandardMaterial(`castle-accent-${Date.now()}`, scene);
-  accentMat.diffuseColor = Color3.White();
-
-  const keep = MeshBuilder.CreateBox("castle-keep", { width: 1.2, height: 1, depth: 1.1 }, scene);
-  keep.position = new Vector3(0, 1.15, -2.4);
-  keep.material = baseMat;
-
-  const leftTower = MeshBuilder.CreateCylinder("castle-tower-left", { height: 1.35, diameter: 0.42 }, scene);
-  leftTower.position = new Vector3(-0.65, 1.1, -2.4);
-  leftTower.material = baseMat;
-
-  const rightTower = MeshBuilder.CreateCylinder("castle-tower-right", { height: 1.35, diameter: 0.42 }, scene);
-  rightTower.position = new Vector3(0.65, 1.1, -2.4);
-  rightTower.material = baseMat;
-
-  const roof = MeshBuilder.CreateBox("castle-roof", { width: 1.5, height: 0.25, depth: 1.3 }, scene);
-  roof.position = new Vector3(0, 1.78, -2.4);
-  roof.material = accentMat;
-
-  keep.parent = root;
-  leftTower.parent = root;
-  rightTower.parent = root;
-  roof.parent = root;
 }
 
 function addChurchSceneElements(scene, root, accentColor) {
@@ -237,6 +304,167 @@ function addDefaultElements(scene, root, accentColor) {
   orb.parent = root;
 }
 
+function createMediaPlaceholder(scene, root, theme, sceneRef) {
+  const placeholderMat = new StandardMaterial(`media-placeholder-${Date.now()}`, scene);
+  placeholderMat.diffuseColor = makeColor(theme.accent).scale(0.92);
+  placeholderMat.emissiveColor = makeColor(theme.accent).scale(0.08);
+
+  const frame = MeshBuilder.CreateTorus(
+    `media-frame-${sceneRef.id}`,
+    { diameter: 1.55, thickness: 0.09, tessellation: 48 },
+    scene,
+  );
+  frame.position = new Vector3(0, 1.2, -2.35);
+  frame.material = placeholderMat;
+  frame.parent = root;
+
+  const lens = MeshBuilder.CreateDisc(`media-lens-${sceneRef.id}`, { radius: 0.55, tessellation: 40 }, scene);
+  lens.position = new Vector3(0, 1.2, -2.32);
+  lens.material = placeholderMat;
+  lens.parent = root;
+
+  emitSceneDebug({
+    sceneId: sceneRef.id,
+    status: "loaded",
+    message:
+      "Scene shell loaded. 360-photo rendering is the next media step; this scene no longer depends on GLB model loading.",
+  });
+
+  return {
+    dispose() {
+      frame.dispose();
+      lens.dispose();
+      placeholderMat.dispose();
+    },
+  };
+}
+
+/**
+ * Creates a Babylon PhotoDome when the active scene exposes an active 360-photo control.
+ */
+function createPanoramaDome(scene, root, sceneRef) {
+  const panoramaControl = resolvePrimaryPanoramaControl({
+    activeControls: sceneRef.activeControls,
+    availableControls: sceneRef.availableControls,
+  });
+  if (!panoramaControl) {
+    return null;
+  }
+
+  const panoramaUrl = resolveMediaAssetUrl(panoramaControl.src);
+  if (!panoramaUrl) {
+    emitSceneDebug({
+      sceneId: sceneRef.id,
+      status: "error",
+      message: `Active 360-photo control '${panoramaControl.id}' is missing a usable src value.`,
+    });
+    return null;
+  }
+
+  const dome = new PhotoDome(
+    `photo-dome-${sceneRef.id}`,
+    panoramaUrl,
+    {
+      resolution: 32,
+      size: 1000,
+      useDirectMapping: true,
+    },
+    scene,
+    (message, exception) => {
+      console.error(`[sceneCatalog] Failed to load panorama '${panoramaUrl}':`, exception || message);
+      emitSceneDebug({
+        sceneId: sceneRef.id,
+        status: "error",
+        message: `Failed to load panorama '${panoramaControl.id}'.`,
+        error: typeof message === "string" && message ? message : String(exception || "Unknown panorama load error"),
+      });
+    },
+  );
+
+  dome.parent = root;
+  dome.photoTexture.gammaSpace = true;
+  dome.material.imageProcessingConfiguration.isEnabled = false;
+  dome.onLoadObservable.add(() => {
+    emitSceneDebug({
+      sceneId: sceneRef.id,
+      status: "loaded",
+      message: `Panorama loaded from active control '${panoramaControl.id}'.`,
+    });
+  });
+
+  let panoramaRequestId = 0;
+
+  function update(sceneRefToLoad) {
+    const nextPanoramaControl = resolvePrimaryPanoramaControl({ activeControls: sceneRefToLoad.activeControls });
+    if (!nextPanoramaControl) {
+      return false;
+    }
+
+    const nextPanoramaUrl = resolveMediaAssetUrl(nextPanoramaControl.src);
+    if (!nextPanoramaUrl) {
+      emitSceneDebug({
+        sceneId: sceneRefToLoad.id,
+        status: "error",
+        message: `Active 360-photo control '${nextPanoramaControl.id}' is missing a usable src value.`,
+      });
+      return false;
+    }
+
+    if (dome.photoTexture?.name === nextPanoramaUrl || dome.photoTexture?.url === nextPanoramaUrl) {
+      return true;
+    }
+
+    panoramaRequestId += 1;
+    const requestId = panoramaRequestId;
+    const previousTexture = dome.photoTexture;
+
+    const nextTexture = new Texture(
+      nextPanoramaUrl,
+      scene,
+      true,
+      false,
+      undefined,
+      () => {
+        if (requestId !== panoramaRequestId) {
+          nextTexture.dispose();
+          return;
+        }
+
+        nextTexture.gammaSpace = true;
+        nextTexture.anisotropicFilteringLevel = 1;
+        dome.photoTexture = nextTexture;
+        dome.photoTexture.gammaSpace = true;
+        previousTexture?.dispose();
+        emitSceneDebug({
+          sceneId: sceneRefToLoad.id,
+          status: "loaded",
+          message: `Panorama swapped to active control '${nextPanoramaControl.id}'.`,
+        });
+      },
+      (message, exception) => {
+        nextTexture.dispose();
+        console.error(`[sceneCatalog] Failed to swap panorama '${nextPanoramaUrl}':`, exception || message);
+        emitSceneDebug({
+          sceneId: sceneRefToLoad.id,
+          status: "error",
+          message: `Failed to swap panorama '${nextPanoramaControl.id}'.`,
+          error: typeof message === "string" && message ? message : String(exception || "Unknown panorama load error"),
+        });
+      },
+    );
+
+    return true;
+  }
+
+  return {
+    applyMode() {},
+    update,
+    dispose() {
+      dome.dispose(false, true);
+    },
+  };
+}
+
 function addRemoveHeadsetElements(scene, root, accentColor) {
   const ringMat = new StandardMaterial(`remove-ring-${Date.now()}`, scene);
   ringMat.diffuseColor = accentColor;
@@ -254,16 +482,18 @@ function addRemoveHeadsetElements(scene, root, accentColor) {
   warning.parent = root;
 }
 
-function composeScreen(scene, themeId, mode) {
-  const theme = SCENE_LIBRARY[themeId] || SCENE_LIBRARY.default;
-  const root = new TransformNode(`scene-${themeId}-root`, scene);
+function composeScreen(scene, theme, rendererId, mode) {
+  const root = new TransformNode(`scene-${rendererId}-root`, scene);
   const base = createScreenFoundation(scene, theme, root);
+  let sceneHandle = null;
+  const sceneRef = {
+    id: rendererId,
+    label: theme.displayName,
+    activeControls: [],
+  };
 
   const accent = makeColor(theme.accent);
-  switch (themeId) {
-    case "castle":
-      addCastleSceneElements(scene, root, accent);
-      break;
+  switch (rendererId) {
     case "church":
       addChurchSceneElements(scene, root, accent);
       break;
@@ -275,6 +505,7 @@ function composeScreen(scene, themeId, mode) {
       break;
     default:
       addDefaultElements(scene, root, accent);
+      sceneHandle = createMediaPlaceholder(scene, root, theme, sceneRef);
       break;
   }
 
@@ -284,54 +515,148 @@ function composeScreen(scene, themeId, mode) {
     clearColor: makeColor4(theme.clearColor),
     applyMode(nextMode) {
       base.applyMode(nextMode);
+      sceneHandle?.applyMode?.(nextMode);
     },
     dispose() {
+      sceneHandle?.dispose?.();
+      base.dispose();
+    },
+  };
+}
+
+function buildPanoramaScreen(scene, theme, sceneRef, mode) {
+  const root = new TransformNode(`scene-${sceneRef.id}-panorama-root`, scene);
+  const base = createScreenFoundation(scene, theme, root, {
+    showFloor: false,
+    showPedestal: false,
+    showPanel: false,
+  });
+  const panoramaHandle = createPanoramaDome(scene, root, sceneRef);
+
+  if (!panoramaHandle) {
+    base.dispose();
+    return composeScreen(scene, theme, normalizeRendererId(sceneRef.id), mode);
+  }
+
+  base.applyMode(mode);
+  let currentClearColor = makeColor4(theme.clearColor);
+  return {
+    root,
+    clearColor: currentClearColor,
+    applyMode(nextMode) {
+      base.applyMode(nextMode);
+      panoramaHandle.applyMode(nextMode);
+    },
+    updateScene(nextSceneRef, nextTheme, nextMode) {
+      const updated = panoramaHandle.update(nextSceneRef);
+      if (!updated) {
+        return false;
+      }
+
+      currentClearColor = makeColor4(nextTheme.clearColor);
+      this.clearColor = currentClearColor;
+      this.applyMode(nextMode);
+      return true;
+    },
+    dispose() {
+      panoramaHandle.dispose();
       base.dispose();
     },
   };
 }
 
 function buildWaitingScreen(scene, mode) {
-  return composeScreen(scene, "waiting", mode);
+  return composeScreen(scene, SCENE_LIBRARY.waiting, "waiting", mode);
 }
 
 function buildCastleScreen(scene, mode) {
-  return composeScreen(scene, "castle", mode);
+  return composeScreen(scene, SCENE_LIBRARY.castle, "castle", mode);
 }
 
 function buildChurchScreen(scene, mode) {
-  return composeScreen(scene, "church", mode);
+  return composeScreen(scene, SCENE_LIBRARY.church, "church", mode);
 }
 
 function buildBoatsScreen(scene, mode) {
-  return composeScreen(scene, "boats", mode);
+  return composeScreen(scene, SCENE_LIBRARY.boats, "boats", mode);
 }
 
 function buildRemoveHeadsetScreen(scene, mode) {
-  return composeScreen(scene, "remove-headset", mode);
+  return composeScreen(scene, SCENE_LIBRARY["remove-headset"], "remove-headset", mode);
 }
 
 function buildDefaultScreen(scene, mode) {
-  return composeScreen(scene, "default", mode);
+  return composeScreen(scene, SCENE_LIBRARY.default, "default", mode);
 }
 
-function getDefinition(sceneId) {
-  const key = normalizeSceneId(sceneId);
-  return SCENE_LIBRARY[key] || SCENE_LIBRARY.default;
+function buildSceneHandle(scene, sceneRef, mode) {
+  const { rendererId, theme } = getThemeForScene(sceneRef);
+  const normalizedScene = normalizeSceneRef(sceneRef);
+  const panoramaControl = resolvePrimaryPanoramaControl({
+    activeControls: normalizedScene.activeControls,
+    availableControls: normalizedScene.availableControls,
+  });
+  if (panoramaControl) {
+    return buildPanoramaScreen(scene, theme, normalizedScene, mode);
+  }
+  return composeScreen(scene, theme, rendererId, mode);
 }
 
 export function createSceneManager(scene) {
   let activeSceneId = DEFAULT_SCENE_ID;
   let activeMode = "preview";
+  let activeSceneSignature = "";
   let handle = null;
 
-  function setScene(sceneId, mode = activeMode) {
-    const nextId = normalizeSceneId(sceneId);
+  function setScene(sceneRef, mode = activeMode) {
+    const normalizedScene = normalizeSceneRef(sceneRef);
+    const nextId = normalizedScene.id;
     const nextMode = mode || "preview";
+    const nextPanoramaControl = resolvePrimaryPanoramaControl({ activeControls: normalizedScene.activeControls });
+    const { theme } = getThemeForScene(normalizedScene);
+    const nextSceneSignature = JSON.stringify({
+      id: normalizedScene.id,
+      label: normalizedScene.label || "",
+      color: normalizedScene.color || "",
+      activeControls: getRenderableSceneControls(normalizedScene.activeControls || []).map((control) => ({
+        id: control.id || "",
+        type: control.type || "",
+        src: control.src || "",
+      })),
+    });
 
-    if (nextId === activeSceneId && handle && nextMode === activeMode) {
+    if (nextId === activeSceneId && handle && nextMode === activeMode && nextSceneSignature === activeSceneSignature) {
       handle.applyMode(nextMode);
       return { sceneId: nextId, clearColor: handle.clearColor };
+    }
+
+    if (handle?.updateScene && nextPanoramaControl) {
+      const updated = handle.updateScene(normalizedScene, theme, nextMode);
+      if (updated) {
+        activeSceneId = nextId;
+        activeMode = nextMode;
+        activeSceneSignature = nextSceneSignature;
+        return { sceneId: nextId, clearColor: handle.clearColor };
+      }
+    }
+
+    let nextHandle = null;
+    try {
+      nextHandle = buildSceneHandle(scene, normalizedScene, nextMode);
+      nextHandle.applyMode(nextMode);
+    } catch (error) {
+      emitSceneDebug({
+        sceneId: nextId,
+        status: "error",
+        message: `Failed to build scene '${nextId}'.`,
+        error: error instanceof Error ? error.message : String(error),
+      });
+
+      if (!handle) {
+        throw error;
+      }
+
+      return { sceneId: activeSceneId, clearColor: handle.clearColor };
     }
 
     if (handle) {
@@ -339,11 +664,10 @@ export function createSceneManager(scene) {
       handle = null;
     }
 
-    const definition = getDefinition(nextId);
-    handle = definition.build(scene, nextMode);
+    handle = nextHandle;
     activeSceneId = nextId;
     activeMode = nextMode;
-    handle.applyMode(nextMode);
+    activeSceneSignature = nextSceneSignature;
 
     return { sceneId: nextId, clearColor: handle.clearColor };
   }
@@ -357,9 +681,6 @@ export function createSceneManager(scene) {
   }
 
   return {
-    getAvailableScenes() {
-      return [...SCENE_SEQUENCE];
-    },
     getActiveScene() {
       return activeSceneId;
     },
@@ -370,6 +691,7 @@ export function createSceneManager(scene) {
         handle.dispose();
         handle = null;
       }
+      activeSceneSignature = "";
     },
   };
 }

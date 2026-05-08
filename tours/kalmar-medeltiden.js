@@ -16,6 +16,12 @@ export default {
       color:    "#08e08d",
       image:    kalmarSlottScene,
       controls: [
+        {
+          id: "castle-360",
+          type: "360-photo",
+          label: "Visa slottet",
+          src: "castle/castle.jpg" 
+        },
         { 
           id: "castle-amb",
           type: "audio",
@@ -26,7 +32,7 @@ export default {
          id: "castle-nar",
          type: "narration",
          label: "Berättarröst",
-         src: "client/assets/kalmar/castle/narration.mp3" 
+         src: "castle/narration.mp3" 
         },
       ],
     },
@@ -41,7 +47,7 @@ export default {
           id: "church-360",
           type: "360-photo",
           label: "Visa kyrkan",
-          src: "church/image.jpg" 
+          src: "church/church-tonemapped.jpg" 
         },
         { 
           id: "church-org",

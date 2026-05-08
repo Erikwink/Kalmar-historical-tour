@@ -113,6 +113,30 @@ export class Firebase {
   }
 
   // -----------------------------
+  // Client: lyssna på tourId
+  // -----------------------------
+  onTourIdChange(sessionId, callback) {
+    const tourRef = ref(this.db, `rooms/${sessionId}/tourId`);
+
+    return onValue(tourRef, (snapshot) => {
+      const value = snapshot.val();
+      callback(typeof value === "string" && value.trim() ? value.trim() : null);
+    });
+  }
+
+  // -----------------------------
+  // Client: lyssna på activeControls
+  // -----------------------------
+  onActiveControlsChange(sessionId, callback) {
+    const controlsRef = ref(this.db, `rooms/${sessionId}/activeControls`);
+
+    return onValue(controlsRef, (snapshot) => {
+      const value = snapshot.val();
+      callback(value && typeof value === "object" ? value : {});
+    });
+  }
+
+  // -----------------------------
   // Dev: ta bort alla rum utom 123456
   // -----------------------------
   async removeAllRooms() {
@@ -145,7 +169,7 @@ export class Firebase {
       label,
       status: "online",
       lastSeenAt: Date.now(),
-      //ready: false,
+      ready: false,
       lastSceneId: null,
     });
 
@@ -185,10 +209,10 @@ export class Firebase {
   // -----------------------------
   // Client: ändrar ready-status
   // -----------------------------
-  // async ready(sessionId, clientId, ready = true) {
-  //   const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`);
-  //   await update(clientRef, { ready, lastSeenAt: Date.now() });
-  // }
+  async ready(sessionId, clientId, ready = true) {
+    const clientRef = ref(this.db, `rooms/${sessionId}/clients/${clientId}`);
+    await update(clientRef, { ready, lastSeenAt: Date.now() });
+  }
 
   // -----------------------------
   // Controller: ta bort ett headset från sessionen

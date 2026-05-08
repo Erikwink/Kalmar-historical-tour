@@ -1,7 +1,7 @@
 import ClientPage from "./pages/ClientPage";
 
 /**
- * Root application component for the VR headset client.
+ * Root application component for the headset client.
  */
 function App() {
   return <ClientPage />;
