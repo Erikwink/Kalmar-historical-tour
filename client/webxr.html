@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kalmar WebXR</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-top: #15203d;
+        --bg-bottom: #04050b;
+        --panel: rgba(255, 255, 255, 0.08);
+        --panel-border: rgba(255, 255, 255, 0.16);
+        --text: #f5f6fa;
+        --muted: rgba(245, 246, 250, 0.74);
+        --vr: #e5f14f;
+        --ar: #8ee7c4;
+        --sim: #6cb3ff;
+        --dark-btn: #2c3243;
+        --light-btn: #f2f3f8;
+        --warm-btn: #ffe59b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        color: var(--text);
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at top, var(--bg-top), var(--bg-bottom) 65%);
+      }
+
+      body[data-runtime-mode="headset"],
+      body[data-runtime-mode="preview"] {
+        background: #04050b;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      main {
+        width: min(92vw, 620px);
+        padding: 24px;
+        border-radius: 18px;
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        backdrop-filter: blur(6px);
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: 1.5rem;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .stack {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .field-grid {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: end;
+      }
+
+      .field-grid label {
+        grid-column: 1 / -1;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      button {
+        border: 0;
+        border-radius: 10px;
+        padding: 11px 14px;
+        font: inherit;
+      }
+
+      input,
+      select {
+        background: rgba(10, 12, 18, 0.35);
+        color: var(--text);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      button {
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      #start-vr {
+        background: var(--vr);
+        color: #1d2027;
+      }
+
+      #start-ar {
+        background: var(--ar);
+        color: #10231b;
+      }
+
+      #start-sim {
+        background: var(--sim);
+        color: #08223d;
+      }
+
+      #end-xr {
+        background: var(--dark-btn);
+        color: var(--text);
+      }
+
+      #resume-vr {
+        display: none;
+        width: 100%;
+        margin-top: 10px;
+        background: var(--vr);
+        color: #1d2027;
+        font-size: 1.08rem;
+        padding: 15px 18px;
+      }
+
+      body[data-runtime-mode="headset"] #resume-vr {
+        width: min(420px, calc(100vw - 48px));
+        margin: 0;
+        font-size: 1.18rem;
+        padding: 18px 22px;
+        justify-self: center;
+        box-shadow: 0 18px 48px rgba(0, 0, 0, 0.34);
+      }
+
+      #resume-vr[data-visible="true"] {
+        display: block;
+      }
+
+      #connect-session {
+        background: var(--light-btn);
+        color: #161823;
+      }
+
+      #send-mock-scene {
+        background: var(--warm-btn);
+        color: #332400;
+      }
+
+      .status {
+        padding: 14px 16px;
+        border-radius: 12px;
+        background: rgba(10, 12, 18, 0.28);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      #status {
+        font-size: 0.98rem;
+      }
+
+      #scene-indicator {
+        margin-top: 8px;
+        font-size: 0.92rem;
+        color: var(--muted);
+      }
+
+      #scene-debug {
+        margin-top: 10px;
+        font-size: 0.88rem;
+        line-height: 1.4;
+        color: #c6d1e6;
+        word-break: break-word;
+      }
+
+      #scene-debug[data-tone="success"] {
+        color: #99f0bf;
+      }
+
+      #scene-debug[data-tone="error"] {
+        color: #ff9d96;
+      }
+
+      #xr-canvas {
+        width: 100%;
+        height: 240px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        display: block;
+        background: rgba(0, 0, 0, 0.2);
+      }
+
+      body[data-runtime-mode="headset"] main,
+      body[data-runtime-mode="preview"] main {
+        width: 100vw;
+        height: 100vh;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: #04050b;
+        backdrop-filter: none;
+        display: grid;
+      }
+
+      body[data-runtime-mode="headset"] .stack,
+      body[data-runtime-mode="preview"] .stack {
+        height: 100vh;
+        margin: 0;
+        gap: 0;
+        grid-template-rows: 1fr;
+        padding: 0;
+        position: relative;
+        overflow: hidden;
+      }
+
+      body[data-runtime-mode="headset"] #xr-canvas,
+      body[data-runtime-mode="preview"] #xr-canvas {
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        border: 0;
+        border-radius: 0;
+        opacity: 0.38;
+      }
+
+      body[data-runtime-mode="headset"][data-headset-lobby-visible="true"] #xr-canvas {
+        opacity: 0;
+      }
+
+      .headset-lobby {
+        display: none;
+      }
+
+      .headset-lobby[hidden] {
+        display: none !important;
+      }
+
+      body[data-runtime-mode="headset"] .headset-lobby {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-rows: 1fr auto;
+        align-items: center;
+        justify-items: center;
+        gap: 24px;
+        padding: 42px 24px 52px;
+        background:
+          linear-gradient(180deg, rgba(4, 5, 11, 0.96), rgba(4, 5, 11, 1)),
+          radial-gradient(circle at 50% 28%, rgba(229, 241, 79, 0.14), transparent 34%);
+      }
+
+      .headset-lobby__copy {
+        max-width: 620px;
+        text-align: center;
+      }
+
+      .headset-lobby__eyebrow {
+        margin: 0 0 12px;
+        color: var(--vr);
+        font-size: 0.95rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .headset-lobby__title {
+        margin: 0;
+        font-size: clamp(2rem, 7vw, 4.4rem);
+        line-height: 1.02;
+        font-weight: 760;
+      }
+
+      .headset-lobby__text {
+        margin: 16px auto 0;
+        max-width: 520px;
+        color: var(--muted);
+        font-size: clamp(1rem, 2.5vw, 1.25rem);
+        line-height: 1.45;
+      }
+
+      body[data-runtime-mode="headset"] .headset-lobby #resume-vr {
+        display: none;
+      }
+
+      body[data-runtime-mode="headset"] #resume-vr {
+        position: absolute;
+        left: 50%;
+        bottom: max(30px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        z-index: 2;
+      }
+
+      .runtime-status {
+        display: none;
+      }
+
+      body[data-runtime-mode="preview"] .runtime-status {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 18px;
+        display: grid;
+        gap: 6px;
+        max-width: 620px;
+        padding: 12px 14px;
+        border-radius: 10px;
+        background: rgba(4, 5, 11, 0.72);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: var(--muted);
+        font-size: 0.86rem;
+        line-height: 1.35;
+      }
+
+      body[data-runtime-mode="preview"] #status {
+        color: var(--text);
+      }
+
+      body[data-runtime-mode="preview"] #resume-vr,
+      body[data-runtime-mode="preview"] .headset-lobby {
+        display: none;
+      }
+
+      .runtime-controls {
+        display: none;
+      }
+
+      .footer-link {
+        display: inline-block;
+        margin-top: 14px;
+        color: var(--muted);
+        text-decoration: none;
+      }
+
+      .footer-link:hover {
+        color: var(--text);
+      }
+
+      @media (max-width: 640px) {
+        main {
+          padding: 18px;
+        }
+
+        .field-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body data-runtime-mode="headset" data-headset-mode="true">
+    <main>
+      <div class="stack">
+        <canvas id="xr-canvas" aria-label="WebXR preview canvas"></canvas>
+
+        <section class="headset-lobby" aria-live="polite">
+          <div class="headset-lobby__copy">
+            <p class="headset-lobby__eyebrow">Kalmar historisk tur</p>
+            <h2 id="headset-lobby-title" class="headset-lobby__title">Väntar på nästa scen</h2>
+            <p id="headset-lobby-text" class="headset-lobby__text">Guiden startar upplevelsen när alla headset är redo.</p>
+          </div>
+        </section>
+
+        <button id="resume-vr" type="button">Fortsätt i VR</button>
+
+        <aside class="runtime-status" aria-live="polite">
+          <div id="status">Checking WebXR support...</div>
+          <div id="tour-indicator">Active tour: kalmar-medeltid [kalmar-medeltid] (fallback)</div>
+          <div id="scene-indicator">Active scene: waiting</div>
+          <div id="controls-indicator">Active controls: none</div>
+          <div id="scene-debug" data-tone="info">No scene diagnostics yet.</div>
+        </aside>
+
+        <div class="runtime-controls" hidden>
+          <input id="session-id" name="session-id" type="text" value="" maxlength="32" />
+          <button id="connect-session" type="button">Connect Scene Stream</button>
+          <select id="mock-scene-select">
+            <option value="waiting">waiting</option>
+            <option value="castle">castle</option>
+            <option value="church">church</option>
+            <option value="boats">boats</option>
+            <option value="locomotion-test">locomotion-test</option>
+            <option value="remove-headset">remove-headset</option>
+          </select>
+          <button id="send-mock-scene" type="button" disabled>Preview / Send Scene</button>
+          <button id="start-vr" type="button">Start VR</button>
+          <button id="start-ar" type="button">Start AR</button>
+          <button id="start-sim" type="button">Start Simulation</button>
+          <button id="end-xr" type="button" disabled>End Session</button>
+        </div>
+      </div>
+    </main>
+
+    <script type="module" src="/src/webxr/main.js"></script>
+  </body>
+</html>
