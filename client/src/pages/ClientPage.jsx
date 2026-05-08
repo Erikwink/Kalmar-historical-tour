@@ -19,7 +19,7 @@ export default function ClientPage() {
   const [sessionId, setSessionId] = useState(() => sessionStorage.getItem(SESSION_ID_KEY) ?? "");
   const [headsetLabel, setHeadsetLabel] = useState(() => sessionStorage.getItem(LABEL_KEY) ?? "");
   const [activeSessionId, setActiveSessionId] = useState(() => sessionStorage.getItem(ACTIVE_SESSION_KEY) ?? "");
-  const [log, setLog] = useState([]);
+ // const [log, setLog] = useState([]);
   const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
   const [sessionEnded, setSessionEnded] = useState(false);
   const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
@@ -172,20 +172,7 @@ export default function ClientPage() {
           xrSceneUrl={xrSceneUrl}
         />
 
-        <ActivityLog
-          log={[
-            ...log,
-            ...(sessionEnded ? ["Sessionen avslutades av guide."] : []),
-            ...(activeTour ? [`Aktiv tour: ${activeTour.title} [${activeTourId}]`] : []),
-            ...(activeControlsState.activeControls.length
-              ? [
-                  `Aktiva controls: ${activeControlsState.activeControls
-                    .map((control) => control.label || control.id)
-                    .join(", ")}`,
-                ]
-              : []),
-          ]}
-        />
+        
       </div>
     </div>
   );
