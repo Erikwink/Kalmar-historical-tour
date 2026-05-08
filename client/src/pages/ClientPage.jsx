@@ -172,20 +172,21 @@ export default function ClientPage() {
           xrSceneUrl={xrSceneUrl}
         />
 
-        <ActivityLog
+        {/* For DEV ONLY remove this in production - shows the current activity log and session state for debugging purposes. */}
+        {/* <ActivityLog
           log={[
             ...log,
             ...(sessionEnded ? ["Sessionen avslutades av guide."] : []),
             ...(activeTour ? [`Aktiv tour: ${activeTour.title} [${activeTourId}]`] : []),
             ...(activeControlsState.activeControls.length
               ? [
-                  `Aktiva controls: ${activeControlsState.activeControls
-                    .map((control) => control.label || control.id)
-                    .join(", ")}`,
-                ]
+                `Aktiva controls: ${activeControlsState.activeControls
+                  .map((control) => control.label || control.id)
+                  .join(", ")}`,
+              ]
               : []),
           ]}
-        />
+        /> */}
       </div>
     </div>
   );

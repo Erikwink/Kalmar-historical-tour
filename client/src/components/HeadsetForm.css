@@ -3,7 +3,7 @@
   left: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 400px; /* Justera bredd för att passa input + knapp */
+  width: 400px;
   background: #fff;
   border-radius: 8px;
   padding: 32px;
@@ -34,7 +34,7 @@
 .form-group {
   margin-bottom: 16px;
   display: flex;
-  gap: 16px; /* Mellanrum mellan input och knapp */
+  gap: 16px;
   align-items: center;
 }
 
@@ -43,7 +43,7 @@
   height: 80px;
   border-radius: 8px;
   background: #D7DFEF;
-  border: none; /* Ta bort standardborder */
+  border: none;
   padding: 10px 25px;
   font-size: 35px;
   box-sizing: border-box;
@@ -52,7 +52,7 @@
 
 .form-group input:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(48, 54, 79, 0.2); /* Fokusera med knappfärg */
+  box-shadow: 0 0 0 2px rgba(48, 54, 79, 0.2);
 }
 
 button {

@@ -9,13 +9,13 @@ function HeadsetForm({
   headsetLabel,
   setHeadsetLabel,
   onAddHeadset,
-  activeSessionId,
+  //activeSessionId,
 }) {
   return (
     <div className="modal-card">
       <div className="modal-header">
-        <h2>Enter session code to connect</h2>
-        {activeSessionId ? <p>Headset anslutet till session {activeSessionId}</p> : null}
+        <h2>Ange sessionskod för att ansluta headset</h2>
+        {/* {activeSessionId ? <p>Headset anslutet till session {activeSessionId}</p> : null} */}
       </div>
 
       <div className="form-group">
