@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { join, loginClient, onActiveControlsChange, onSceneChange, onTourIdChange, ready } from "../../../saas-adapter/src/index";
 import {
   ACTIVE_SESSION_KEY,
@@ -9,7 +9,6 @@ import {
   normalizeSessionId,
 } from "../utils/sessionStorage";
 import { resolveActiveControls, resolveScene, resolveTour } from "../toursClient.js";
-import ActivityLog from "../components/ActivityLog";
 import HeadsetForm from "../components/HeadsetForm";
 
 /**
@@ -21,15 +20,15 @@ export default function ClientPage() {
   const [activeSessionId, setActiveSessionId] = useState(() => sessionStorage.getItem(ACTIVE_SESSION_KEY) ?? "");
  // const [log, setLog] = useState([]);
   const [disconnectCancelFn, setDisconnectCancelFn] = useState(null);
-  const [sessionEnded, setSessionEnded] = useState(false);
+  const [_sessionEnded, setSessionEnded] = useState(false);
   const [activeSceneId, setActiveSceneId] = useState(DEFAULT_SCENE_ID);
   const [activeControlMap, setActiveControlMap] = useState({});
   const [tourState, setTourState] = useState(() => resolveTour(""));
   const [headsetId] = useState(() => getOrCreateHeadsetId());
 
   const activeSceneState = resolveScene(tourState, activeSceneId);
-  const activeControlsState = resolveActiveControls(activeSceneState, activeControlMap);
-  const activeTour = tourState.tour;
+  const _activeControlsState = resolveActiveControls(activeSceneState, activeControlMap);
+
   const activeTourId = tourState.resolvedTourId;
   const xrSceneUrl = activeSessionId
     ? `${window.location.origin}/webxr.html?session=${activeSessionId}&tourId=${encodeURIComponent(activeTourId)}`
@@ -47,18 +46,9 @@ export default function ClientPage() {
     sessionStorage.setItem(ACTIVE_SESSION_KEY, activeSessionId);
   }, [activeSessionId]);
 
-  /**
-   * Appends a single line to the local activity log.
-   */
-  const appendLog = useCallback((message) => {
-    setLog((entries) => [...entries, message]);
-  }, []);
-
   useEffect(() => {
-    loginClient()
-      .then(() => appendLog("Inloggad i Firebase (anonymous)."))
-      .catch((error) => appendLog(`Login fel: ${error.message}`));
-  }, [appendLog]);
+    loginClient().catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (!activeSessionId) {
@@ -66,12 +56,9 @@ export default function ClientPage() {
     }
 
     join(activeSessionId, headsetId, headsetLabel || headsetId)
-      .then((result) => {
-        setDisconnectCancelFn(() => result?.cancel);
-        appendLog("Återansluten till session.");
-      })
-      .catch((error) => appendLog(`Fel vid återanslutning: ${error.message}`));
-  }, [activeSessionId, appendLog, headsetId, headsetLabel]);
+      .then((result) => setDisconnectCancelFn(() => result?.cancel))
+      .catch(console.error);
+  }, [activeSessionId, headsetId, headsetLabel]);
 
   useEffect(() => {
     if (!activeSessionId) {
@@ -80,7 +67,6 @@ export default function ClientPage() {
 
     const unsubscribe = onSceneChange(activeSessionId, (sceneId) => {
       if (sceneId === null) {
-        appendLog("Sessionen avslutades av guide.");
         disconnectCancelFn?.();
         setActiveSessionId("");
         setSessionId("");
@@ -88,17 +74,15 @@ export default function ClientPage() {
         setActiveSceneId(DEFAULT_SCENE_ID);
         setActiveControlMap({});
         setTourState(resolveTour(""));
-        appendLog("Rensade aktiv tour och controls.");
         return;
       }
 
       const effectiveSceneId = typeof sceneId === "string" && sceneId.trim() ? sceneId.trim() : DEFAULT_SCENE_ID;
       setActiveSceneId(effectiveSceneId);
-      appendLog(`Scen ändrad: ${effectiveSceneId}`);
     });
 
     return unsubscribe;
-  }, [activeSessionId, appendLog, disconnectCancelFn]);
+  }, [activeSessionId, disconnectCancelFn]);
 
   useEffect(() => {
     if (!activeSessionId) {
@@ -106,17 +90,11 @@ export default function ClientPage() {
     }
 
     const unsubscribe = onTourIdChange(activeSessionId, (tourId) => {
-      const resolved = resolveTour(tourId);
-      setTourState(resolved);
-      appendLog(
-        resolved.usedFallback
-          ? `tourId saknas eller är ogiltigt. Fallback till ${resolved.resolvedTourId}.`
-          : `Tour uppdaterad: ${resolved.resolvedTourId}`,
-      );
+      setTourState(resolveTour(tourId));
     });
 
     return unsubscribe;
-  }, [activeSessionId, appendLog]);
+  }, [activeSessionId]);
 
   useEffect(() => {
     if (!activeSessionId) {
@@ -124,23 +102,18 @@ export default function ClientPage() {
     }
 
     const unsubscribe = onActiveControlsChange(activeSessionId, (activeControls) => {
-      const nextControlMap = activeControls && typeof activeControls === "object" ? activeControls : {};
-      setActiveControlMap(nextControlMap);
-      appendLog(`Aktiva controls uppdaterade: ${Object.keys(nextControlMap).length}`);
+      setActiveControlMap(activeControls && typeof activeControls === "object" ? activeControls : {});
     });
 
     return unsubscribe;
-  }, [activeSessionId, appendLog]);
+  }, [activeSessionId]);
 
   /**
    * Joins the session, marks this headset ready, and opens the WebXR runtime.
    */
   const handleAddHeadset = async () => {
     const normalizedSessionId = normalizeSessionId(sessionId);
-    if (!normalizedSessionId) {
-      appendLog("Skapa session först.");
-      return;
-    }
+    if (!normalizedSessionId) return;
 
     try {
       setSessionId(normalizedSessionId);
@@ -152,10 +125,9 @@ export default function ClientPage() {
       setActiveSceneId(DEFAULT_SCENE_ID);
       setActiveControlMap({});
       setTourState(resolveTour(""));
-      appendLog(`Headset ansluten och redo i session ${normalizedSessionId}.`);
       window.open(`${window.location.origin}/webxr.html?session=${normalizedSessionId}&tourId=${encodeURIComponent(activeTourId)}`, "_blank");
     } catch (error) {
-      appendLog(`Fel vid headset: ${error.message}`);
+      console.error(error);
     }
   };
 
