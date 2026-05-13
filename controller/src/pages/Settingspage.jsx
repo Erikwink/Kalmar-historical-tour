@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useSettings } from '../context/SettingsContext'
 import TopAppBar from '../components/TopAppBar'
 import ConfirmModal from '../components/ConfirmModal'
+import SettingsManageDevices from '../components/SettingsManageDevices'
 
 const LANGUAGES = [
   { value: 'sv', label: 'Svenska' },
@@ -15,47 +16,22 @@ const FONT_SIZE_VALUES = ['small', 'medium', 'large']
 /**
  * App settings page — language, font size, theme, and account actions.
  * Switches to an inline headset management view when the user clicks "Hantera enheter".
- * @param {{ onLogout: Function, headsets: Array, onRemoveHeadset: Function }} props
+ * @param {{ onLogout: Function, onEndSession: Function, headsets: Array, onRemoveHeadset: Function, adapterStatus: string|null }} props
  */
 export default function SettingsPage({ onLogout, onEndSession, headsets = [], onRemoveHeadset, adapterStatus }) {
-  const [view, setView] = useState('settings')
+  const [showHeadsets, setShowHeadsets] = useState(false)
   const [showEndModal, setShowEndModal] = useState(false)
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { theme, setTheme, language, setLanguage, fontSize, setFontSize } = useSettings()
 
-  if (view === 'headsets') {
+  if (showHeadsets) {
     return (
-      <div className="page">
-        <TopAppBar title={t('settingsPage.manageDevices')} onBack={() => setView('settings')} showSettings={false} />
-        <div className="page-content">
-          <div className="card">
-            {headsets.length === 0 ? (
-              <p className="settings-item">{t('manageHeadsetsModal.empty')}</p>
-            ) : (
-              <ul className="headset-items" style={{ padding: '0 16px' }}>
-                {headsets.map((h) => (
-                  <li key={h.id} className="headset-item">
-                    <span className="headset-item__label">{h.label}</span>
-                    <span className="headset-item__status">
-                      {h.status}
-                      <span className={`headset-item__dot headset-item__dot--${h.status}`} />
-                    </span>
-                    <button
-                      className="icon-btn"
-                      style={{ color: 'var(--color-warning)', marginLeft: '8px' }}
-                      aria-label={t('manageHeadsetsModal.remove')}
-                      onClick={() => onRemoveHeadset(h.id)}
-                    >
-                      <span className="ms">delete</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
+      <SettingsManageDevices
+        headsets={headsets}
+        onRemoveHeadset={onRemoveHeadset}
+        onBack={() => setShowHeadsets(false)}
+      />
     )
   }
 
@@ -73,7 +49,7 @@ export default function SettingsPage({ onLogout, onEndSession, headsets = [], on
             <span className="settings-item__label">{t('settingsPage.editTour')}</span>
             <span className="ms settings-item__arrow">chevron_right</span>
           </button>
-          <button className="settings-item" onClick={() => setView('headsets')}>
+          <button className="settings-item" onClick={() => setShowHeadsets(true)}>
             <span className="settings-item__label">{t('settingsPage.manageDevices')}</span>
             <span className="ms settings-item__arrow">chevron_right</span>
           </button>

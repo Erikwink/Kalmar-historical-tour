@@ -22,4 +22,4 @@ export const tours = [
   kalmar,
 ];
 
-export { WAITING_CONTROLS } from "./waiting-controls";
+export { WAITING_CONTROLS, SCENE_WAITING, SCENE_REMOVE_HEADSET } from "./waiting-controls";

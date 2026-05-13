@@ -1,12 +1,5 @@
 import { MS_FILL_SM } from "../utils/iconStyles";
-
-const CONTROL_ICONS = {
-  "360-photo":  "panorama",
-  "360-video":  "panorama",
-  "flat-video": "videocam",
-  "audio":      "music_note",
-  "narration":  "record_voice_over",
-};
+import { CONTROL_ICONS } from "../utils/status_maps";
 
 /**
  * Displays the currently active scene and its active controls.

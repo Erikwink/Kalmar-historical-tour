@@ -9,13 +9,13 @@ import TopAppBar from "../components/TopAppBar";
 import ActiveSceneChip from "../components/ActiveSceneChip";
 import Section from "../components/Section";
 import Fab from "../components/Fab";
-import { tours, WAITING_CONTROLS } from "../../../tours/index";
+import { tours, WAITING_CONTROLS, SCENE_REMOVE_HEADSET } from "../../../tours/index";
 import { setTourId } from "../../../saas-adapter/src/index";
-import TourSummaryCard from './../components/TourSummaryCard';
+
 
 /**
  * Active tour control page — lets the guide select which scene headsets should display.
- * @param {{ sessionId: string, activeScene: string, onScenePress: Function, onEndSession: Function, headsets: Array }} props
+ * @param {{ sessionId: string, activeScene: string, activeControls: Object, onScenePress: Function, onControlToggle: Function, headsets: Array }} props
  */
 export default function OverviewPage({ sessionId, activeScene, activeControls = {}, onScenePress, onControlToggle, headsets = [] }) {
   const navigate = useNavigate();
@@ -24,6 +24,9 @@ export default function OverviewPage({ sessionId, activeScene, activeControls = 
   const [showEndModal, setShowEndModal] = useState(false);
   const [expandedScene, setExpandedScene] = useState(null);
 
+  /** Toggles expansion of a scene card and publishes it if not already active.
+   * @param {string} sceneId
+   */
   function handleSceneSelect(sceneId) {
     setExpandedScene(prev => prev === sceneId ? null : sceneId);
     if (sceneId !== activeScene) {
@@ -109,7 +112,7 @@ export default function OverviewPage({ sessionId, activeScene, activeControls = 
           confirmLabel={t("overviewPage.endTour")}
           cancelLabel={t("endSessionModal.cancel")}
           confirmIcon="stop_circle"
-          onConfirm={() => { setShowEndModal(false); onScenePress("remove-headset"); navigate('/'); }}
+          onConfirm={() => { setShowEndModal(false); onScenePress(SCENE_REMOVE_HEADSET); navigate('/'); }}
           onCancel={() => setShowEndModal(false)}
         />
       )}

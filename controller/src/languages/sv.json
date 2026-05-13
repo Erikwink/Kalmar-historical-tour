@@ -18,7 +18,6 @@
     "settings": "Inställningar"
   },
   "toursPage": {
-    "guidesIn": "Guider i",
     "city": "Kalmar",
     "selectTour": "Välj tour"
   },
@@ -30,44 +29,19 @@
     "connectWithSound": "Anslut med ljud",
     "connectDevice": "Anslut enhet",
     "connectedDevices": "Anslutna enheter",
-    "sessionCode": "Sessionskod",
-    "playSound": "Spela ljud",
-    "next": "Nästa",
-    "headsets": "Headsets",
-    "sessionId": "Session-ID",
-    "showQR": "Visa QR-kod",
-    "cancel": "Avbryt",
-    "startTour": "Starta tour",
-    "selectTour": "Välj tour" 
+    "next": "Nästa"
   },
   "overviewPage": {
     "activeScene": "Aktiv scen",
-    "scenes": "Scener",
-    "stops": "stopp",
-    "headsetInfo": "Headset info",
     "headsetOnline": "online",
     "headsetConnecting": "ansluter",
     "headsetNotReady": "inte redo",
     "headsetOffline": "offline",
     "headsetError": "fel",
-    "noHeadsets": "Inga headset anslutna",
     "waitingControls": "Väntande kontroller",
-    "pleaseWaitForStart": "Vänta på start",
-    "pleaseRemoveHeadset": "Ta av headset",
     "endTour": "Avsluta tour",
     "scenesOverview": "Översikt scener",
     "endTourMessage": "Turen kommer att avslutas och scene satt till Ta av headsets"
-  },
-  "detailPage": {
-    "title": "Detaljerad vy",
-    "activeView": "Aktiv vy",
-    "views": "Vyer",
-    "sound": "Ljud",
-    "picture": "Bild",
-    "nextStop": "Nästa stopp",
-    "tourComplete": "Tour slutförd",
-    "backToOverview": "Tillbaka till översikt",
-    "lastScene": "Sista scenen"
   },
   "settingsPage": {
     "title": "Inställningar",
@@ -87,9 +61,6 @@
     "endSession": "Avsluta session",
     "endSessionMessage": "Alla headsets tappar anslutningen och sessionen rensas."
   },
-  "readyPage": {
-    "headsets": "Headsets"
-  },
   "fontSizes": {
     "small": "Liten",
     "medium": "Medel",
@@ -102,21 +73,6 @@
     "close": "Stäng"
   },
   "endSessionModal": {
-    "title": "Avsluta Tour?",
-    "message": " Touren kommer att avslutas",
-    "cancel": "Avbryt",
-    "confirm": "Avsluta tour"
-  },
-  "qrModal": {
-    "title": "QR-kod",
-    "close": "Stäng",
-    "hint": "Skanna för att ansluta till session"
-  },
-  "headsetList": {
-    "title": "Headset"
-  },
-  "sessionCard": {
-    "label": "Session",
-    "tagline": "Skanna för att gå med i touren"
+    "cancel": "Avbryt"
   }
 }

@@ -5,6 +5,10 @@ import TopAppBar from '../components/TopAppBar'
 import Fab from '../components/Fab'
 import Section from '../components/Section';
 
+/**
+ * Session start page — shows the session code for headsets to connect and lists connected devices.
+ * @param {{ sessionId: string, headsets: Array, adapterStatus: string|null }} props
+ */
 export default function SessionPage({ sessionId, headsets, adapterStatus }) {
   const navigate = useNavigate()
   const { t } = useTranslation()

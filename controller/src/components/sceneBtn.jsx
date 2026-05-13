@@ -15,7 +15,6 @@ export default function SceneBtn({ scene, label, isActive, onClick }) {
       </span>
       <span className="scene-btn__label">{label ?? scene.label}</span>
       <span className="ms scene-btn__check">check_circle</span>
-      {/* <span className="ms settings-item__arrow">chevron_right</span> */}
     </button>
   )
 }

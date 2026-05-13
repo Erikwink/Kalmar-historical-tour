@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
+/** Login page — email/password form. Authentication is not yet implemented. */
 export default function LoginPage() {
   const navigate = useNavigate()
   const { t } = useTranslation()
@@ -9,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
 
+  /** @param {React.FormEvent} e */
   function handleSubmit(e) {
     e.preventDefault()
     navigate('/')

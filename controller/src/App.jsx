@@ -7,18 +7,21 @@ import SessionPage from "./pages/SessionPage"
 import OverviewPage from "./pages/OverviewPage"
 import SettingsPage from "./pages/Settingspage"
 import LoginPage from "./pages/LoginPage"
-import JoinMock from "./JoinMock" // DEV: remove when real client exists
 import generateSessionId from "./utils/generateSessionId"
+import { SCENE_WAITING } from "../../tours/index"
 
 
+/** Root component — manages Firebase lifecycle, session state, and renders all routes. */
 function AppContent() {
   const navigate = useNavigate()
-  const [activeScene, setActiveScene] = useState("waiting")
+  const [activeScene, setActiveScene] = useState(SCENE_WAITING)
   const [activeControls, setActiveControls] = useState({})
   const [saasStatus, setSaasStatus] = useState(null)
   const [headsets, setHeadsets] = useState([])
   const [sessionId, setSessionId] = useState(generateSessionId)
 
+
+  // Connects to Firebase on mount and re-connects whenever sessionId changes (new session)
   useEffect(() => {
     let unsubscribe = () => {}
 
@@ -29,7 +32,7 @@ function AppContent() {
           import.meta.env.VITE_FIREBASE_EMAIL,
           import.meta.env.VITE_FIREBASE_PASSWORD)
         await connect(sessionId)
-        await publish(sessionId, "waiting")
+        await publish(sessionId, SCENE_WAITING)
         // listen to headsets after connection to firebase
         unsubscribe = onHeadsetsChange(sessionId, setHeadsets)
         setSaasStatus(FIREBASE_STATUS.CONNECTED)
@@ -43,6 +46,9 @@ function AppContent() {
     return () => unsubscribe()
   }, [sessionId])
 
+  /** Publishes a new active scene to Firebase and resets controls.
+   * @param {string} sceneId
+   */
   async function handleScenePress(sceneId) {
     try {
       await publish(sessionId, sceneId)
@@ -54,6 +60,10 @@ function AppContent() {
     }
   }
 
+  /** Toggles a control on or off in Firebase and mirrors the change locally.
+   * @param {string} controlId
+   * @param {boolean} currentValue
+   */
   async function handleControlToggle(controlId, currentValue) {
     try {
       await toggleControl(sessionId, controlId, currentValue)
@@ -69,6 +79,9 @@ function AppContent() {
     }
   }
 
+  /** Removes a headset from the current session in Firebase.
+   * @param {string} headsetId
+   */
   async function handleRemoveHeadset(headsetId) {
     try {
       await removeHeadset(sessionId, headsetId)
@@ -77,11 +90,12 @@ function AppContent() {
     }
   }
 
+  /** Disconnects Firebase, clears localStorage and resets state to start a new session. */
   async function handleEndSession() {
     try {
       await disconnect(sessionId)
       localStorage.removeItem('sessionId')
-      setActiveScene("waiting")
+      setActiveScene(SCENE_WAITING)
       setSessionId(generateSessionId())
       setSaasStatus(null)
       navigate('/')
@@ -115,7 +129,6 @@ function AppContent() {
               activeControls={activeControls}
               onScenePress={handleScenePress}
               onControlToggle={handleControlToggle}
-              onEndSession={handleEndSession}
               headsets={headsets}
             />
           }
@@ -133,13 +146,11 @@ function AppContent() {
           }
         />
       </Routes>
-
-      {/* REMOVE MOCK ONCE CLIENT IS IMPLEMENTED */}
-      {/* <JoinMock sessionId={sessionId} headsets={headsets} /> */}
     </>
   )
 }
 
+/** App root — wraps AppContent in BrowserRouter. */
 export default function App() {
   return (
     <BrowserRouter>

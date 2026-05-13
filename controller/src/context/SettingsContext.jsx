@@ -72,6 +72,7 @@ export function SettingsProvider({ children }) {
   )
 }
 
+/** Hook to consume the SettingsContext. Must be used inside SettingsProvider. */
 // eslint-disable-next-line react-refresh/only-export-components
 export function useSettings() {
   return useContext(SettingsContext)

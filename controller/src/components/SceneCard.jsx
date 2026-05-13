@@ -1,11 +1,10 @@
-const CONTROL_ICONS = {
-  "360-photo":  "panorama",
-  "360-video":  "panorama",
-  "flat-video": "videocam",
-  "audio":      "music_note",
-  "narration":  "record_voice_over",
-};
+import { CONTROL_ICONS } from "../utils/status_maps";
+import { MS_FILL } from "../utils/iconStyles";
 
+/**
+ * Expandable card for a scene — shows thumbnail/icon and toggleable controls when expanded.
+ * @param {{ scene: object, label: string, isActive: boolean, isExpanded: boolean, activeControls: Object, onSelect: Function, onControlToggle: Function }} props
+ */
 export default function SceneCard({ scene, label, isActive, isExpanded, activeControls = {}, onSelect, onControlToggle }) {
   return (
     <div
@@ -16,7 +15,7 @@ export default function SceneCard({ scene, label, isActive, isExpanded, activeCo
         <div className="scene-card__backdrop">
           {scene.image
             ? <img src={scene.image} alt={label} className="scene-card__img" />
-            : <span className="ms scene-card__icon" style={{ fontVariationSettings: "'FILL' 1, 'wght' 300, 'GRAD' 0, 'opsz' 48" }}>{scene.icon}</span>
+            : <span className="ms scene-card__icon" style={MS_FILL}>{scene.icon}</span>
           }
           <div className="scene-card__footer">
             <span className="scene-card__label">{label}</span>

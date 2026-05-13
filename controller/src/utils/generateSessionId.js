@@ -12,5 +12,4 @@ export default function generateSessionId() {
   localStorage.setItem("sessionId", sessionId)
   return sessionId
   }
-  //return "123456"
 }

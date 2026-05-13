@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { HEADSET_STATUS } from '../utils/status_maps'
+import { STATUS_LABEL_KEY, resolveStatus } from '../utils/status_maps'
 
 const PROBLEM_STATUSES = [
   HEADSET_STATUS.NOT_READY,
@@ -9,19 +10,6 @@ const PROBLEM_STATUSES = [
   HEADSET_STATUS.ERROR,
 ]
 
-const STATUS_LABEL_KEY = {
-  [HEADSET_STATUS.ONLINE]:     'overviewPage.headsetOnline',
-  [HEADSET_STATUS.NOT_READY]:  'overviewPage.headsetNotReady',
-  [HEADSET_STATUS.CONNECTING]: 'overviewPage.headsetConnecting',
-  [HEADSET_STATUS.OFFLINE]:    'overviewPage.headsetOffline',
-  [HEADSET_STATUS.ERROR]:      'overviewPage.headsetError',
-}
-
-function resolveStatus(h) {
-  if (h.status === HEADSET_STATUS.OFFLINE) return HEADSET_STATUS.OFFLINE
-  //if (!h.ready) return HEADSET_STATUS.NOT_READY
-  return h.status
-}
 
 /**
  * Compact headset status bar — always visible, expands on click if there are issues.
